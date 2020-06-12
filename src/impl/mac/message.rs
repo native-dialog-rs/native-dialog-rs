@@ -56,15 +56,15 @@ fn display_alert<T: DeserializeOwned>(params: DisplayAlertParams) -> Result<T> {
         r"
         const app = Application.currentApplication();
         app.includeStandardAdditions = true;
-        
+
         const options = {
             buttons: $params.buttons,
             withTitle: $params.title,
             withIcon: $params.icon,
         };
-        
+
         try {
-            return app.displayDialog($params.message, options).buttonReturned;
+            return app.displayDialog($params.text, options).buttonReturned;
         } catch (e) {
             return null;
         }
