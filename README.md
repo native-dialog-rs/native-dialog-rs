@@ -1,7 +1,7 @@
 # native-dialog
 
-[![Crates.io](https://img.shields.io/crates/v/native-dialog.svg)](https://crates.io/crates/iced)
-[![License](https://img.shields.io/crates/l/native-dialog.svg)](https://github.com/hecrj/iced/blob/master/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/native-dialog.svg)](https://crates.io/crates/native-dialog)
+[![License](https://img.shields.io/crates/l/native-dialog.svg)](LICENSE)
 
 A library to display file choosers and message boxes. Supports GNU/Linux, macOS and Windows.
 
