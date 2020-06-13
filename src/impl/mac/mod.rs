@@ -8,7 +8,7 @@ impl From<osascript::Error> for Error {
         match error {
             osascript::Error::Io(e) => Error::IoFailure(e),
             osascript::Error::Json(_) => Error::UnexpectedOutput("osascript"),
-            osascript::Error::Script(_) => Error::Unknown,
+            osascript::Error::Script(s) => Error::ImplementationError(s),
         }
     }
 }

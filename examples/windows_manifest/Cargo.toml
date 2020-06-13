@@ -1,0 +1,12 @@
+[package]
+name = "fuck_ms"
+version = "0.1.0"
+authors = ["Balthild <ibalthild@gmail.com>"]
+edition = "2018"
+build = "build.rs"
+
+[build-dependencies]
+embed-resource = "1.3"
+
+[dependencies]
+native-dialog = { path = "../.." }

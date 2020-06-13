@@ -14,8 +14,8 @@ impl Dialog for MessageAlert<'_> {
                     text: self.text,
                     typ: self.typ,
                     ask: false,
-                })
-                .map(|_| ())
+                })?;
+                Ok(())
             }
             Some(UseCommand::Zenity(command)) => {
                 dialog_implementation_zenity(ImplementationParams {
@@ -24,8 +24,8 @@ impl Dialog for MessageAlert<'_> {
                     text: self.text,
                     typ: self.typ,
                     ask: false,
-                })
-                .map(|_| ())
+                })?;
+                Ok(())
             }
             None => Err(Error::NoImplementation),
         }

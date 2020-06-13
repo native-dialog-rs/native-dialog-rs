@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("system I/O failure")]
+    #[error("system error or I/O failure")]
     IoFailure(#[from] std::io::Error),
 
     #[error("the implementation returns malformed strings")]
@@ -14,8 +14,8 @@ pub enum Error {
     #[error("cannot find any dialog implementation (kdialog/zanity)")]
     NoImplementation,
 
-    #[error("unknown error")]
-    Unknown,
+    #[error("the implementation reports error")]
+    ImplementationError(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
