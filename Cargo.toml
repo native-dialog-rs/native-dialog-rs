@@ -1,6 +1,6 @@
 [package]
 name = "native-dialog"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["balthild <ibalthild@gmail.com>"]
 edition = "2018"
 description = "A library to display dialogs. Supports GNU/Linux, macOS and Windows."
@@ -22,7 +22,12 @@ which = "4.0.0"
 osascript = "0.3.0"
 serde = { version = "1.0", features = ["derive"] }
 
+[features]
+windows_dpi_awareness = []
+windows_visual_styles = ["winapi/sysinfoapi", "winapi/winbase", "winapi/handleapi", "winapi/libloaderapi"]
+
 [workspace]
 members = [
     "examples/windows_manifest",
+    "examples/windows_features",
 ]

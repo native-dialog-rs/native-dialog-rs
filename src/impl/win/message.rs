@@ -4,6 +4,8 @@ impl Dialog for MessageAlert<'_> {
     type Output = ();
 
     fn show(self) -> Result<Self::Output> {
+        super::process_init();
+
         message_box(MessageBoxParams {
             title: self.title,
             text: self.text,
@@ -18,6 +20,8 @@ impl Dialog for MessageConfirm<'_> {
     type Output = bool;
 
     fn show(self) -> Result<Self::Output> {
+        super::process_init();
+
         message_box(MessageBoxParams {
             title: self.title,
             text: self.text,

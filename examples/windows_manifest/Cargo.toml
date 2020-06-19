@@ -1,5 +1,5 @@
 [package]
-name = "fuck_ms"
+name = "windows_manifest"
 version = "0.1.0"
 authors = ["Balthild <ibalthild@gmail.com>"]
 edition = "2018"

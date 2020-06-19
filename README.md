@@ -38,4 +38,4 @@ assert_eq!(result, true);
 
 #### Why the dialogs look ugly/blurry on Windows?
 
-Embed manifests into the `.exe` to enable visual styling and dpi awareness for your program. Check out [examples/windows_manifest](examples/windows_manifest) for example.
+Turn on crate features or embed manifests into the `.exe` to enable visual styling and dpi awareness for your program. Check out [examples/windows_manifest](examples/windows_manifest) and [examples/windows_features](examples/windows_features) for example.

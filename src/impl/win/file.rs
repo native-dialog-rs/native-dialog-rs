@@ -9,6 +9,8 @@ impl Dialog for OpenSingleFile<'_> {
     type Output = Option<String>;
 
     fn show(self) -> Result<Self::Output> {
+        super::process_init();
+
         open_dialog(OpenDialogParams {
             dir: self.dir,
             filter: self.filter,
@@ -22,6 +24,8 @@ impl Dialog for OpenMultipleFile<'_> {
     type Output = Vec<String>;
 
     fn show(self) -> Result<Self::Output> {
+        super::process_init();
+
         let result = open_dialog(OpenDialogParams {
             dir: self.dir,
             filter: self.filter,
