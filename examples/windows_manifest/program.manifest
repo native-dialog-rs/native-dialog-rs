@@ -6,7 +6,7 @@
             name="Balthild.NativeDialog.Example"
             type="win32"
     />
-    <description>Micro$hit NMSL</description>
+    <description>Rust Manifest Example</description>
     <dependency>
         <dependentAssembly>
             <assemblyIdentity

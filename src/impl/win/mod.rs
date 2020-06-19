@@ -40,7 +40,7 @@ mod act_ctx {
     use winapi::um::winnt::HANDLE;
 
     struct ActCtxHandle {
-        ptr: HANDLE,
+        handle: HANDLE,
     }
 
     unsafe impl Send for ActCtxHandle {}
@@ -71,7 +71,7 @@ mod act_ctx {
         };
 
         ActCtxHandle {
-            ptr: unsafe { CreateActCtxW(&mut context) },
+            handle: unsafe { CreateActCtxW(&mut context) },
         }
     }
 
@@ -80,6 +80,6 @@ mod act_ctx {
 
         static ACT_CTX_HANDLE: OnceCell<ActCtxHandle> = OnceCell::new();
 
-        ACT_CTX_HANDLE.get_or_init(init).ptr
+        ACT_CTX_HANDLE.get_or_init(init).handle
     }
 }
