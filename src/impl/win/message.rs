@@ -63,7 +63,9 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
         MessageType::Error => MB_ICONERROR,
     } | if params.ask { MB_YESNO } else { MB_OK };
 
-    let ret = unsafe { MessageBoxW(null_mut(), text.as_ptr(), caption.as_ptr(), u_type) };
+    let ret = super::with_visual_styles(|| unsafe {
+        MessageBoxW(null_mut(), text.as_ptr(), caption.as_ptr(), u_type)
+    });
 
     match ret {
         0 => Err(std::io::Error::last_os_error())?,

@@ -14,6 +14,7 @@ thiserror = "1.0.19"
 [target.'cfg(target_os = "windows")'.dependencies]
 wfd = "0.1.3"
 winapi = { version = "0.3", features = ["winuser"] }
+once_cell = "1.4.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 which = "4.0.0"
@@ -24,7 +25,12 @@ serde = { version = "1.0", features = ["derive"] }
 
 [features]
 windows_dpi_awareness = []
-windows_visual_styles = ["winapi/sysinfoapi", "winapi/winbase", "winapi/handleapi", "winapi/libloaderapi"]
+windows_visual_styles = [
+    "winapi/sysinfoapi",
+    "winapi/winbase",
+    "winapi/handleapi",
+    "winapi/libloaderapi",
+]
 
 [workspace]
 members = [
