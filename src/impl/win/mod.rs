@@ -14,7 +14,9 @@ fn process_init() {
 
 #[cfg(not(feature = "windows_visual_styles"))]
 #[inline(always)]
-fn with_visual_styles<T>(f: impl Fn() -> T) -> T {}
+fn with_visual_styles<T>(f: impl Fn() -> T) -> T {
+    f()
+}
 
 #[cfg(feature = "windows_visual_styles")]
 #[inline(always)]
