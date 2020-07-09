@@ -1,4 +1,4 @@
-use crate::{Dialog, Error, OpenMultipleFile, OpenSingleFile, Result};
+use crate::{Dialog, Error, OpenMultipleFile, OpenSingleDirectory, OpenSingleFile, Result};
 use osascript::JavaScript;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -11,6 +11,7 @@ impl Dialog for OpenSingleFile<'_> {
             multiple: false,
             dir: self.dir,
             filter: self.filter,
+            targetIsDirectory: false,
         })
     }
 }
@@ -23,6 +24,20 @@ impl Dialog for OpenMultipleFile<'_> {
             multiple: true,
             dir: self.dir,
             filter: self.filter,
+            targetIsDirectory: false,
+        })
+    }
+}
+
+impl Dialog for OpenSingleDirectory<'_> {
+    type Output = Vec<String>;
+
+    fn show(self) -> Result<Self::Output> {
+        choose_directory(ChooseFileParams {
+            multiple: false,
+            dir: self.dir,
+            filter: None,
+            targetIsDirectory: true,
         })
     }
 }
@@ -32,6 +47,7 @@ struct ChooseFileParams<'a> {
     multiple: bool,
     dir: Option<&'a str>,
     filter: Option<&'a [&'a str]>,
+    targetIsDirectory: bool,
 }
 
 fn choose_file<T: DeserializeOwned>(params: ChooseFileParams) -> Result<T> {
@@ -52,7 +68,7 @@ fn choose_file<T: DeserializeOwned>(params: ChooseFileParams) -> Result<T> {
             options.ofType = $params.filter;
 
         try {
-            let path = app.chooseFile(options);
+            let path = $params.targetIsDirectory ? app.chooseFolder(options) : app.chooseFile(options);
             
             if ($params.multiple)
                 return path.map(x => x.toString());

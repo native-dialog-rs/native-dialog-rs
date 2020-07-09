@@ -1,8 +1,11 @@
-use crate::{Dialog, Error, OpenMultipleFile, OpenSingleFile, Result};
+use crate::{
+    r#impl::OpenDialogTarget, Dialog, Error, OpenMultipleFile, OpenSingleDirectory, OpenSingleFile,
+    Result,
+};
 use std::path::PathBuf;
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST,
-    FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
+    FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST, FOS_PICKFOLDERS,
 };
 
 impl Dialog for OpenSingleFile<'_> {
@@ -15,6 +18,7 @@ impl Dialog for OpenSingleFile<'_> {
             dir: self.dir,
             filter: self.filter,
             multiple: false,
+            target: OpenDialogTarget::File,
         })
         .map(|ok| ok.map(|some| path_to_string(some.selected_file_path)))
     }
@@ -30,6 +34,7 @@ impl Dialog for OpenMultipleFile<'_> {
             dir: self.dir,
             filter: self.filter,
             multiple: true,
+            target: OpenDialogTarget::File,
         });
 
         match result {
@@ -44,6 +49,22 @@ impl Dialog for OpenMultipleFile<'_> {
     }
 }
 
+impl Dialog for OpenSingleDirectory<'_> {
+    type Output = Option<String>;
+
+    fn show(self) -> Result<Self::Output> {
+        super::process_init();
+
+        open_dialog(OpenDialogParams {
+            dir: self.dir,
+            filter: None,
+            multiple: false,
+            target: OpenDialogTarget::Directory,
+        })
+        .map(|ok| ok.map(|some| path_to_string(some.selected_file_path)))
+    }
+}
+
 fn path_to_string(path: PathBuf) -> String {
     path.to_string_lossy().to_string()
 }
@@ -52,6 +73,7 @@ struct OpenDialogParams<'a> {
     dir: Option<&'a str>,
     filter: Option<&'a [&'a str]>,
     multiple: bool,
+    target: OpenDialogTarget,
 }
 
 fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
@@ -70,6 +92,9 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     let mut options = FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST;
     if params.multiple {
         options |= FOS_ALLOWMULTISELECT;
+    }
+    if params.target == OpenDialogTarget::Directory {
+        options |= FOS_PICKFOLDERS;
     }
 
     let params = DialogParams {
