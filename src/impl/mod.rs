@@ -6,3 +6,9 @@ pub(crate) mod gnu;
 
 #[cfg(target_os = "windows")]
 pub(crate) mod win;
+
+#[derive(PartialEq)]
+pub(crate) enum OpenDialogTarget {
+    File,
+    Directory,
+}
