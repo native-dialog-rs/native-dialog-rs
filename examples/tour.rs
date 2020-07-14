@@ -35,9 +35,9 @@ fn main() {
     let result = dialog.show().unwrap();
     echo("OpenMultipleFile", &result);
 
-    let dialog = OpenSingleDirectory { dir: None };
+    let dialog = OpenSingleDir { dir: None };
     let result = dialog.show().unwrap();
-    echo("OpenSingleDirectory", &result);
+    echo("OpenSingleDir", &result);
 
     let dialog = MessageAlert {
         title: "End",

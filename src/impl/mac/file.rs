@@ -1,4 +1,4 @@
-use crate::{Dialog, Error, OpenMultipleFile, OpenSingleDirectory, OpenSingleFile, Result};
+use crate::{Dialog, Error, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
 use osascript::JavaScript;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -11,7 +11,7 @@ impl Dialog for OpenSingleFile<'_> {
             multiple: false,
             dir: self.dir,
             filter: self.filter,
-            targetIsDirectory: false,
+            choose_folder: false,
         })
     }
 }
@@ -20,24 +20,25 @@ impl Dialog for OpenMultipleFile<'_> {
     type Output = Vec<String>;
 
     fn show(self) -> Result<Self::Output> {
-        choose_file(ChooseFileParams {
+        choose_file::<Option<_>>(ChooseFileParams {
             multiple: true,
             dir: self.dir,
             filter: self.filter,
-            targetIsDirectory: false,
+            choose_folder: false,
         })
+        .map(|opt| opt.unwrap_or_else(|| vec![]))
     }
 }
 
-impl Dialog for OpenSingleDirectory<'_> {
-    type Output = Vec<String>;
+impl Dialog for OpenSingleDir<'_> {
+    type Output = Option<String>;
 
     fn show(self) -> Result<Self::Output> {
-        choose_directory(ChooseFileParams {
+        choose_file(ChooseFileParams {
             multiple: false,
             dir: self.dir,
             filter: None,
-            targetIsDirectory: true,
+            choose_folder: true,
         })
     }
 }
@@ -47,7 +48,7 @@ struct ChooseFileParams<'a> {
     multiple: bool,
     dir: Option<&'a str>,
     filter: Option<&'a [&'a str]>,
-    targetIsDirectory: bool,
+    choose_folder: bool,
 }
 
 fn choose_file<T: DeserializeOwned>(params: ChooseFileParams) -> Result<T> {
@@ -68,7 +69,7 @@ fn choose_file<T: DeserializeOwned>(params: ChooseFileParams) -> Result<T> {
             options.ofType = $params.filter;
 
         try {
-            let path = $params.targetIsDirectory ? app.chooseFolder(options) : app.chooseFile(options);
+            let path = $params.choose_folder ? app.chooseFolder(options) : app.chooseFile(options);
             
             if ($params.multiple)
                 return path.map(x => x.toString());

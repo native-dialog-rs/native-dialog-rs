@@ -1,6 +1,6 @@
 use super::{bytes_to_string, should_use, Error, UseCommand};
 use crate::{
-    r#impl::OpenDialogTarget, Dialog, OpenMultipleFile, OpenSingleDirectory, OpenSingleFile, Result,
+    r#impl::OpenDialogTarget, Dialog, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result,
 };
 use std::process::Command;
 
@@ -66,7 +66,7 @@ impl Dialog for OpenMultipleFile<'_> {
     }
 }
 
-impl Dialog for OpenSingleDirectory<'_> {
+impl Dialog for OpenSingleDir<'_> {
     type Output = Option<String>;
 
     fn show(self) -> Result<Self::Output> {

@@ -8,7 +8,7 @@ pub struct OpenMultipleFile<'a> {
     pub filter: Option<&'a [&'a str]>,
 }
 
-pub struct OpenSingleDirectory<'a> {
+pub struct OpenSingleDir<'a> {
     pub dir: Option<&'a str>,
 }
 

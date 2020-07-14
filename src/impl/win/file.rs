@@ -1,5 +1,5 @@
 use crate::{
-    r#impl::OpenDialogTarget, Dialog, Error, OpenMultipleFile, OpenSingleDirectory, OpenSingleFile,
+    r#impl::OpenDialogTarget, Dialog, Error, OpenMultipleFile, OpenSingleDir, OpenSingleFile,
     Result,
 };
 use std::path::PathBuf;
@@ -49,7 +49,7 @@ impl Dialog for OpenMultipleFile<'_> {
     }
 }
 
-impl Dialog for OpenSingleDirectory<'_> {
+impl Dialog for OpenSingleDir<'_> {
     type Output = Option<String>;
 
     fn show(self) -> Result<Self::Output> {

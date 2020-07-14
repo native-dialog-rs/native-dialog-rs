@@ -13,6 +13,7 @@ impl Dialog for MessageAlert<'_> {
             icon: &get_dialog_icon(self.typ),
             buttons: &["OK"],
         })
+        .map(|_: String| ())
     }
 }
 
