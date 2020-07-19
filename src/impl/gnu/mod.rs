@@ -1,7 +1,8 @@
-use std::env;
-use std::process::Command;
-
 use crate::{Error, Result};
+use std::env;
+use std::ffi::OsString;
+use std::path::PathBuf;
+use std::process::Command;
 
 mod file;
 mod message;
@@ -37,10 +38,4 @@ fn should_use() -> Option<UseCommand> {
     }
 
     None
-}
-
-fn bytes_to_string(buf: Vec<u8>) -> Result<String> {
-    String::from_utf8(buf)
-        .map(|s| s.trim().to_string())
-        .map_err(Error::from)
 }

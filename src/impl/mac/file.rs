@@ -2,9 +2,10 @@ use crate::{Dialog, Error, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Resu
 use osascript::JavaScript;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::path::PathBuf;
 
 impl Dialog for OpenSingleFile<'_> {
-    type Output = Option<String>;
+    type Output = Option<PathBuf>;
 
     fn show(self) -> Result<Self::Output> {
         choose_file(ChooseFileParams {
@@ -17,7 +18,7 @@ impl Dialog for OpenSingleFile<'_> {
 }
 
 impl Dialog for OpenMultipleFile<'_> {
-    type Output = Vec<String>;
+    type Output = Vec<PathBuf>;
 
     fn show(self) -> Result<Self::Output> {
         choose_file::<Option<_>>(ChooseFileParams {
@@ -31,7 +32,7 @@ impl Dialog for OpenMultipleFile<'_> {
 }
 
 impl Dialog for OpenSingleDir<'_> {
-    type Output = Option<String>;
+    type Output = Option<PathBuf>;
 
     fn show(self) -> Result<Self::Output> {
         choose_file(ChooseFileParams {

@@ -9,7 +9,7 @@ use wfd::{
 };
 
 impl Dialog for OpenSingleFile<'_> {
-    type Output = Option<String>;
+    type Output = Option<PathBuf>;
 
     fn show(self) -> Result<Self::Output> {
         super::process_init();
@@ -20,12 +20,12 @@ impl Dialog for OpenSingleFile<'_> {
             multiple: false,
             target: OpenDialogTarget::File,
         })
-        .map(|ok| ok.map(|some| path_to_string(some.selected_file_path)))
+        .map(|ok| ok.map(|some| some.selected_file_path))
     }
 }
 
 impl Dialog for OpenMultipleFile<'_> {
-    type Output = Vec<String>;
+    type Output = Vec<PathBuf>;
 
     fn show(self) -> Result<Self::Output> {
         super::process_init();
@@ -38,11 +38,7 @@ impl Dialog for OpenMultipleFile<'_> {
         });
 
         match result {
-            Ok(Some(t)) => {
-                let paths = t.selected_file_paths;
-                let strings = paths.into_iter().map(path_to_string).collect();
-                Ok(strings)
-            }
+            Ok(Some(t)) => Ok(t.selected_file_paths),
             Ok(None) => Ok(vec![]),
             Err(e) => Err(e),
         }
@@ -50,7 +46,7 @@ impl Dialog for OpenMultipleFile<'_> {
 }
 
 impl Dialog for OpenSingleDir<'_> {
-    type Output = Option<String>;
+    type Output = Option<PathBuf>;
 
     fn show(self) -> Result<Self::Output> {
         super::process_init();
@@ -61,12 +57,8 @@ impl Dialog for OpenSingleDir<'_> {
             multiple: false,
             target: OpenDialogTarget::Directory,
         })
-        .map(|ok| ok.map(|some| path_to_string(some.selected_file_path)))
+        .map(|ok| ok.map(|some| some.selected_file_path))
     }
-}
-
-fn path_to_string(path: PathBuf) -> String {
-    path.to_string_lossy().to_string()
 }
 
 struct OpenDialogParams<'a> {
