@@ -5,7 +5,7 @@ authors = ["balthild <ibalthild@gmail.com>"]
 edition = "2018"
 description = "A library to display dialogs. Supports GNU/Linux, macOS and Windows."
 license = "MIT"
-documentation = "https://github.com/balthild/native-dialog-rs/blob/master/README.md"
+documentation = "https://docs.rs/native-dialog-rs"
 repository = "https://github.com/balthild/native-dialog-rs"
 
 [dependencies]
