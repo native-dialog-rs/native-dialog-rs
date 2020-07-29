@@ -32,7 +32,7 @@ impl Dialog for OpenSingleFile<'_> {
             }
             None => Err(Error::NoImplementation),
         }
-        .map(|ok| ok.map(|some| bytes_to_path_buf(&some)))
+        .map(|ok| ok.map(bytes_to_path_buf))
     }
 }
 
@@ -95,12 +95,12 @@ impl Dialog for OpenSingleDir<'_> {
             }
             None => Err(Error::NoImplementation),
         }
-        .map(|ok| ok.map(|some| bytes_to_path_buf(&some)))
+        .map(|ok| ok.map(bytes_to_path_buf))
     }
 }
 
-fn bytes_to_path_buf(buf: &[u8]) -> PathBuf {
-    PathBuf::from(OsStr::from_bytes(buf))
+fn bytes_to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
+    PathBuf::from(OsStr::from_bytes(buf.as_ref()))
 }
 
 struct ImplementationParams<'a> {

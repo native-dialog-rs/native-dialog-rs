@@ -12,7 +12,9 @@ pub struct OpenSingleDir<'a> {
     pub dir: Option<&'a str>,
 }
 
-pub struct SaveFile<'a> {
+#[doc(hidden)]
+#[cfg(any())]
+struct SaveFile<'a> {
     pub dir: Option<&'a str>,
     pub name: &'a str,
 }
