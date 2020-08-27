@@ -32,7 +32,7 @@ impl Dialog for OpenSingleFile<'_> {
             }
             None => Err(Error::NoImplementation),
         }
-        .map(|ok| ok.map(bytes_to_path_buf))
+        .map(|ok| ok.as_deref().map(trim_newlines).map(to_path_buf))
     }
 }
 
@@ -63,8 +63,15 @@ impl Dialog for OpenMultipleFile<'_> {
         };
 
         match lf_separated {
-            Ok(Some(s)) => Ok(s.split(|c| *c == b'\n').map(bytes_to_path_buf).collect()),
-            Ok(_) => Ok(vec![]),
+            Ok(Some(output)) => {
+                let paths = output
+                    .split(|c| *c == b'\n')
+                    .filter(|c| !c.is_empty())
+                    .map(to_path_buf)
+                    .collect();
+                Ok(paths)
+            }
+            Ok(None) => Ok(vec![]),
             Err(e) => Err(e),
         }
     }
@@ -95,11 +102,25 @@ impl Dialog for OpenSingleDir<'_> {
             }
             None => Err(Error::NoImplementation),
         }
-        .map(|ok| ok.map(bytes_to_path_buf))
+        .map(|ok| ok.as_deref().map(trim_newlines).map(to_path_buf))
     }
 }
 
-fn bytes_to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
+fn trim_newlines(s: &[u8]) -> &[u8] {
+    fn is_not_newline(c: &u8) -> bool {
+        *c != b'\n'
+    }
+
+    let s = s.as_ref();
+    if let Some(first) = s.iter().position(is_not_newline) {
+        let last = s.iter().rposition(is_not_newline).unwrap();
+        &s[first..last + 1]
+    } else {
+        &[]
+    }
+}
+
+fn to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
     PathBuf::from(OsStr::from_bytes(buf.as_ref()))
 }
 
