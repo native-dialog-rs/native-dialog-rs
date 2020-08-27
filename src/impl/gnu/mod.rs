@@ -1,7 +1,5 @@
-use crate::{Error, Result};
+use crate::Error;
 use std::env;
-use std::ffi::OsString;
-use std::path::PathBuf;
 use std::process::Command;
 
 mod file;
