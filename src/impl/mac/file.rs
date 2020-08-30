@@ -7,11 +7,16 @@ use std::path::PathBuf;
 impl Dialog for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         choose_file(ChooseFileParams {
             multiple: false,
-            dir: self.dir,
-            filter: self.filter,
+            location: self.location,
+            filters: self
+                .filters
+                .iter()
+                .flat_map(|x| x.extensions)
+                .cloned()
+                .collect(),
             choose_folder: false,
         })
     }
@@ -20,25 +25,30 @@ impl Dialog for OpenSingleFile<'_> {
 impl Dialog for OpenMultipleFile<'_> {
     type Output = Vec<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         choose_file::<Option<_>>(ChooseFileParams {
             multiple: true,
-            dir: self.dir,
-            filter: self.filter,
+            location: self.location,
+            filters: self
+                .filters
+                .iter()
+                .flat_map(|x| x.extensions)
+                .cloned()
+                .collect(),
             choose_folder: false,
         })
-        .map(|opt| opt.unwrap_or_else(|| vec![]))
+        .map(|opt| opt.unwrap_or_else(Vec::new))
     }
 }
 
 impl Dialog for OpenSingleDir<'_> {
     type Output = Option<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         choose_file(ChooseFileParams {
             multiple: false,
-            dir: self.dir,
-            filter: None,
+            location: self.location,
+            filters: vec![],
             choose_folder: true,
         })
     }
@@ -47,8 +57,8 @@ impl Dialog for OpenSingleDir<'_> {
 #[derive(Serialize)]
 struct ChooseFileParams<'a> {
     multiple: bool,
-    dir: Option<&'a str>,
-    filter: Option<&'a [&'a str]>,
+    location: Option<&'a str>,
+    filters: Vec<&'a str>,
     choose_folder: bool,
 }
 
@@ -63,11 +73,11 @@ fn choose_file<T: DeserializeOwned>(params: ChooseFileParams) -> Result<T> {
             multipleSelectionsAllowed: $params.multiple,
         };
 
-        if ($params.dir)
-            options.defaultLocation = Path($params.dir.replace(/^\~/, app.pathTo('home folder')));
+        if ($params.location)
+            options.defaultLocation = Path($params.location.replace(/^\~/, app.pathTo('home folder')));
 
-        if ($params.filter)
-            options.ofType = $params.filter;
+        if ($params.filters.length)
+            options.ofType = $params.filters;
 
         try {
             let path = $params.choose_folder ? app.chooseFolder(options) : app.chooseFile(options);

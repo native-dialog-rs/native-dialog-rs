@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default)]
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -23,7 +25,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub trait Dialog {
     type Output;
 
-    fn show(self) -> Result<Self::Output>;
+    fn show(&mut self) -> Result<Self::Output>;
 }
 
 mod message;

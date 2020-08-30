@@ -1,20 +1,13 @@
 use native_dialog::*;
 
 fn main() {
-    let dialog = OpenSingleFile {
-        dir: None,
-        filter: None,
-    };
-    let result = dialog.show();
+    let path = OpenSingleFile::new().show();
 
-    let message = format!("Shit is on fire!\n\n{:?}", result);
-
-    let dialog = MessageConfirm {
-        title: "What is happening?",
-        text: &message,
-        typ: MessageType::Info,
-    };
-    let result = dialog.show();
+    let result = MessageConfirm::new()
+        .title("What is happening?")
+        .text(&format!("Shit is on fire!\n\n{:?}", path))
+        .typ(MessageType::Warning)
+        .show();
 
     println!("{:?}", result);
 }

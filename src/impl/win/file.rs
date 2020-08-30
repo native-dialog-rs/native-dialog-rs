@@ -1,7 +1,4 @@
-use crate::{
-    r#impl::OpenDialogTarget, Dialog, Error, OpenMultipleFile, OpenSingleDir, OpenSingleFile,
-    Result,
-};
+use crate::{Dialog, Error, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
 use std::path::PathBuf;
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST,
@@ -11,36 +8,36 @@ use wfd::{
 impl Dialog for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
-        open_dialog(OpenDialogParams {
-            dir: self.dir,
-            filter: self.filter,
+        let result = open_dialog(OpenDialogParams {
+            dir: self.location,
+            filters: &self.filters,
             multiple: false,
-            target: OpenDialogTarget::File,
-        })
-        .map(|ok| ok.map(|some| some.selected_file_path))
+            open_dir: false,
+        })?;
+
+        Ok(result.map(|x| x.selected_file_path))
     }
 }
 
 impl Dialog for OpenMultipleFile<'_> {
     type Output = Vec<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
-            dir: self.dir,
-            filter: self.filter,
+            dir: self.location,
+            filters: &self.filters,
             multiple: true,
-            target: OpenDialogTarget::File,
-        });
+            open_dir: false,
+        })?;
 
         match result {
-            Ok(Some(t)) => Ok(t.selected_file_paths),
-            Ok(None) => Ok(vec![]),
-            Err(e) => Err(e),
+            Some(t) => Ok(t.selected_file_paths),
+            None => Ok(vec![]),
         }
     }
 }
@@ -48,50 +45,45 @@ impl Dialog for OpenMultipleFile<'_> {
 impl Dialog for OpenSingleDir<'_> {
     type Output = Option<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
-        open_dialog(OpenDialogParams {
-            dir: self.dir,
-            filter: None,
+        let result = open_dialog(OpenDialogParams {
+            dir: self.location,
+            filters: &[],
             multiple: false,
-            target: OpenDialogTarget::Directory,
-        })
-        .map(|ok| ok.map(|some| some.selected_file_path))
+            open_dir: true,
+        })?;
+
+        Ok(result.map(|x| x.selected_file_path))
     }
 }
 
 struct OpenDialogParams<'a> {
     dir: Option<&'a str>,
-    filter: Option<&'a [&'a str]>,
+    filters: &'a [Filter<'a>],
     multiple: bool,
-    target: OpenDialogTarget,
+    open_dir: bool,
 }
 
 fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
-    let file_types = match params.filter {
-        Some(filter) => {
-            let types: Vec<String> = filter.iter().map(|s| format!("*.{}", s)).collect();
-            types.join(";")
-        }
-        None => String::new(),
-    };
-    let file_types = match params.filter {
-        Some(_) => vec![("", file_types.as_str())],
-        None => vec![],
-    };
+    let types: Vec<_> = params
+        .filters
+        .iter()
+        .map(|filter| (filter.description, filter.extensions.join(";")))
+        .collect();
 
     let mut options = FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST;
     if params.multiple {
         options |= FOS_ALLOWMULTISELECT;
     }
-    if params.target == OpenDialogTarget::Directory {
+    if params.open_dir {
         options |= FOS_PICKFOLDERS;
     }
 
     let params = DialogParams {
         default_folder: params.dir.unwrap_or(""),
-        file_types,
+        file_types: types.iter().map(|t| (t.0, &*t.1)).collect(),
         options,
         ..Default::default()
     };

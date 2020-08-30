@@ -3,7 +3,7 @@ use crate::{Dialog, MessageAlert, MessageConfirm, MessageType, Result};
 impl Dialog for MessageAlert<'_> {
     type Output = ();
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
         message_box(MessageBoxParams {
@@ -19,7 +19,7 @@ impl Dialog for MessageAlert<'_> {
 impl Dialog for MessageConfirm<'_> {
     type Output = bool;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
         message_box(MessageBoxParams {
@@ -68,7 +68,7 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     });
 
     match ret {
-        0 => Err(std::io::Error::last_os_error())?,
+        0 => Err(std::io::Error::last_os_error().into()),
         x => Ok(x == IDYES),
     }
 }

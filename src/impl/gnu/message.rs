@@ -5,7 +5,7 @@ use std::process::Command;
 impl Dialog for MessageAlert<'_> {
     type Output = ();
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         match should_use() {
             Some(UseCommand::KDialog(command)) => {
                 dialog_implementation_kdialog(ImplementationParams {
@@ -35,7 +35,7 @@ impl Dialog for MessageAlert<'_> {
 impl Dialog for MessageConfirm<'_> {
     type Output = bool;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         match should_use() {
             Some(UseCommand::KDialog(command)) => {
                 dialog_implementation_kdialog(ImplementationParams {
@@ -79,14 +79,14 @@ fn dialog_implementation_kdialog(mut params: ImplementationParams) -> Result<boo
 
     command.arg(params.text);
 
+    command.arg("--title");
+    command.arg(params.title);
+
     match params.typ {
         MessageType::Info => command.arg("--icon=dialog-information"),
         MessageType::Warning => command.arg("--icon=dialog-warning"),
         MessageType::Error => command.arg("--icon=dialog-error"),
     };
-
-    command.arg("--title");
-    command.arg(params.title);
 
     let output = command.output()?;
 

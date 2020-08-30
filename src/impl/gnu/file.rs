@@ -1,7 +1,5 @@
 use super::{should_use, Error, UseCommand};
-use crate::{
-    r#impl::OpenDialogTarget, Dialog, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result,
-};
+use crate::{Dialog, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
@@ -10,69 +8,69 @@ use std::process::Command;
 impl Dialog for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
-        match should_use() {
+    fn show(&mut self) -> Result<Self::Output> {
+        let output = match should_use() {
             Some(UseCommand::KDialog(command)) => {
                 dialog_implementation_kdialog(ImplementationParams {
                     command,
-                    dir: self.dir,
-                    filter: self.filter,
+                    location: self.location,
+                    filters: &self.filters,
                     multiple: false,
-                    target: OpenDialogTarget::File,
+                    open_dir: false,
                 })
             }
             Some(UseCommand::Zenity(command)) => {
                 dialog_implementation_zenity(ImplementationParams {
                     command,
-                    dir: self.dir,
-                    filter: self.filter,
+                    location: self.location,
+                    filters: &self.filters,
                     multiple: false,
-                    target: OpenDialogTarget::File,
+                    open_dir: false,
                 })
             }
             None => Err(Error::NoImplementation),
-        }
-        .map(|ok| ok.as_deref().map(trim_newlines).map(to_path_buf))
+        }?;
+
+        Ok(output.as_deref().map(trim_newlines).map(to_path_buf))
     }
 }
 
 impl Dialog for OpenMultipleFile<'_> {
     type Output = Vec<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
-        let lf_separated = match should_use() {
+    fn show(&mut self) -> Result<Self::Output> {
+        let output = match should_use() {
             Some(UseCommand::KDialog(command)) => {
                 dialog_implementation_kdialog(ImplementationParams {
                     command,
-                    dir: self.dir,
-                    filter: self.filter,
+                    location: self.location,
+                    filters: &self.filters,
                     multiple: true,
-                    target: OpenDialogTarget::File,
+                    open_dir: false,
                 })
             }
             Some(UseCommand::Zenity(command)) => {
                 dialog_implementation_zenity(ImplementationParams {
                     command,
-                    dir: self.dir,
-                    filter: self.filter,
+                    location: self.location,
+                    filters: &self.filters,
                     multiple: true,
-                    target: OpenDialogTarget::File,
+                    open_dir: false,
                 })
             }
             None => Err(Error::NoImplementation),
-        };
+        }?;
 
-        match lf_separated {
-            Ok(Some(output)) => {
-                let paths = output
+        match output {
+            Some(lf_separated) => {
+                let paths = lf_separated
                     .split(|c| *c == b'\n')
                     .filter(|c| !c.is_empty())
                     .map(to_path_buf)
                     .collect();
                 Ok(paths)
             }
-            Ok(None) => Ok(vec![]),
-            Err(e) => Err(e),
+            None => Ok(vec![]),
         }
     }
 }
@@ -80,29 +78,30 @@ impl Dialog for OpenMultipleFile<'_> {
 impl Dialog for OpenSingleDir<'_> {
     type Output = Option<PathBuf>;
 
-    fn show(self) -> Result<Self::Output> {
-        match should_use() {
+    fn show(&mut self) -> Result<Self::Output> {
+        let output = match should_use() {
             Some(UseCommand::KDialog(command)) => {
                 dialog_implementation_kdialog(ImplementationParams {
                     command,
-                    dir: self.dir,
-                    filter: None,
+                    location: self.location,
+                    filters: &[],
                     multiple: false,
-                    target: OpenDialogTarget::Directory,
+                    open_dir: true,
                 })
             }
             Some(UseCommand::Zenity(command)) => {
                 dialog_implementation_zenity(ImplementationParams {
                     command,
-                    dir: self.dir,
-                    filter: None,
+                    location: self.location,
+                    filters: &[],
                     multiple: false,
-                    target: OpenDialogTarget::Directory,
+                    open_dir: true,
                 })
             }
             None => Err(Error::NoImplementation),
-        }
-        .map(|ok| ok.as_deref().map(trim_newlines).map(to_path_buf))
+        }?;
+
+        Ok(output.as_deref().map(trim_newlines).map(to_path_buf))
     }
 }
 
@@ -111,7 +110,6 @@ fn trim_newlines(s: &[u8]) -> &[u8] {
         *c != b'\n'
     }
 
-    let s = s.as_ref();
     if let Some(first) = s.iter().position(is_not_newline) {
         let last = s.iter().rposition(is_not_newline).unwrap();
         &s[first..last + 1]
@@ -126,21 +124,21 @@ fn to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
 
 struct ImplementationParams<'a> {
     command: Command,
-    dir: Option<&'a str>,
-    filter: Option<&'a [&'a str]>,
+    location: Option<&'a str>,
+    filters: &'a [Filter<'a>],
     multiple: bool,
-    target: OpenDialogTarget,
+    open_dir: bool,
 }
 
 fn dialog_implementation_kdialog(mut params: ImplementationParams) -> Result<Option<Vec<u8>>> {
     let command = &mut params.command;
 
-    match params.target {
-        OpenDialogTarget::File => command.arg("--getopenfilename"),
-        OpenDialogTarget::Directory => command.arg("--getexistingdirectory"),
+    match params.open_dir {
+        true => command.arg("--getopenfilename"),
+        false => command.arg("--getexistingdirectory"),
     };
 
-    match params.dir {
+    match params.location {
         Some(dir) => command.arg(dir),
         None => command.arg(""),
     };
@@ -149,9 +147,13 @@ fn dialog_implementation_kdialog(mut params: ImplementationParams) -> Result<Opt
         command.args(&["--multiple", "--separate-output"]);
     }
 
-    if let Some(filter) = params.filter {
-        let types: Vec<String> = filter.iter().map(|s| format!("*.{}", s)).collect();
-        command.arg(types.join(" "));
+    if !params.filters.is_empty() {
+        let types: Vec<String> = params
+            .filters
+            .iter()
+            .map(|filter| format!("{} ({})", filter.description, filter.extensions.join(" ")))
+            .collect();
+        command.arg(types.join("\n"));
     }
 
     let output = command.output()?;
@@ -168,7 +170,7 @@ fn dialog_implementation_zenity(mut params: ImplementationParams) -> Result<Opti
 
     command.arg("--file-selection");
 
-    if params.target == OpenDialogTarget::Directory {
+    if params.open_dir {
         command.arg("--directory");
     }
 
@@ -178,15 +180,22 @@ fn dialog_implementation_zenity(mut params: ImplementationParams) -> Result<Opti
 
     command.arg("--filename");
 
-    match params.dir {
+    match params.location {
         Some(dir) => command.arg(dir),
         None => command.arg(""),
     };
 
-    if let Some(filter) = params.filter {
-        let types: Vec<String> = filter.iter().map(|s| format!("*.{}", s)).collect();
-        command.arg("--file-filter");
-        command.arg(types.join(" "));
+    if !params.filters.is_empty() {
+        for filter in params.filters {
+            let extensions: Vec<String> = filter
+                .extensions
+                .iter()
+                .map(|s| format!("*.{}", s))
+                .collect();
+
+            command.arg("--file-filter");
+            command.arg(format!("{} | {}", filter.description, extensions.join(" ")));
+        }
     }
 
     let output = command.output()?;

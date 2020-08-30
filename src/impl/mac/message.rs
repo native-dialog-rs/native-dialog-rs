@@ -6,11 +6,11 @@ use serde::Serialize;
 impl Dialog for MessageAlert<'_> {
     type Output = ();
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         display_alert(DisplayAlertParams {
             title: self.title,
             text: self.text,
-            icon: &get_dialog_icon(self.typ),
+            icon: get_dialog_icon(self.typ),
             buttons: &["OK"],
         })
         .map(|_: String| ())
@@ -20,11 +20,11 @@ impl Dialog for MessageAlert<'_> {
 impl Dialog for MessageConfirm<'_> {
     type Output = bool;
 
-    fn show(self) -> Result<Self::Output> {
+    fn show(&mut self) -> Result<Self::Output> {
         let button = display_alert(DisplayAlertParams {
             title: self.title,
             text: self.text,
-            icon: &get_dialog_icon(self.typ),
+            icon: get_dialog_icon(self.typ),
             buttons: &["No", "Yes"],
         })?;
 
@@ -35,20 +35,20 @@ impl Dialog for MessageConfirm<'_> {
     }
 }
 
+fn get_dialog_icon(typ: MessageType) -> &'static str {
+    match typ {
+        MessageType::Info => "note",
+        MessageType::Warning => "caution",
+        MessageType::Error => "stop",
+    }
+}
+
 #[derive(Serialize)]
 struct DisplayAlertParams<'a> {
     title: &'a str,
     text: &'a str,
     icon: &'a str,
     buttons: &'a [&'a str],
-}
-
-fn get_dialog_icon(typ: MessageType) -> String {
-    match typ {
-        MessageType::Info => "note".into(),
-        MessageType::Warning => "caution".into(),
-        MessageType::Error => "stop".into(),
-    }
 }
 
 fn display_alert<T: DeserializeOwned>(params: DisplayAlertParams) -> Result<T> {
