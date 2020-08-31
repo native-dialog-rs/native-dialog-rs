@@ -1,11 +1,12 @@
 use super::{should_use, Error, UseCommand};
-use crate::{Dialog, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
+use crate::r#impl::DialogImpl;
+use crate::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::process::Command;
 
-impl Dialog for OpenSingleFile<'_> {
+impl DialogImpl for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
 
     fn show(&mut self) -> Result<Self::Output> {
@@ -35,7 +36,7 @@ impl Dialog for OpenSingleFile<'_> {
     }
 }
 
-impl Dialog for OpenMultipleFile<'_> {
+impl DialogImpl for OpenMultipleFile<'_> {
     type Output = Vec<PathBuf>;
 
     fn show(&mut self) -> Result<Self::Output> {
@@ -75,7 +76,7 @@ impl Dialog for OpenMultipleFile<'_> {
     }
 }
 
-impl Dialog for OpenSingleDir<'_> {
+impl DialogImpl for OpenSingleDir<'_> {
     type Output = Option<PathBuf>;
 
     fn show(&mut self) -> Result<Self::Output> {

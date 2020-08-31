@@ -1,4 +1,6 @@
-use native_dialog::*;
+use native_dialog::{
+    MessageAlert, MessageConfirm, OpenMultipleFile, OpenSingleDir, OpenSingleFile,
+};
 
 fn echo<T: std::fmt::Debug>(name: &str, value: &T) {
     MessageAlert::new()

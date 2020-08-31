@@ -34,6 +34,8 @@ impl<'a> MessageAlert<'a> {
         self.typ = typ;
         self
     }
+
+    show_impl!();
 }
 
 pub struct MessageConfirm<'a> {
@@ -65,4 +67,6 @@ impl<'a> MessageConfirm<'a> {
         self.typ = typ;
         self
     }
+
+    show_impl!();
 }

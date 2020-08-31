@@ -29,6 +29,8 @@ impl<'a> OpenSingleFile<'a> {
         });
         self
     }
+
+    show_impl!();
 }
 
 pub struct OpenMultipleFile<'a> {
@@ -56,6 +58,8 @@ impl<'a> OpenMultipleFile<'a> {
         });
         self
     }
+
+    show_impl!();
 }
 
 pub struct OpenSingleDir<'a> {
@@ -71,4 +75,6 @@ impl<'a> OpenSingleDir<'a> {
         self.location = Some(dir);
         self
     }
+
+    show_impl!();
 }

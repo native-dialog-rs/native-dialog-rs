@@ -22,16 +22,11 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub trait Dialog {
-    type Output;
-
-    fn show(&mut self) -> Result<Self::Output>;
-}
+#[macro_use]
+mod r#impl;
 
 mod message;
 pub use message::*;
 
 mod file;
 pub use file::*;
-
-mod r#impl;

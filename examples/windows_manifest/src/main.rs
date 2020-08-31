@@ -1,4 +1,4 @@
-use native_dialog::*;
+use native_dialog::{MessageConfirm, MessageType, OpenSingleFile};
 
 fn main() {
     let path = OpenSingleFile::new().show();

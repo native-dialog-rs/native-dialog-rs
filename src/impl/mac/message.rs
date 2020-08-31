@@ -1,9 +1,10 @@
-use crate::{Dialog, Error, MessageAlert, MessageConfirm, MessageType, Result};
+use crate::r#impl::DialogImpl;
+use crate::{Error, MessageAlert, MessageConfirm, MessageType, Result};
 use osascript::JavaScript;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-impl Dialog for MessageAlert<'_> {
+impl DialogImpl for MessageAlert<'_> {
     type Output = ();
 
     fn show(&mut self) -> Result<Self::Output> {
@@ -17,7 +18,7 @@ impl Dialog for MessageAlert<'_> {
     }
 }
 
-impl Dialog for MessageConfirm<'_> {
+impl DialogImpl for MessageConfirm<'_> {
     type Output = bool;
 
     fn show(&mut self) -> Result<Self::Output> {
