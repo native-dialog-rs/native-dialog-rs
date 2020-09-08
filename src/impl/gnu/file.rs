@@ -3,7 +3,7 @@ use crate::r#impl::DialogImpl;
 use crate::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 impl DialogImpl for OpenSingleFile<'_> {
@@ -125,7 +125,7 @@ fn to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
 
 struct ImplementationParams<'a> {
     command: Command,
-    location: Option<&'a str>,
+    location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
     multiple: bool,
     open_dir: bool,

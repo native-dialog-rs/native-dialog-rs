@@ -1,6 +1,6 @@
 use crate::r#impl::DialogImpl;
 use crate::{Error, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST,
     FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST, FOS_PICKFOLDERS,
@@ -13,7 +13,7 @@ impl DialogImpl for OpenSingleFile<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
-            dir: self.location,
+            location: self.location,
             filters: &self.filters,
             multiple: false,
             open_dir: false,
@@ -30,7 +30,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
-            dir: self.location,
+            location: self.location,
             filters: &self.filters,
             multiple: true,
             open_dir: false,
@@ -50,7 +50,7 @@ impl DialogImpl for OpenSingleDir<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
-            dir: self.location,
+            location: self.location,
             filters: &[],
             multiple: false,
             open_dir: true,
@@ -61,7 +61,7 @@ impl DialogImpl for OpenSingleDir<'_> {
 }
 
 struct OpenDialogParams<'a> {
-    dir: Option<&'a str>,
+    location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
     multiple: bool,
     open_dir: bool,
@@ -83,7 +83,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     }
 
     let params = DialogParams {
-        default_folder: params.dir.unwrap_or(""),
+        default_folder: params.location.and_then(Path::to_str).unwrap_or(""),
         file_types: types.iter().map(|t| (t.0, &*t.1)).collect(),
         options,
         ..Default::default()

@@ -3,7 +3,7 @@ use crate::{Error, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
 use osascript::JavaScript;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 impl DialogImpl for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
@@ -58,7 +58,7 @@ impl DialogImpl for OpenSingleDir<'_> {
 #[derive(Serialize)]
 struct ChooseFileParams<'a> {
     multiple: bool,
-    location: Option<&'a str>,
+    location: Option<&'a Path>,
     filters: Vec<&'a str>,
     choose_folder: bool,
 }

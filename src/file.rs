@@ -1,3 +1,5 @@
+use std::path::Path;
+
 pub struct Filter<'a> {
     #[cfg_attr(target_os = "macos", allow(dead_code))]
     pub(crate) description: &'a str,
@@ -5,7 +7,7 @@ pub struct Filter<'a> {
 }
 
 pub struct OpenSingleFile<'a> {
-    pub(crate) location: Option<&'a str>,
+    pub(crate) location: Option<&'a Path>,
     pub(crate) filters: Vec<Filter<'a>>,
 }
 
@@ -17,8 +19,8 @@ impl<'a> OpenSingleFile<'a> {
         }
     }
 
-    pub fn location(&mut self, path: &'a str) -> &mut Self {
-        self.location = Some(path);
+    pub fn location<P: AsRef<Path> + ?Sized>(&mut self, path: &'a P) -> &mut Self {
+        self.location = Some(path.as_ref());
         self
     }
 
@@ -34,7 +36,7 @@ impl<'a> OpenSingleFile<'a> {
 }
 
 pub struct OpenMultipleFile<'a> {
-    pub(crate) location: Option<&'a str>,
+    pub(crate) location: Option<&'a Path>,
     pub(crate) filters: Vec<Filter<'a>>,
 }
 
@@ -46,8 +48,8 @@ impl<'a> OpenMultipleFile<'a> {
         }
     }
 
-    pub fn location(&mut self, path: &'a str) -> &mut Self {
-        self.location = Some(path);
+    pub fn location<P: AsRef<Path> + ?Sized>(&mut self, path: &'a P) -> &mut Self {
+        self.location = Some(path.as_ref());
         self
     }
 
@@ -63,7 +65,7 @@ impl<'a> OpenMultipleFile<'a> {
 }
 
 pub struct OpenSingleDir<'a> {
-    pub(crate) location: Option<&'a str>,
+    pub(crate) location: Option<&'a Path>,
 }
 
 impl<'a> OpenSingleDir<'a> {
@@ -71,8 +73,8 @@ impl<'a> OpenSingleDir<'a> {
         OpenSingleDir { location: None }
     }
 
-    pub fn location(&mut self, dir: &'a str) -> &mut Self {
-        self.location = Some(dir);
+    pub fn location<P: AsRef<Path> + ?Sized>(&mut self, path: &'a P) -> &mut Self {
+        self.location = Some(path.as_ref());
         self
     }
 
