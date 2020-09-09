@@ -60,6 +60,17 @@ impl Dialog for MessageConfirm<'_> {
     }
 }
 
+/// GMarkup flavoured XML has defined only 5 entities and doesn't support user-defined entities.
+/// Should we reimplement the complete `g_markup_escape_text` function?
+/// See https://gitlab.gnome.org/GNOME/glib/-/blob/353942c6/glib/gmarkup.c#L2296
+fn escape_pango_entities(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
+}
+
 struct ImplementationParams<'a> {
     command: Command,
     title: &'a str,
@@ -77,7 +88,7 @@ fn dialog_implementation_kdialog(mut params: ImplementationParams) -> Result<boo
         command.arg("--msgbox");
     }
 
-    command.arg(params.text);
+    command.arg(escape_pango_entities(params.text));
 
     match params.typ {
         MessageType::Info => command.arg("--icon=dialog-information"),
@@ -121,7 +132,7 @@ fn dialog_implementation_zenity(mut params: ImplementationParams) -> Result<bool
     command.arg(params.title);
 
     command.arg("--text");
-    command.arg(params.text);
+    command.arg(escape_pango_entities(params.text));
 
     let output = command.output()?;
 
