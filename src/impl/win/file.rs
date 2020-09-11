@@ -71,7 +71,10 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     let types: Vec<_> = params
         .filters
         .iter()
-        .map(|filter| (filter.description, filter.extensions.join(";")))
+        .map(|filter| {
+            let extensions = filter.extensions.iter().map(|x| format!("*.{}", x));
+            (filter.description, extensions.collect::<Vec<_>>().join(";"))
+        })
         .collect();
 
     let mut options = FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST;
