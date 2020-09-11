@@ -1,6 +1,6 @@
 use crate::r#impl::DialogImpl;
 use crate::{Error, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST,
     FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST, FOS_PICKFOLDERS,
@@ -60,6 +60,20 @@ impl DialogImpl for OpenSingleDir<'_> {
     }
 }
 
+fn resolve_tilde<P: AsRef<Path> + ?Sized>(path: &P) -> Option<PathBuf> {
+    let mut result = PathBuf::new();
+
+    let mut components = path.as_ref().components();
+    match components.next() {
+        Some(Component::Normal(c)) if c == "~" => result.push(dirs::home_dir()?),
+        Some(c) => result.push(c),
+        None => {}
+    };
+    result.extend(components);
+
+    Some(result)
+}
+
 struct OpenDialogParams<'a> {
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
@@ -68,6 +82,8 @@ struct OpenDialogParams<'a> {
 }
 
 fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
+    let location = params.location.and_then(resolve_tilde);
+
     let types: Vec<_> = params
         .filters
         .iter()
@@ -86,7 +102,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     }
 
     let params = DialogParams {
-        default_folder: params.location.and_then(Path::to_str).unwrap_or(""),
+        folder: location.as_deref().and_then(Path::to_str).unwrap_or(""),
         file_types: types.iter().map(|t| (t.0, &*t.1)).collect(),
         options,
         ..Default::default()
