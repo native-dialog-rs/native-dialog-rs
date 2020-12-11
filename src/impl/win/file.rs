@@ -117,6 +117,9 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
             DialogError::HResultFailed { error_method, .. } => {
                 Err(Error::ImplementationError(error_method))
             }
+            DialogError::UnsupportedFilepath => Err(Error::ImplementationError(
+                "Unsupported filepath".to_string(),
+            )),
         },
     }
 }
