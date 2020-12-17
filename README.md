@@ -14,24 +14,27 @@ cargo add native-dialog
 ## Usage
 
 ```rust
-use native_dialog::*;
+use native_dialog::{OpenMultipleFile, MessageConfirm, MessageType};
 
-let dialog = OpenMultipleFile {
-    dir: None,
-    filter: None,
-};
-let result = dialog.show().unwrap();
+fn main() {
+    let result = OpenMultipleFile::new()
+        .location("~/Desktop")
+        .filter("PNG Image", &["png"])
+        .filter("JPEG Image", &["jpg", "jpeg"])
+        .show()
+        .unwrap();
 
-let message = format!("{:?}", result);
+    let message = format!("{:#?}", result);
 
-let dialog = MessageConfirm {
-    title: "Do you want to open these files?",
-    text: &message,
-    typ: MessageType::Info,
-};
-let result = dialog.show().unwrap();
+    let result = MessageConfirm::new()
+        .typ(MessageType::Info)
+        .title("Do you want to open these files?")
+        .text(&message)
+        .show()
+        .unwrap();
 
-assert_eq!(result, true);
+    assert_eq!(result, true);
+}
 ```
 
 ## Misc
@@ -39,3 +42,7 @@ assert_eq!(result, true);
 #### Why the dialogs look ugly/blurry on Windows?
 
 Turn on crate features or embed manifests into the `.exe` to enable visual styling and dpi awareness for your program. Check out [examples/windows_manifest](examples/windows_manifest) and [examples/windows_features](examples/windows_features) for example.
+
+#### Why the program crashed when opening a dialog on macOS?
+
+The API of macOS has a limitation that all UI operations must be performed on the main thread.
