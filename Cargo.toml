@@ -1,6 +1,6 @@
 [package]
 name = "native-dialog"
-version = "0.5.0-alpha.0"
+version = "0.5.0-alpha.1"
 authors = ["balthild <ibalthild@gmail.com>"]
 edition = "2018"
 description = "A library to display dialogs. Supports GNU/Linux, macOS and Windows."
@@ -21,8 +21,10 @@ dirs = "3.0.1"
 which = "4.0.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-osascript = "0.3.0"
-serde = { version = "1.0", features = ["derive"] }
+objc = "0.2.7"
+objc_id = "0.1.1"
+objc-foundation = "0.1.1"
+cocoa = "0.24.0"
 
 [features]
 windows_dpi_awareness = []

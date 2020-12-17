@@ -1,20 +1,20 @@
+use super::ffi::{INSAlert, INSImage, NSAlert, NSImage};
 use crate::r#impl::DialogImpl;
-use crate::{Error, MessageAlert, MessageConfirm, MessageType, Result};
-use osascript::JavaScript;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use crate::{MessageAlert, MessageConfirm, MessageType, Result};
 
 impl DialogImpl for MessageAlert<'_> {
     type Output = ();
 
     fn show(&mut self) -> Result<Self::Output> {
-        display_alert(DisplayAlertParams {
-            title: self.title,
-            text: self.text,
-            icon: get_dialog_icon(self.typ),
-            buttons: &["OK"],
-        })
-        .map(|_: String| ())
+        let panel = NSAlert::alert();
+
+        panel.set_informative_text(self.text);
+        panel.set_message_text(self.title);
+        panel.set_icon(NSImage::of_file(&get_dialog_icon_path(self.typ)));
+
+        panel.run_modal();
+
+        Ok(())
     }
 }
 
@@ -22,56 +22,31 @@ impl DialogImpl for MessageConfirm<'_> {
     type Output = bool;
 
     fn show(&mut self) -> Result<Self::Output> {
-        let button = display_alert(DisplayAlertParams {
-            title: self.title,
-            text: self.text,
-            icon: get_dialog_icon(self.typ),
-            buttons: &["No", "Yes"],
-        })?;
+        let panel = NSAlert::alert();
 
-        match button {
-            Some(t) => Ok(String::eq(&t, "Yes")),
-            None => Ok(false),
-        }
+        panel.set_informative_text(self.text);
+        panel.set_message_text(self.title);
+        panel.set_icon(NSImage::of_file(&get_dialog_icon_path(self.typ)));
+
+        panel.add_button("Yes");
+        panel.add_button("No");
+
+        let res = panel.run_modal();
+
+        // NSAlertFirstButtonReturn = 1000
+        Ok(res == 1000)
     }
 }
 
-fn get_dialog_icon(typ: MessageType) -> &'static str {
-    match typ {
-        MessageType::Info => "note",
-        MessageType::Warning => "caution",
-        MessageType::Error => "stop",
-    }
-}
+fn get_dialog_icon_path(typ: MessageType) -> String {
+    let basename = match typ {
+        MessageType::Info => "AlertNoteIcon",
+        MessageType::Warning => "AlertCautionIcon",
+        MessageType::Error => "AlertStopIcon",
+    };
 
-#[derive(Serialize)]
-struct DisplayAlertParams<'a> {
-    title: &'a str,
-    text: &'a str,
-    icon: &'a str,
-    buttons: &'a [&'a str],
-}
-
-fn display_alert<T: DeserializeOwned>(params: DisplayAlertParams) -> Result<T> {
-    let script = JavaScript::new(
-        // language=js
-        r"
-        const app = Application.currentApplication();
-        app.includeStandardAdditions = true;
-
-        const options = {
-            buttons: $params.buttons,
-            withTitle: $params.title,
-            withIcon: $params.icon,
-        };
-
-        try {
-            return app.displayDialog($params.text, options).buttonReturned;
-        } catch (e) {
-            return null;
-        }
-        ",
-    );
-
-    script.execute_with_params(params).map_err(Error::from)
+    format!(
+        "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/{}.icns",
+        basename,
+    )
 }

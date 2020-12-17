@@ -1,25 +1,33 @@
+use super::ffi::{INSOpenPanel, NSOpenPanel, INSURL, NSURL};
 use crate::r#impl::DialogImpl;
-use crate::{Error, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
-use osascript::JavaScript;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::path::{Path, PathBuf};
+use crate::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
+use objc_foundation::{INSArray, INSMutableArray, INSObject, INSString, NSMutableArray, NSString};
+use objc_id::Id;
+use std::path::PathBuf;
 
 impl DialogImpl for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
 
     fn show(&mut self) -> Result<Self::Output> {
-        choose_file(ChooseFileParams {
-            multiple: false,
-            location: self.location,
-            filters: self
-                .filters
-                .iter()
-                .flat_map(|x| x.extensions)
-                .cloned()
-                .collect(),
-            choose_folder: false,
-        })
+        let panel = NSOpenPanel::open_panel();
+
+        panel.set_can_choose_files(true);
+        panel.set_can_choose_directories(false);
+        panel.set_allows_multiple_selection(false);
+
+        if let Some(location) = self.location {
+            panel.set_directory_url(&location.to_string_lossy());
+        }
+
+        panel.set_allowed_file_types(get_allowed_types(&self.filters));
+
+        match panel.run_modal() {
+            Ok(urls) => {
+                let url = urls.first_object().unwrap();
+                Ok(Some(to_path_buf(&url)))
+            }
+            Err(_) => Ok(None),
+        }
     }
 }
 
@@ -27,18 +35,22 @@ impl DialogImpl for OpenMultipleFile<'_> {
     type Output = Vec<PathBuf>;
 
     fn show(&mut self) -> Result<Self::Output> {
-        choose_file::<Option<_>>(ChooseFileParams {
-            multiple: true,
-            location: self.location,
-            filters: self
-                .filters
-                .iter()
-                .flat_map(|x| x.extensions)
-                .cloned()
-                .collect(),
-            choose_folder: false,
-        })
-        .map(|opt| opt.unwrap_or_else(Vec::new))
+        let panel = NSOpenPanel::open_panel();
+
+        panel.set_can_choose_files(true);
+        panel.set_can_choose_directories(false);
+        panel.set_allows_multiple_selection(true);
+
+        if let Some(location) = self.location {
+            panel.set_directory_url(&location.to_string_lossy());
+        }
+
+        panel.set_allowed_file_types(get_allowed_types(&self.filters));
+
+        match panel.run_modal() {
+            Ok(urls) => Ok(urls.to_vec().into_iter().map(to_path_buf).collect()),
+            Err(_) => Ok(vec![]),
+        }
     }
 }
 
@@ -46,52 +58,37 @@ impl DialogImpl for OpenSingleDir<'_> {
     type Output = Option<PathBuf>;
 
     fn show(&mut self) -> Result<Self::Output> {
-        choose_file(ChooseFileParams {
-            multiple: false,
-            location: self.location,
-            filters: vec![],
-            choose_folder: true,
-        })
+        let panel = NSOpenPanel::open_panel();
+
+        panel.set_can_choose_files(false);
+        panel.set_can_choose_directories(true);
+        panel.set_allows_multiple_selection(false);
+
+        if let Some(location) = self.location {
+            panel.set_directory_url(&location.to_string_lossy());
+        }
+
+        match panel.run_modal() {
+            Ok(urls) => {
+                let url = urls.first_object().unwrap();
+                Ok(Some(to_path_buf(&url)))
+            }
+            Err(_) => Ok(None),
+        }
     }
 }
 
-#[derive(Serialize)]
-struct ChooseFileParams<'a> {
-    multiple: bool,
-    location: Option<&'a Path>,
-    filters: Vec<&'a str>,
-    choose_folder: bool,
+fn get_allowed_types(filters: &[Filter<'_>]) -> Id<impl INSArray<Item = NSString>> {
+    let mut extensions = NSMutableArray::new();
+    for filter in filters {
+        for ext in filter.extensions {
+            let s = NSString::from_str(ext);
+            extensions.add_object(s);
+        }
+    }
+    extensions
 }
 
-fn choose_file<T: DeserializeOwned>(params: ChooseFileParams) -> Result<T> {
-    let script = JavaScript::new(
-        // language=js
-        r"
-        const app = Application.currentApplication();
-        app.includeStandardAdditions = true;
-
-        const options = {
-            multipleSelectionsAllowed: $params.multiple,
-        };
-
-        if ($params.location)
-            options.defaultLocation = Path($params.location.replace(/^\~/, app.pathTo('home folder')));
-
-        if ($params.filters.length)
-            options.ofType = $params.filters;
-
-        try {
-            let path = $params.choose_folder ? app.chooseFolder(options) : app.chooseFile(options);
-            
-            if ($params.multiple)
-                return path.map(x => x.toString());
-            else 
-                return path.toString();
-        } catch (e) {
-            return null;
-        }
-        ",
-    );
-
-    script.execute_with_params(params).map_err(Error::from)
+fn to_path_buf(url: &NSURL) -> PathBuf {
+    url.absolute_string().as_str().into()
 }
