@@ -25,6 +25,10 @@ impl<'a> OpenSingleFile<'a> {
     }
 
     pub fn filter(&mut self, description: &'a str, extensions: &'a [&'a str]) -> &mut Self {
+        if extensions.is_empty() {
+            panic!("The file extensions of a filter must be specified.")
+        }
+
         self.filters.push(Filter {
             description,
             extensions,
@@ -54,6 +58,10 @@ impl<'a> OpenMultipleFile<'a> {
     }
 
     pub fn filter(&mut self, description: &'a str, extensions: &'a [&'a str]) -> &mut Self {
+        if extensions.is_empty() {
+            panic!("The file extensions of a filter must be specified.")
+        }
+
         self.filters.push(Filter {
             description,
             extensions,
