@@ -1,3 +1,6 @@
+use crate::dialog::{Dialog, DialogImpl, MessageAlert, MessageConfirm};
+use crate::Result;
+
 #[derive(Copy, Clone)]
 pub enum MessageType {
     Info,
@@ -5,68 +8,57 @@ pub enum MessageType {
     Error,
 }
 
-pub struct MessageAlert<'a> {
+pub struct MessageDialog<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
     pub(crate) typ: MessageType,
 }
 
-impl<'a> MessageAlert<'a> {
+impl<'a> MessageDialog<'a> {
     pub fn new() -> Self {
-        MessageAlert {
+        MessageDialog {
             title: "",
             text: "",
             typ: MessageType::Info,
         }
     }
 
-    pub fn title(&mut self, title: &'a str) -> &mut Self {
+    pub fn set_title(mut self, title: &'a str) -> Self {
         self.title = title;
         self
     }
 
-    pub fn text(&mut self, text: &'a str) -> &mut Self {
+    pub fn set_text(mut self, text: &'a str) -> Self {
         self.text = text;
         self
     }
 
-    pub fn typ(&mut self, typ: MessageType) -> &mut Self {
+    pub fn set_type(mut self, typ: MessageType) -> Self {
         self.typ = typ;
         self
     }
 
-    show_impl!();
+    pub fn alert(self) -> Result<<MessageAlert<'a> as Dialog>::Output> {
+        let mut dialog = MessageAlert {
+            title: self.title,
+            text: self.text,
+            typ: self.typ,
+        };
+        dialog.show()
+    }
+
+    pub fn confirm(self) -> Result<<MessageConfirm<'a> as Dialog>::Output> {
+        let mut dialog = MessageConfirm {
+            title: self.title,
+            text: self.text,
+            typ: self.typ,
+        };
+        dialog.show()
+    }
 }
 
-pub struct MessageConfirm<'a> {
-    pub(crate) title: &'a str,
-    pub(crate) text: &'a str,
-    pub(crate) typ: MessageType,
-}
-
-impl<'a> MessageConfirm<'a> {
-    pub fn new() -> Self {
-        MessageConfirm {
-            title: "",
-            text: "",
-            typ: MessageType::Info,
-        }
+impl Default for MessageDialog<'_> {
+    fn default() -> Self {
+        Self::new()
     }
-
-    pub fn title(&mut self, title: &'a str) -> &mut Self {
-        self.title = title;
-        self
-    }
-
-    pub fn text(&mut self, text: &'a str) -> &mut Self {
-        self.text = text;
-        self
-    }
-
-    pub fn typ(&mut self, typ: MessageType) -> &mut Self {
-        self.typ = typ;
-        self
-    }
-
-    show_impl!();
 }

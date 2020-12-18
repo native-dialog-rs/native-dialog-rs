@@ -1,42 +1,43 @@
-use native_dialog::{
-    MessageAlert, MessageConfirm, OpenMultipleFile, OpenSingleDir, OpenSingleFile,
-};
+use native_dialog::{FileDialog, MessageDialog};
 
 fn echo<T: std::fmt::Debug>(name: &str, value: &T) {
-    MessageAlert::new()
-        .title("Result")
-        .text(&format!("{}: {:?}", &name, &value))
-        .show()
+    MessageDialog::new()
+        .set_title("Result")
+        .set_text(&format!("{}: {:?}", &name, &value))
+        .alert()
         .unwrap();
 }
 
 fn main() {
-    let result = MessageConfirm::new()
-        .title("Tour")
-        .text("Do you want to begin the tour?")
-        .show()
+    let result = MessageDialog::new()
+        .set_title("Tour")
+        .set_text("Do you want to begin the tour?")
+        .confirm()
         .unwrap();
     if !result {
         return;
     }
     echo("MessageConfirm", &result);
 
-    let result = OpenSingleFile::new().location("~").show().unwrap();
+    let result = FileDialog::new()
+        .set_location("~")
+        .open_single_file()
+        .unwrap();
     echo("OpenSingleFile", &result);
 
-    let result = OpenMultipleFile::new()
-        .filter("Rust Source", &["rs"])
-        .filter("Image", &["png", "jpg", "gif"])
-        .show()
+    let result = FileDialog::new()
+        .add_filter("Rust Source", &["rs"])
+        .add_filter("Image", &["png", "jpg", "gif"])
+        .open_single_file()
         .unwrap();
     echo("OpenMultipleFile", &result);
 
-    let result = OpenSingleDir::new().show().unwrap();
+    let result = FileDialog::new().open_single_file().unwrap();
     echo("OpenSingleDir", &result);
 
-    MessageAlert::new()
-        .title("End")
-        .text("That's the end!")
-        .show()
+    MessageDialog::new()
+        .set_title("End")
+        .set_text("That's the end!")
+        .alert()
         .unwrap();
 }

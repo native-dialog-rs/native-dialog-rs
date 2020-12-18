@@ -11,6 +11,7 @@ enum UseCommand {
 }
 
 fn should_use() -> Option<UseCommand> {
+    #[allow(clippy::match_like_matches_macro)]
     let has_display = match env::var("DISPLAY") {
         Ok(display) if !display.is_empty() => true,
         _ => false,
@@ -26,6 +27,7 @@ fn should_use() -> Option<UseCommand> {
             }
         }
 
+        // Prefer Zenity otherwise
         if which::which("zenity").is_ok() {
             return Some(UseCommand::Zenity(Command::new("zenity")));
         }

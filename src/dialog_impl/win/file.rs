@@ -1,5 +1,5 @@
-use crate::r#impl::DialogImpl;
-use crate::{Error, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
+use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile};
+use crate::{Error, Filter, Result};
 use std::path::{Component, Path, PathBuf};
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST,
@@ -7,8 +7,6 @@ use wfd::{
 };
 
 impl DialogImpl for OpenSingleFile<'_> {
-    type Output = Option<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
@@ -24,8 +22,6 @@ impl DialogImpl for OpenSingleFile<'_> {
 }
 
 impl DialogImpl for OpenMultipleFile<'_> {
-    type Output = Vec<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 
@@ -44,8 +40,6 @@ impl DialogImpl for OpenMultipleFile<'_> {
 }
 
 impl DialogImpl for OpenSingleDir<'_> {
-    type Output = Option<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         super::process_init();
 

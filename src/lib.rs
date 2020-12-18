@@ -1,5 +1,3 @@
-#![allow(clippy::new_without_default)]
-
 #[cfg(target_os = "macos")]
 #[macro_use]
 extern crate objc;
@@ -30,8 +28,8 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[macro_use]
-mod r#impl;
+pub(crate) mod dialog;
+mod dialog_impl;
 
 mod message;
 pub use message::*;

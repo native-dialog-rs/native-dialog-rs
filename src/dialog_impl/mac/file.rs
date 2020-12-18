@@ -1,13 +1,11 @@
 use super::ffi::{INSOpenPanel, NSOpenPanel, INSURL, NSURL};
-use crate::r#impl::DialogImpl;
-use crate::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
+use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile};
+use crate::{Filter, Result};
 use objc_foundation::{INSArray, INSMutableArray, INSObject, INSString, NSMutableArray, NSString};
 use objc_id::Id;
 use std::path::PathBuf;
 
 impl DialogImpl for OpenSingleFile<'_> {
-    type Output = Option<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
@@ -32,8 +30,6 @@ impl DialogImpl for OpenSingleFile<'_> {
 }
 
 impl DialogImpl for OpenMultipleFile<'_> {
-    type Output = Vec<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
@@ -55,8 +51,6 @@ impl DialogImpl for OpenMultipleFile<'_> {
 }
 
 impl DialogImpl for OpenSingleDir<'_> {
-    type Output = Option<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 

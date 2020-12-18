@@ -1,11 +1,9 @@
 use super::{should_use, UseCommand};
-use crate::r#impl::DialogImpl;
-use crate::{Error, MessageAlert, MessageConfirm, MessageType, Result};
+use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use crate::{Error, MessageType, Result};
 use std::process::Command;
 
 impl DialogImpl for MessageAlert<'_> {
-    type Output = ();
-
     fn show(&mut self) -> Result<Self::Output> {
         match should_use() {
             Some(UseCommand::KDialog(command)) => {
@@ -34,8 +32,6 @@ impl DialogImpl for MessageAlert<'_> {
 }
 
 impl DialogImpl for MessageConfirm<'_> {
-    type Output = bool;
-
     fn show(&mut self) -> Result<Self::Output> {
         match should_use() {
             Some(UseCommand::KDialog(command)) => {

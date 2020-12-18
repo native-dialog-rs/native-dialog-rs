@@ -1,14 +1,12 @@
 use super::{should_use, Error, UseCommand};
-use crate::r#impl::DialogImpl;
-use crate::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, Result};
+use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile};
+use crate::{Filter, Result};
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 impl DialogImpl for OpenSingleFile<'_> {
-    type Output = Option<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         let output = match should_use() {
             Some(UseCommand::KDialog(command)) => {
@@ -37,8 +35,6 @@ impl DialogImpl for OpenSingleFile<'_> {
 }
 
 impl DialogImpl for OpenMultipleFile<'_> {
-    type Output = Vec<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         let output = match should_use() {
             Some(UseCommand::KDialog(command)) => {
@@ -77,8 +73,6 @@ impl DialogImpl for OpenMultipleFile<'_> {
 }
 
 impl DialogImpl for OpenSingleDir<'_> {
-    type Output = Option<PathBuf>;
-
     fn show(&mut self) -> Result<Self::Output> {
         let output = match should_use() {
             Some(UseCommand::KDialog(command)) => {
