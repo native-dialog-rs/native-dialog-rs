@@ -4,13 +4,6 @@ use objc_foundation::{INSObject, INSString, NSString};
 use objc_id::Id;
 
 pub trait INSAlert: INSObject {
-    fn alert() -> Id<Self> {
-        unsafe {
-            let ptr = msg_send![class!(NSAlert), new];
-            Id::from_retained_ptr(ptr)
-        }
-    }
-
     fn set_informative_text(&self, text: &str) {
         let text = NSString::from_str(text);
         unsafe { msg_send![self, setInformativeText: text] }

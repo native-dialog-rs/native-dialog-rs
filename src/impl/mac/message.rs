@@ -1,12 +1,13 @@
 use super::ffi::{INSAlert, INSImage, NSAlert, NSImage};
 use crate::r#impl::DialogImpl;
 use crate::{MessageAlert, MessageConfirm, MessageType, Result};
+use objc_foundation::INSObject;
 
 impl DialogImpl for MessageAlert<'_> {
     type Output = ();
 
     fn show(&mut self) -> Result<Self::Output> {
-        let panel = NSAlert::alert();
+        let panel = NSAlert::new();
 
         panel.set_informative_text(self.text);
         panel.set_message_text(self.title);
@@ -22,7 +23,7 @@ impl DialogImpl for MessageConfirm<'_> {
     type Output = bool;
 
     fn show(&mut self) -> Result<Self::Output> {
-        let panel = NSAlert::alert();
+        let panel = NSAlert::new();
 
         panel.set_informative_text(self.text);
         panel.set_message_text(self.title);
