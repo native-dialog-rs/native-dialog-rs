@@ -46,7 +46,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        panel.set_allowed_file_types(get_types_dropdown_items(&self.filters));
+        panel.set_allowed_file_types(get_file_type_dropdown_items(&self.filters));
 
         match panel.run_modal() {
             Ok(urls) => Ok(urls.to_vec().into_iter().map(INSURL::to_path_buf).collect()),
@@ -96,7 +96,7 @@ impl DialogImpl for SaveSingleFile<'_> {
 
             let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(480.0, 0.0));
             let dropdown = NSPopUpButton::new_with_frame(frame, false);
-            dropdown.add_items_with_titles(get_types_dropdown_items(&self.filters));
+            dropdown.add_items_with_titles(get_file_type_dropdown_items(&self.filters));
             dropdown.select_item_at(0);
             dropdown.set_action(sel!(onItemSelected:));
             dropdown.set_target(action_target);
@@ -108,7 +108,8 @@ impl DialogImpl for SaveSingleFile<'_> {
             // Edge insets in specific axis are only enforced when hugging priority >= 500
             // See https://stackoverflow.com/questions/54533509/nsstackview-edgeinsets-gets-ignored
             stack.set_hugging_priority(500.0, NSUserInterfaceLayoutOrientation::Vertical);
-            stack.set_edge_insets(NSEdgeInsets::new(16.0, 0.0, 16.0, 0.0));
+            stack.set_hugging_priority(500.0, NSUserInterfaceLayoutOrientation::Horizontal);
+            stack.set_edge_insets(NSEdgeInsets::new(16.0, 16.0, 16.0, 16.0));
             stack.add_view_in_gravity(label, NSStackViewGravity::Center);
             stack.add_view_in_gravity(dropdown, NSStackViewGravity::Center);
 
@@ -134,7 +135,7 @@ fn get_allowed_types(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
     extensions
 }
 
-fn get_types_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
+fn get_file_type_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
     let mut titles = NSMutableArray::new();
     for filter in filters {
         let extensions: Vec<String> = filter
