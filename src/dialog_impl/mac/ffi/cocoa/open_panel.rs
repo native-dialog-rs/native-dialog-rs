@@ -1,6 +1,5 @@
 use super::{INSURL, NSURL};
 use cocoa::foundation::NSInteger;
-use objc::runtime::{NO, YES};
 use objc_foundation::{INSArray, INSObject, NSArray};
 use objc_id::Id;
 
@@ -12,19 +11,19 @@ pub trait INSOpenPanel: INSObject {
         }
     }
 
-    fn set_can_choose_files(&self, value: bool) {
-        let value = if value { YES } else { NO };
-        unsafe { msg_send![self, setCanChooseFiles: value] }
+    fn set_can_choose_files(&self, flag: bool) {
+        let flag = super::objc_bool(flag);
+        unsafe { msg_send![self, setCanChooseFiles: flag] }
     }
 
-    fn set_can_choose_directories(&self, value: bool) {
-        let value = if value { YES } else { NO };
-        unsafe { msg_send![self, setCanChooseDirectories: value] }
+    fn set_can_choose_directories(&self, flag: bool) {
+        let flag = super::objc_bool(flag);
+        unsafe { msg_send![self, setCanChooseDirectories: flag] }
     }
 
-    fn set_allows_multiple_selection(&self, value: bool) {
-        let value = if value { YES } else { NO };
-        unsafe { msg_send![self, setAllowsMultipleSelection: value] }
+    fn set_allows_multiple_selection(&self, flag: bool) {
+        let flag = super::objc_bool(flag);
+        unsafe { msg_send![self, setAllowsMultipleSelection: flag] }
     }
 
     fn set_directory_url(&self, url: &str) {

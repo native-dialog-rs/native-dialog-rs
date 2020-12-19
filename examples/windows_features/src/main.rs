@@ -1,13 +1,13 @@
-use native_dialog::{MessageConfirm, MessageType, OpenSingleFile};
+use native_dialog::{FileDialog, MessageDialog, MessageType};
 
 fn main() {
-    let path = OpenSingleFile::new().show();
+    let path = FileDialog::new().show_open_single_file();
 
-    let result = MessageConfirm::new()
-        .title("What is happening?")
-        .text(&format!("Shit is on fire!\n\n{:?}", path))
-        .typ(MessageType::Warning)
-        .show();
+    let result = MessageDialog::new()
+        .set_title("What is happening?")
+        .set_text(&format!("Shit is on fire!\n\n{:?}", path))
+        .set_type(MessageType::Warning)
+        .show_confirm();
 
     println!("{:?}", result);
 }

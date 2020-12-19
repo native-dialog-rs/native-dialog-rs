@@ -25,6 +25,7 @@ objc = "0.2.7"
 objc_id = "0.1.1"
 objc-foundation = "0.1.1"
 cocoa = "0.24.0"
+once_cell = "1.4.0"
 
 [features]
 windows_dpi_awareness = []

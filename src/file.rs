@@ -4,7 +4,7 @@ use crate::dialog::{
 use crate::Result;
 use std::path::Path;
 
-/// Represent a set of file extensions and their description.
+/// Represents a set of file extensions and their description.
 #[derive(Debug, Clone)]
 pub struct Filter<'a> {
     #[cfg_attr(target_os = "macos", allow(dead_code))]
@@ -12,7 +12,7 @@ pub struct Filter<'a> {
     pub(crate) extensions: &'a [&'a str],
 }
 
-/// The builder of file dialogs.
+/// Builds and shows file dialogs.
 #[derive(Debug, Clone)]
 pub struct FileDialog<'a> {
     pub(crate) location: Option<&'a Path>,
@@ -53,7 +53,7 @@ impl<'a> FileDialog<'a> {
         self
     }
 
-    pub fn open_single_file(self) -> Result<<OpenSingleFile<'a> as Dialog>::Output> {
+    pub fn show_open_single_file(self) -> Result<<OpenSingleFile<'a> as Dialog>::Output> {
         let mut dialog = OpenSingleFile {
             location: self.location,
             filters: self.filters,
@@ -61,7 +61,7 @@ impl<'a> FileDialog<'a> {
         dialog.show()
     }
 
-    pub fn open_multiple_file(self) -> Result<<OpenMultipleFile<'a> as Dialog>::Output> {
+    pub fn show_open_multiple_file(self) -> Result<<OpenMultipleFile<'a> as Dialog>::Output> {
         let mut dialog = OpenMultipleFile {
             location: self.location,
             filters: self.filters,
@@ -69,18 +69,19 @@ impl<'a> FileDialog<'a> {
         dialog.show()
     }
 
-    pub fn open_single_dir(self) -> Result<<OpenSingleDir<'a> as Dialog>::Output> {
+    pub fn show_open_single_dir(self) -> Result<<OpenSingleDir<'a> as Dialog>::Output> {
         let mut dialog = OpenSingleDir {
             location: self.location,
         };
         dialog.show()
     }
 
-    pub fn save_single_file(self) -> SaveSingleFile<'a> {
-        SaveSingleFile {
+    pub fn show_save_single_file(self) -> Result<<SaveSingleFile<'a> as Dialog>::Output> {
+        let mut dialog = SaveSingleFile {
             location: self.location,
             filters: self.filters,
-        }
+        };
+        dialog.show()
     }
 }
 

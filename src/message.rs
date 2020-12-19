@@ -1,6 +1,7 @@
 use crate::dialog::{Dialog, DialogImpl, MessageAlert, MessageConfirm};
 use crate::Result;
 
+/// Represents the type of the message. Usually determines the icon in the dialog.
 #[derive(Copy, Clone)]
 pub enum MessageType {
     Info,
@@ -8,6 +9,7 @@ pub enum MessageType {
     Error,
 }
 
+/// Builds and shows message dialogs.
 pub struct MessageDialog<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
@@ -38,7 +40,7 @@ impl<'a> MessageDialog<'a> {
         self
     }
 
-    pub fn alert(self) -> Result<<MessageAlert<'a> as Dialog>::Output> {
+    pub fn show_alert(self) -> Result<<MessageAlert<'a> as Dialog>::Output> {
         let mut dialog = MessageAlert {
             title: self.title,
             text: self.text,
@@ -47,7 +49,7 @@ impl<'a> MessageDialog<'a> {
         dialog.show()
     }
 
-    pub fn confirm(self) -> Result<<MessageConfirm<'a> as Dialog>::Output> {
+    pub fn show_confirm(self) -> Result<<MessageConfirm<'a> as Dialog>::Output> {
         let mut dialog = MessageConfirm {
             title: self.title,
             text: self.text,

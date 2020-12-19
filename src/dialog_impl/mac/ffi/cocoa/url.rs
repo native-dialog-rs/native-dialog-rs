@@ -1,5 +1,6 @@
 use objc_foundation::{INSObject, INSString, NSString};
 use objc_id::Id;
+use std::path::PathBuf;
 
 pub trait INSURL: INSObject {
     fn from_str(s: &str) -> Id<Self> {
@@ -15,6 +16,10 @@ pub trait INSURL: INSObject {
             let s = msg_send![self, absoluteString];
             Id::from_retained_ptr(s)
         }
+    }
+
+    fn to_path_buf(&self) -> PathBuf {
+        self.absolute_string().as_str().into()
     }
 }
 

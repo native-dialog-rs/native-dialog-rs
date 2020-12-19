@@ -1,4 +1,4 @@
-use super::ffi::{INSAlert, INSImage, NSAlert, NSImage};
+use super::ffi::cocoa::{INSAlert, INSImage, NSAlert, NSImage};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{MessageType, Result};
 use objc_foundation::INSObject;
