@@ -14,23 +14,23 @@ cargo add native-dialog
 ## Usage
 
 ```rust
-use native_dialog::{OpenMultipleFile, MessageConfirm, MessageType};
+use native_dialog::{FileDialog, MessageDialog, MessageType};
 
 fn main() {
-    let result = OpenMultipleFile::new()
-        .location("~/Desktop")
-        .filter("PNG Image", &["png"])
-        .filter("JPEG Image", &["jpg", "jpeg"])
-        .show()
+    let result = FileDialog::new()
+        .set_location("~/Desktop")
+        .add_filter("PNG Image", &["png"])
+        .add_filter("JPEG Image", &["jpg", "jpeg"])
+        .show_open_single_file()
         .unwrap();
 
     let message = format!("{:#?}", result);
 
-    let result = MessageConfirm::new()
-        .typ(MessageType::Info)
-        .title("Do you want to open these files?")
-        .text(&message)
-        .show()
+    let result = MessageDialog::new()
+        .set_type(MessageType::Info)
+        .set_title("Do you want to open these files?")
+        .set_text(&message)
+        .show_confirm()
         .unwrap();
 
     assert_eq!(result, true);
