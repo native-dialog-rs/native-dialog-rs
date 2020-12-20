@@ -5,54 +5,38 @@ use std::process::Command;
 
 impl DialogImpl for MessageAlert<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        match should_use() {
-            Some(UseCommand::KDialog(command)) => {
-                dialog_implementation_kdialog(ImplementationParams {
-                    command,
-                    title: self.title,
-                    text: self.text,
-                    typ: self.typ,
-                    ask: false,
-                })?;
-                Ok(())
-            }
-            Some(UseCommand::Zenity(command)) => {
-                dialog_implementation_zenity(ImplementationParams {
-                    command,
-                    title: self.title,
-                    text: self.text,
-                    typ: self.typ,
-                    ask: false,
-                })?;
-                Ok(())
-            }
-            None => Err(Error::NoImplementation),
-        }
+        let command = should_use().ok_or(Error::NoImplementation)?;
+
+        let params = Params {
+            title: self.title,
+            text: self.text,
+            typ: self.typ,
+            ask: false,
+        };
+
+        match command {
+            UseCommand::KDialog(cmd) => call_kdialog(cmd, params)?,
+            UseCommand::Zenity(cmd) => call_zenity(cmd, params)?,
+        };
+
+        Ok(())
     }
 }
 
 impl DialogImpl for MessageConfirm<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        match should_use() {
-            Some(UseCommand::KDialog(command)) => {
-                dialog_implementation_kdialog(ImplementationParams {
-                    command,
-                    title: self.title,
-                    text: self.text,
-                    typ: self.typ,
-                    ask: true,
-                })
-            }
-            Some(UseCommand::Zenity(command)) => {
-                dialog_implementation_zenity(ImplementationParams {
-                    command,
-                    title: self.title,
-                    text: self.text,
-                    typ: self.typ,
-                    ask: true,
-                })
-            }
-            None => Err(Error::NoImplementation),
+        let command = should_use().ok_or(Error::NoImplementation)?;
+
+        let params = Params {
+            title: self.title,
+            text: self.text,
+            typ: self.typ,
+            ask: true,
+        };
+
+        match command {
+            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
+            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         }
     }
 }
@@ -68,17 +52,14 @@ fn escape_pango_entities(text: &str) -> String {
         .replace('\'', "&apos;")
 }
 
-struct ImplementationParams<'a> {
-    command: Command,
+struct Params<'a> {
     title: &'a str,
     text: &'a str,
     typ: MessageType,
     ask: bool,
 }
 
-fn dialog_implementation_kdialog(mut params: ImplementationParams) -> Result<bool> {
-    let command = &mut params.command;
-
+fn call_kdialog(mut command: Command, params: Params) -> Result<bool> {
     if params.ask {
         command.arg("--yesno");
     } else {
@@ -105,9 +86,7 @@ fn dialog_implementation_kdialog(mut params: ImplementationParams) -> Result<boo
     }
 }
 
-fn dialog_implementation_zenity(mut params: ImplementationParams) -> Result<bool> {
-    let command = &mut params.command;
-
+fn call_zenity(mut command: Command, params: Params) -> Result<bool> {
     command.arg("--width=400");
 
     if params.ask {

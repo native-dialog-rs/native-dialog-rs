@@ -11,9 +11,8 @@ enum UseCommand {
 }
 
 fn should_use() -> Option<UseCommand> {
-    #[allow(clippy::match_like_matches_macro)]
     let has_display = match env::var("DISPLAY") {
-        Ok(display) if !display.is_empty() => true,
+        Ok(display) => !display.is_empty(),
         _ => false,
     };
 
