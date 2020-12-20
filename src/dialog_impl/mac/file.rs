@@ -89,11 +89,10 @@ impl DialogImpl for SaveSingleFile<'_> {
         }
 
         // If there are filters specified, show a dropdown on the panel
-        if let Some(first_filter) = self.filters.first() {
-            let action_target = DropdownAction::new();
+        let res = if let Some(first_filter) = self.filters.first() {
+            let action_target = DropdownAction::new().share();
             action_target.set_save_panel(panel.clone());
-            // The `action_target` is likely to be deallocated when this function returned,
-            // so it may be fine...
+
             unsafe { action_target.set_filters(&self.filters) };
 
             let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(480.0, 0.0));
@@ -101,7 +100,7 @@ impl DialogImpl for SaveSingleFile<'_> {
             dropdown.add_items_with_titles(get_file_type_dropdown_items(&self.filters));
             dropdown.select_item_at(0);
             dropdown.set_action(sel!(onItemSelected:));
-            dropdown.set_target(action_target);
+            dropdown.set_target(action_target.clone());
 
             let label = NSTextField::new_label_with_string("File Type: ");
             label.set_text_color(NSColor::secondary_label_color());
@@ -111,15 +110,23 @@ impl DialogImpl for SaveSingleFile<'_> {
             // See https://stackoverflow.com/questions/54533509/nsstackview-edgeinsets-gets-ignored
             stack.set_hugging_priority(500.0, NSUserInterfaceLayoutOrientation::Vertical);
             stack.set_hugging_priority(500.0, NSUserInterfaceLayoutOrientation::Horizontal);
-            stack.set_edge_insets(NSEdgeInsets::new(16.0, 16.0, 16.0, 16.0));
+            stack.set_edge_insets(NSEdgeInsets::new(16.0, 20.0, 16.0, 20.0));
             stack.add_view_in_gravity(label, NSStackViewGravity::Center);
             stack.add_view_in_gravity(dropdown, NSStackViewGravity::Center);
 
             panel.set_allowed_file_types(first_filter.extensions);
             panel.set_accessory_view(stack);
-        }
 
-        match panel.run_modal() {
+            let res = panel.run_modal();
+
+            unsafe { action_target.set_filters(std::ptr::null()) };
+
+            res
+        } else {
+            panel.run_modal()
+        };
+
+        match res {
             Ok(url) => Ok(Some(url.to_path_buf())),
             Err(_) => Ok(None),
         }

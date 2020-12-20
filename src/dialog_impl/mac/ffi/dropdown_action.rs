@@ -28,7 +28,11 @@ fn declare_class() -> &'static Class {
 
     extern "C" fn on_item_selected(this: &Object, _sel: Sel, sender: id) {
         unsafe {
-            let ptr_filters = *this.get_ivar::<usize>("_filters") as *mut Vec<Filter>;
+            let ptr_filters = *this.get_ivar::<usize>("_filters") as *const Vec<Filter>;
+            if ptr_filters.is_null() {
+                return;
+            }
+
             let index: NSInteger = msg_send![sender, indexOfSelectedItem];
             let filter = (*ptr_filters).get(index as usize).unwrap();
 
@@ -61,10 +65,7 @@ pub trait IDropdownAction: INSObject {
         unsafe { msg_send![self, setSavePanel: panel] }
     }
 
-    /// The pointer should keep valid before the object of DropdownAction is deallocated. However,
-    /// there's no promise since Apple uses ARC. According to the lifetime rule of Rust, the
-    /// filters should outlive `'static`, which is impossible unless we make filters own those
-    /// strings (should we?) or accept `&'static str` only (useless).
+    /// The caller has the responsibility to reset the pointer before the pointed value is dropped.
     unsafe fn set_filters(&self, filters: *const Vec<Filter>) {
         msg_send![self, setFilters: filters as usize]
     }

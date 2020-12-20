@@ -27,7 +27,7 @@ pub trait INSPopUpButton: INSView {
         unsafe { msg_send![self, setAction: sel] }
     }
 
-    fn set_target(&self, target: Id<impl INSObject>) {
+    fn set_target<O>(&self, target: Id<impl INSObject, O>) {
         unsafe { msg_send![self, setTarget: target] }
     }
 }
