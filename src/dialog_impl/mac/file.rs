@@ -92,7 +92,9 @@ impl DialogImpl for SaveSingleFile<'_> {
         if let Some(first_filter) = self.filters.first() {
             let action_target = DropdownAction::new();
             action_target.set_save_panel(panel.clone());
-            action_target.set_filters(&self.filters as *const Vec<_> as usize);
+            // The `action_target` is likely to be deallocated when this function returned,
+            // so it may be fine...
+            unsafe { action_target.set_filters(&self.filters) };
 
             let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(480.0, 0.0));
             let dropdown = NSPopUpButton::new_with_frame(frame, false);
@@ -143,7 +145,7 @@ fn get_file_type_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSS
             .iter()
             .map(|s| format!("*.{}", s))
             .collect();
-        let title = format!("{} ({})", filter.description, extensions.join(", "));
+        let title = format!("{} ({})", filter.description, extensions.join(" "));
         titles.add_object(NSString::from_str(&title));
     }
     titles

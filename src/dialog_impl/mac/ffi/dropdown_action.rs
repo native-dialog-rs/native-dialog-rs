@@ -61,8 +61,12 @@ pub trait IDropdownAction: INSObject {
         unsafe { msg_send![self, setSavePanel: panel] }
     }
 
-    fn set_filters(&self, filters: usize) {
-        unsafe { msg_send![self, setFilters: filters] }
+    /// The pointer should keep valid before the object of DropdownAction is deallocated. However,
+    /// there's no promise though Apple uses ARC. According to the lifetime rule of Rust, the
+    /// filters should outlive `'static`, which is impossible unless we make filters own those
+    /// strings (should we?) or accept `&'static str` only (useless).
+    unsafe fn set_filters(&self, filters: *const Vec<Filter>) {
+        msg_send![self, setFilters: filters as usize]
     }
 }
 
