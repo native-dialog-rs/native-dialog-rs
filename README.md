@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/native-dialog.svg)](https://crates.io/crates/native-dialog)
 [![License](https://img.shields.io/crates/l/native-dialog.svg)](LICENSE)
 
-A library to display file choosers and message boxes. Supports GNU/Linux, macOS and Windows.
+A library to display file choosers and message boxes. Supports GNU/Linux, BSD Unix, macOS and Windows.
 
 ## Installation
 
