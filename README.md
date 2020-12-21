@@ -1,6 +1,7 @@
 # native-dialog
 
 [![Crates.io](https://img.shields.io/crates/v/native-dialog.svg)](https://crates.io/crates/native-dialog)
+[![Docs.rs](https://docs.rs/native-dialog/badge.svg)](https://docs.rs/native-dialog)
 [![License](https://img.shields.io/crates/l/native-dialog.svg)](LICENSE)
 
 A library to display file choosers and message boxes. Supports GNU/Linux, BSD Unix, macOS and Windows.
