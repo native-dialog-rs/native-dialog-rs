@@ -7,7 +7,6 @@ use std::path::Path;
 /// Represents a set of file extensions and their description.
 #[derive(Debug, Clone)]
 pub struct Filter<'a> {
-    #[cfg_attr(target_os = "macos", allow(dead_code))]
     pub(crate) description: &'a str,
     pub(crate) extensions: &'a [&'a str],
 }
