@@ -22,7 +22,7 @@ impl DialogImpl for OpenSingleFile<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        panel.set_allowed_file_types(get_allowed_types(&self.filters));
+        panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
 
         match panel.run_modal() {
             Ok(urls) => {
@@ -133,7 +133,7 @@ impl DialogImpl for SaveSingleFile<'_> {
     }
 }
 
-fn get_allowed_types(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
+fn get_all_allowed_types(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
     let mut extensions = NSMutableArray::new();
     for filter in filters {
         for ext in filter.extensions {

@@ -81,22 +81,53 @@ impl DialogImpl for OpenSingleDir<'_> {
 
 impl DialogImpl for SaveSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        let command = should_use().ok_or(Error::NoImplementation)?;
+        let allowed_extensions = get_all_allowed_extension(&self.filters);
 
-        let params = Params {
-            location: self.location,
-            filters: &self.filters,
-            multiple: false,
-            dir: false,
-            save: true,
-        };
+        let mut next_location = self.location.map(|p| p.to_path_buf());
 
-        let output = match command {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
-        }?;
+        loop {
+            let params = Params {
+                location: next_location.as_deref(),
+                filters: &self.filters,
+                multiple: false,
+                dir: false,
+                save: true,
+            };
 
-        Ok(output.as_deref().map(trim_newlines).map(to_path_buf))
+            let command = should_use().ok_or(Error::NoImplementation)?;
+            let output = match command {
+                UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
+                UseCommand::Zenity(cmd) => call_zenity(cmd, params),
+            }?;
+
+            let path = output.as_deref().map(trim_newlines).map(to_path_buf);
+            if allowed_extensions.is_empty() {
+                break Ok(path);
+            }
+
+            if let Some(path) = path {
+                if let Some(ext) = path.extension() {
+                    if allowed_extensions.contains(&ext) {
+                        // Filename has an extension and it is valid
+                        break Ok(Some(path));
+                    }
+                }
+
+                let message = get_warn_extension_message(&path);
+
+                let command = should_use().ok_or(Error::NoImplementation)?;
+                match command {
+                    UseCommand::KDialog(cmd) => call_kdialog_warn_extension(cmd, &message),
+                    UseCommand::Zenity(cmd) => call_zenity_warn_extension(cmd, &message),
+                }?;
+
+                next_location = Some(path);
+
+                continue;
+            } else {
+                break Ok(None);
+            }
+        }
     }
 }
 
@@ -115,6 +146,14 @@ fn trim_newlines(s: &[u8]) -> &[u8] {
 
 fn to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
     PathBuf::from(OsStr::from_bytes(buf.as_ref()))
+}
+
+fn get_all_allowed_extension<'a>(filters: &'a [Filter<'a>]) -> Vec<&'a OsStr> {
+    filters
+        .iter()
+        .flat_map(|filter| filter.extensions)
+        .map(OsStr::new)
+        .collect()
 }
 
 struct Params<'a> {
@@ -208,5 +247,46 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
         Some(0) => Ok(Some(output.stdout)),
         Some(1) => Ok(None),
         _ => Err(Error::UnexpectedOutput("zenity")),
+    }
+}
+
+fn call_kdialog_warn_extension(mut command: Command, message: &str) -> Result<()> {
+    command.args(&[
+        "--msgbox",
+        message,
+        "--title",
+        "Incorrect file extension",
+        "--icon=dialog-warning",
+    ]);
+
+    command.output()?;
+    Ok(())
+}
+
+fn call_zenity_warn_extension(mut command: Command, message: &str) -> Result<()> {
+    command.args(&[
+        "--width=400",
+        "--warning",
+        "--title",
+        "Incorrect file extension",
+        "--text",
+        message,
+    ]);
+
+    command.output()?;
+    Ok(())
+}
+
+fn get_warn_extension_message(path: &Path) -> String {
+    match path.extension() {
+        None => String::from(
+            "You haven't specify a file extension in the filename. Please check it again.",
+        ),
+        Some(ext) => {
+            format!(
+                "We could not recognize the file extension \".{}\" you've input. Please check it again.",
+                ext.to_string_lossy()
+            )
+        }
     }
 }
