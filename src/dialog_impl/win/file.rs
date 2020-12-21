@@ -12,6 +12,7 @@ impl DialogImpl for OpenSingleFile<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
+            filename: self.filename,
             location: self.location,
             filters: &self.filters,
             multiple: false,
@@ -27,6 +28,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
+            filename: self.filename,
             location: self.location,
             filters: &self.filters,
             multiple: true,
@@ -45,6 +47,7 @@ impl DialogImpl for OpenSingleDir<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
+            filename: self.filename,
             location: self.location,
             filters: &[],
             multiple: false,
@@ -60,6 +63,7 @@ impl DialogImpl for SaveSingleFile<'_> {
         super::process_init();
 
         let result = save_dialog(SaveDialogParams {
+            filename: self.filename,
             location: self.location,
             filters: &self.filters,
         })?;
@@ -83,6 +87,7 @@ fn resolve_tilde<P: AsRef<Path> + ?Sized>(path: &P) -> Option<PathBuf> {
 }
 
 struct OpenDialogParams<'a> {
+    filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
     multiple: bool,
@@ -96,6 +101,8 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     let file_types: Vec<_> = get_dialog_file_types(params.filters);
     let file_types = file_types.iter().map(|t| (t.0, &*t.1)).collect();
 
+    let file_name = params.filename.unwrap_or("");
+
     let mut options = FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_STRICTFILETYPES;
     if params.multiple {
         options |= FOS_ALLOWMULTISELECT;
@@ -107,6 +114,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     let params = DialogParams {
         folder,
         file_types,
+        file_name,
         options,
         ..Default::default()
     };
@@ -117,6 +125,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
 }
 
 struct SaveDialogParams<'a> {
+    filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
 }
@@ -127,6 +136,8 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
 
     let file_types: Vec<_> = get_dialog_file_types(params.filters);
     let file_types = file_types.iter().map(|t| (t.0, &*t.1)).collect();
+
+    let file_name = params.filename.unwrap_or("");
 
     let default_extension = if let Some(first_filter) = params.filters.first() {
         first_filter.extensions[0]
@@ -140,6 +151,7 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
     let params = DialogParams {
         folder,
         file_types,
+        file_name,
         default_extension,
         options,
         ..Default::default()

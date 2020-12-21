@@ -11,14 +11,8 @@ pub trait INSSavePanel: INSObject {
         }
     }
 
-    fn get_name_field_string_value(&self) -> Id<NSString> {
-        unsafe {
-            let ptr = msg_send![self, nameFieldStringValue];
-            Id::from_retained_ptr(ptr)
-        }
-    }
-
-    fn set_name_field_string_value(&self, value: Id<NSString>) {
+    fn set_name_field_string_value(&self, value: &str) {
+        let value = NSString::from_str(value);
         unsafe { msg_send![self, setNameFieldStringValue: value] }
     }
 

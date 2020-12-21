@@ -1,6 +1,6 @@
 use super::{INSURL, NSURL};
 use cocoa::foundation::NSInteger;
-use objc_foundation::{INSArray, INSObject, NSArray};
+use objc_foundation::{INSArray, INSObject, INSString, NSArray, NSString};
 use objc_id::Id;
 
 pub trait INSOpenPanel: INSObject {
@@ -9,6 +9,11 @@ pub trait INSOpenPanel: INSObject {
             let ptr = msg_send![class!(NSOpenPanel), openPanel];
             Id::from_retained_ptr(ptr)
         }
+    }
+
+    fn set_name_field_string_value(&self, value: &str) {
+        let value = NSString::from_str(value);
+        unsafe { msg_send![self, setNameFieldStringValue: value] }
     }
 
     fn set_can_choose_files(&self, flag: bool) {

@@ -8,16 +8,16 @@ use std::process::Command;
 
 impl DialogImpl for OpenSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        let command = should_use().ok_or(Error::NoImplementation)?;
-
+        let target_path = get_target_path(self.location, self.filename);
         let params = Params {
-            location: self.location,
+            path: target_path.as_deref(),
             filters: &self.filters,
             multiple: false,
             dir: false,
             save: false,
         };
 
+        let command = should_use().ok_or(Error::NoImplementation)?;
         let output = match command {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
@@ -29,16 +29,16 @@ impl DialogImpl for OpenSingleFile<'_> {
 
 impl DialogImpl for OpenMultipleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        let command = should_use().ok_or(Error::NoImplementation)?;
-
+        let target_path = get_target_path(self.location, self.filename);
         let params = Params {
-            location: self.location,
+            path: target_path.as_deref(),
             filters: &self.filters,
             multiple: true,
             dir: false,
             save: false,
         };
 
+        let command = should_use().ok_or(Error::NoImplementation)?;
         let output = match command {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
@@ -60,16 +60,16 @@ impl DialogImpl for OpenMultipleFile<'_> {
 
 impl DialogImpl for OpenSingleDir<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        let command = should_use().ok_or(Error::NoImplementation)?;
-
+        let target_path = get_target_path(self.location, self.filename);
         let params = Params {
-            location: self.location,
+            path: target_path.as_deref(),
             filters: &[],
             multiple: false,
             dir: true,
             save: false,
         };
 
+        let command = should_use().ok_or(Error::NoImplementation)?;
         let output = match command {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
@@ -83,11 +83,10 @@ impl DialogImpl for SaveSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let allowed_extensions = get_all_allowed_extension(&self.filters);
 
-        let mut next_location = self.location.map(|p| p.to_path_buf());
-
+        let mut target_path = get_target_path(self.location, self.filename);
         loop {
             let params = Params {
-                location: next_location.as_deref(),
+                path: target_path.as_deref(),
                 filters: &self.filters,
                 multiple: false,
                 dir: false,
@@ -121,7 +120,7 @@ impl DialogImpl for SaveSingleFile<'_> {
                     UseCommand::Zenity(cmd) => call_zenity_warn_extension(cmd, &message),
                 }?;
 
-                next_location = Some(path);
+                target_path = Some(path);
 
                 continue;
             } else {
@@ -148,6 +147,15 @@ fn to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
     PathBuf::from(OsStr::from_bytes(buf.as_ref()))
 }
 
+fn get_target_path(location: Option<&Path>, filename: Option<&str>) -> Option<PathBuf> {
+    match (location, filename) {
+        (Some(location), Some(filename)) => Some(location.join(filename)),
+        (Some(location), None) => Some(location.join("Untitled")),
+        (None, Some(filename)) => Some(PathBuf::from(filename)),
+        (None, None) => None,
+    }
+}
+
 fn get_all_allowed_extension<'a>(filters: &'a [Filter<'a>]) -> Vec<&'a OsStr> {
     filters
         .iter()
@@ -157,7 +165,7 @@ fn get_all_allowed_extension<'a>(filters: &'a [Filter<'a>]) -> Vec<&'a OsStr> {
 }
 
 struct Params<'a> {
-    location: Option<&'a Path>,
+    path: Option<&'a Path>,
     filters: &'a [Filter<'a>],
     multiple: bool,
     dir: bool,
@@ -172,8 +180,8 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<Option<Vec<u8>>>
         (true, true) => unreachable!("???"),
     };
 
-    match params.location {
-        Some(dir) => command.arg(dir),
+    match params.path {
+        Some(path) => command.arg(path),
         None => command.arg(""),
     };
 
@@ -223,8 +231,8 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
 
     command.arg("--filename");
 
-    match params.location {
-        Some(dir) => command.arg(dir),
+    match params.path {
+        Some(path) => command.arg(path),
         None => command.arg(""),
     };
 

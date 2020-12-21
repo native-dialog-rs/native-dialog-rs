@@ -18,6 +18,10 @@ impl DialogImpl for OpenSingleFile<'_> {
         panel.set_can_choose_directories(false);
         panel.set_allows_multiple_selection(false);
 
+        if let Some(filename) = self.filename {
+            panel.set_name_field_string_value(filename);
+        }
+
         if let Some(location) = self.location {
             panel.set_directory_url(&location.to_string_lossy());
         }
@@ -42,6 +46,10 @@ impl DialogImpl for OpenMultipleFile<'_> {
         panel.set_can_choose_directories(false);
         panel.set_allows_multiple_selection(true);
 
+        if let Some(filename) = self.filename {
+            panel.set_name_field_string_value(filename);
+        }
+
         if let Some(location) = self.location {
             panel.set_directory_url(&location.to_string_lossy());
         }
@@ -63,6 +71,10 @@ impl DialogImpl for OpenSingleDir<'_> {
         panel.set_can_choose_directories(true);
         panel.set_allows_multiple_selection(false);
 
+        if let Some(filename) = self.filename {
+            panel.set_name_field_string_value(filename);
+        }
+
         if let Some(location) = self.location {
             panel.set_directory_url(&location.to_string_lossy());
         }
@@ -83,6 +95,10 @@ impl DialogImpl for SaveSingleFile<'_> {
 
         panel.set_can_create_directories(false);
         panel.set_extension_hidden(false);
+
+        if let Some(filename) = self.filename {
+            panel.set_name_field_string_value(filename);
+        }
 
         if let Some(location) = self.location {
             panel.set_directory_url(&location.to_string_lossy());
