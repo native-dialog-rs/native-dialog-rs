@@ -1,5 +1,6 @@
 use super::{should_use, Error, UseCommand};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
+use crate::util::resolve_tilde;
 use crate::{Filter, Result};
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
@@ -148,7 +149,7 @@ fn to_path_buf(buf: impl AsRef<[u8]>) -> PathBuf {
 }
 
 fn get_target_path(location: Option<&Path>, filename: Option<&str>) -> Option<PathBuf> {
-    match (location, filename) {
+    match (location.and_then(resolve_tilde), filename) {
         (Some(location), Some(filename)) => Some(location.join(filename)),
         (Some(location), None) => Some(location.join("Untitled")),
         (None, Some(filename)) => Some(PathBuf::from(filename)),

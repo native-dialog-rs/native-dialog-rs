@@ -1,6 +1,7 @@
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
+use crate::util::resolve_tilde;
 use crate::{Error, Filter, Result};
-use std::path::{Component, Path, PathBuf};
+use std::path::Path;
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, SaveDialogResult, FOS_ALLOWMULTISELECT,
     FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
@@ -70,20 +71,6 @@ impl DialogImpl for SaveSingleFile<'_> {
 
         Ok(result.map(|x| x.selected_file_path))
     }
-}
-
-fn resolve_tilde<P: AsRef<Path> + ?Sized>(path: &P) -> Option<PathBuf> {
-    let mut result = PathBuf::new();
-
-    let mut components = path.as_ref().components();
-    match components.next() {
-        Some(Component::Normal(c)) if c == "~" => result.push(dirs::home_dir()?),
-        Some(c) => result.push(c),
-        None => {}
-    };
-    result.extend(components);
-
-    Some(result)
 }
 
 struct OpenDialogParams<'a> {

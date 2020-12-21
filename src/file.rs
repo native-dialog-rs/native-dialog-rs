@@ -40,7 +40,6 @@ impl<'a> FileDialog<'a> {
     }
 
     pub fn set_location<P: AsRef<Path> + ?Sized>(mut self, path: &'a P) -> Self {
-        // TODO: zenity/kdialog also needs to resolve tilde
         self.location = Some(path.as_ref());
         self
     }

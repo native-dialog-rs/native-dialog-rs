@@ -29,7 +29,8 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub(crate) mod dialog;
-mod dialog_impl;
+pub(crate) mod dialog_impl;
+pub(crate) mod util;
 
 mod message;
 pub use message::*;
