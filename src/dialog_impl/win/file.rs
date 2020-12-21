@@ -1,9 +1,10 @@
-use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile};
+use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::{Error, Filter, Result};
 use std::path::{Component, Path, PathBuf};
 use wfd::{
-    DialogError, DialogParams, OpenDialogResult, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST,
-    FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST, FOS_PICKFOLDERS,
+    DialogError, DialogParams, OpenDialogResult, SaveDialogResult, FOS_ALLOWMULTISELECT,
+    FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
+    FOS_PICKFOLDERS, FOS_STRICTFILETYPES,
 };
 
 impl DialogImpl for OpenSingleFile<'_> {
@@ -14,7 +15,7 @@ impl DialogImpl for OpenSingleFile<'_> {
             location: self.location,
             filters: &self.filters,
             multiple: false,
-            open_dir: false,
+            dir: false,
         })?;
 
         Ok(result.map(|x| x.selected_file_path))
@@ -29,7 +30,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
             location: self.location,
             filters: &self.filters,
             multiple: true,
-            open_dir: false,
+            dir: false,
         })?;
 
         match result {
@@ -47,7 +48,20 @@ impl DialogImpl for OpenSingleDir<'_> {
             location: self.location,
             filters: &[],
             multiple: false,
-            open_dir: true,
+            dir: true,
+        })?;
+
+        Ok(result.map(|x| x.selected_file_path))
+    }
+}
+
+impl DialogImpl for SaveSingleFile<'_> {
+    fn show(&mut self) -> Result<Self::Output> {
+        super::process_init();
+
+        let result = save_dialog(SaveDialogParams {
+            location: self.location,
+            filters: &self.filters,
         })?;
 
         Ok(result.map(|x| x.selected_file_path))
@@ -72,38 +86,81 @@ struct OpenDialogParams<'a> {
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
     multiple: bool,
-    open_dir: bool,
+    dir: bool,
 }
 
 fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
-    let location = params.location.and_then(resolve_tilde);
+    let folder = params.location.and_then(resolve_tilde);
+    let folder = folder.as_deref().and_then(Path::to_str).unwrap_or("");
 
-    let types: Vec<_> = params
-        .filters
-        .iter()
-        .map(|filter| {
-            let extensions = filter.extensions.iter().map(|x| format!("*.{}", x));
-            (filter.description, extensions.collect::<Vec<_>>().join(";"))
-        })
-        .collect();
+    let file_types: Vec<_> = get_dialog_file_types(params.filters);
+    let file_types = file_types.iter().map(|t| (t.0, &*t.1)).collect();
 
-    let mut options = FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST;
+    let mut options = FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_STRICTFILETYPES;
     if params.multiple {
         options |= FOS_ALLOWMULTISELECT;
     }
-    if params.open_dir {
+    if params.dir {
         options |= FOS_PICKFOLDERS;
     }
 
     let params = DialogParams {
-        folder: location.as_deref().and_then(Path::to_str).unwrap_or(""),
-        file_types: types.iter().map(|t| (t.0, &*t.1)).collect(),
+        folder,
+        file_types,
         options,
         ..Default::default()
     };
 
     let result = wfd::open_dialog(params);
 
+    convert_result(result)
+}
+
+struct SaveDialogParams<'a> {
+    location: Option<&'a Path>,
+    filters: &'a [Filter<'a>],
+}
+
+fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
+    let folder = params.location.and_then(resolve_tilde);
+    let folder = folder.as_deref().and_then(Path::to_str).unwrap_or("");
+
+    let file_types: Vec<_> = get_dialog_file_types(params.filters);
+    let file_types = file_types.iter().map(|t| (t.0, &*t.1)).collect();
+
+    let default_extension = if let Some(first_filter) = params.filters.first() {
+        first_filter.extensions[0]
+    } else {
+        ""
+    };
+
+    let options =
+        FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST | FOS_NOREADONLYRETURN | FOS_STRICTFILETYPES;
+
+    let params = DialogParams {
+        folder,
+        file_types,
+        default_extension,
+        options,
+        ..Default::default()
+    };
+
+    let result = wfd::save_dialog(params);
+
+    convert_result(result)
+}
+
+fn get_dialog_file_types<'a>(filters: &'a [Filter<'a>]) -> Vec<(&'a str, String)> {
+    filters
+        .iter()
+        .map(|filter| {
+            let extensions = filter.extensions.iter().map(|x| format!("*.{}", x));
+            (filter.description, extensions.collect::<Vec<_>>().join(";"))
+        })
+        .collect()
+}
+
+fn convert_result<T>(result: std::result::Result<T, DialogError>) -> Result<Option<T>> {
     match result {
         Ok(t) => Ok(Some(t)),
         Err(e) => match e {
@@ -116,9 +173,4 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
             )),
         },
     }
-}
-
-#[allow(dead_code)]
-fn save_dialog() {
-    let mut _options = FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST | FOS_NOREADONLYRETURN;
 }
