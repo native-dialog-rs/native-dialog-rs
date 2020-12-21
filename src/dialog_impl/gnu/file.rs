@@ -235,9 +235,13 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
                 .iter()
                 .map(|s| format!("*.{}", s))
                 .collect();
+            let extensions = extensions.join(" ");
 
             command.arg("--file-filter");
-            command.arg(format!("{} | {}", filter.description, extensions.join(" ")));
+            command.arg(format!(
+                "{} ({}) | {}",
+                filter.description, extensions, extensions
+            ));
         }
     }
 
