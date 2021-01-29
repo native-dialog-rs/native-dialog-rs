@@ -1,4 +1,4 @@
-use crate::dialog::{Dialog, DialogImpl, MessageAlert, MessageConfirm};
+use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::Result;
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
@@ -65,7 +65,7 @@ impl<'a> MessageDialog<'a> {
     }
 
     /// Shows a dialog that alert users with some message.
-    pub fn show_alert(self) -> Result<<MessageAlert<'a> as Dialog>::Output> {
+    pub fn show_alert(self) -> Result<()> {
         let mut dialog = MessageAlert {
             title: self.title,
             text: self.text,
@@ -76,7 +76,7 @@ impl<'a> MessageDialog<'a> {
     }
 
     /// Shows a dialog that let users to choose Yes/No.
-    pub fn show_confirm(self) -> Result<<MessageConfirm<'a> as Dialog>::Output> {
+    pub fn show_confirm(self) -> Result<bool> {
         let mut dialog = MessageConfirm {
             title: self.title,
             text: self.text,

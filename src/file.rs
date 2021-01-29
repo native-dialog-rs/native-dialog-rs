@@ -1,9 +1,7 @@
-use crate::dialog::{
-    Dialog, DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
-};
+use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::Result;
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Represents a set of file extensions and their description.
 #[derive(Debug, Clone)]
@@ -96,7 +94,7 @@ impl<'a> FileDialog<'a> {
     }
 
     /// Shows a dialog that let users to open one file.
-    pub fn show_open_single_file(self) -> Result<<OpenSingleFile<'a> as Dialog>::Output> {
+    pub fn show_open_single_file(self) -> Result<Option<PathBuf>> {
         let mut dialog = OpenSingleFile {
             filename: self.filename,
             location: self.location,
@@ -107,7 +105,7 @@ impl<'a> FileDialog<'a> {
     }
 
     /// Shows a dialog that let users to open multiple files.
-    pub fn show_open_multiple_file(self) -> Result<<OpenMultipleFile<'a> as Dialog>::Output> {
+    pub fn show_open_multiple_file(self) -> Result<Vec<PathBuf>> {
         let mut dialog = OpenMultipleFile {
             filename: self.filename,
             location: self.location,
@@ -118,7 +116,7 @@ impl<'a> FileDialog<'a> {
     }
 
     /// Shows a dialog that let users to open one directory.
-    pub fn show_open_single_dir(self) -> Result<<OpenSingleDir<'a> as Dialog>::Output> {
+    pub fn show_open_single_dir(self) -> Result<Option<PathBuf>> {
         let mut dialog = OpenSingleDir {
             filename: self.filename,
             location: self.location,
@@ -128,7 +126,7 @@ impl<'a> FileDialog<'a> {
     }
 
     /// Shows a dialog that let users to save one file.
-    pub fn show_save_single_file(self) -> Result<<SaveSingleFile<'a> as Dialog>::Output> {
+    pub fn show_save_single_file(self) -> Result<Option<PathBuf>> {
         let mut dialog = SaveSingleFile {
             filename: self.filename,
             location: self.location,

@@ -18,23 +18,28 @@ cargo add native-dialog
 use native_dialog::{FileDialog, MessageDialog, MessageType};
 
 fn main() {
-    let result = FileDialog::new()
+    let path = FileDialog::new()
         .set_location("~/Desktop")
         .add_filter("PNG Image", &["png"])
         .add_filter("JPEG Image", &["jpg", "jpeg"])
         .show_open_single_file()
         .unwrap();
 
-    let message = format!("{:#?}", result);
+    let path = match path {
+        Some(path) => path,
+        None => return,
+    };
 
-    let result = MessageDialog::new()
+    let yes = MessageDialog::new()
         .set_type(MessageType::Info)
-        .set_title("Do you want to open these files?")
-        .set_text(&message)
+        .set_title("Do you want to open the file?")
+        .set_text(&format!("{:#?}", path))
         .show_confirm()
         .unwrap();
 
-    assert_eq!(result, true);
+    if yes {
+        do_something(path);
+    }
 }
 ```
 
@@ -46,4 +51,4 @@ Turn on crate features or embed manifests into the `.exe` to enable visual styli
 
 #### Why the program crashed when opening a dialog on macOS?
 
-The API of macOS has a limitation that all UI operations must be performed on the main thread.
+The UI framework of macOS (Cocoa) has a limitation that all UI operations must be performed on the main thread.

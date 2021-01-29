@@ -1,5 +1,6 @@
 use cocoa::base::id;
 use cocoa::foundation::NSInteger;
+use objc::runtime::{BOOL, NO, YES};
 
 #[inline(always)]
 unsafe fn with_activation<T>(mut f: impl FnMut() -> T) -> T {
@@ -58,5 +59,4 @@ mod open_panel;
 pub use open_panel::*;
 
 mod save_panel;
-use objc::runtime::{BOOL, NO, YES};
 pub use save_panel::*;
