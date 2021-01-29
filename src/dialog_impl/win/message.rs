@@ -1,5 +1,6 @@
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{MessageType, Result};
+use raw_window_handle::RawWindowHandle;
 
 impl DialogImpl for MessageAlert<'_> {
     fn show(&mut self) -> Result<Self::Output> {
@@ -9,6 +10,7 @@ impl DialogImpl for MessageAlert<'_> {
             title: self.title,
             text: self.text,
             typ: self.typ,
+            owner: self.owner,
             ask: false,
         })?;
         Ok(())
@@ -23,6 +25,7 @@ impl DialogImpl for MessageConfirm<'_> {
             title: self.title,
             text: self.text,
             typ: self.typ,
+            owner: self.owner,
             ask: true,
         })
     }
@@ -32,6 +35,7 @@ struct MessageBoxParams<'a> {
     title: &'a str,
     text: &'a str,
     typ: MessageType,
+    owner: Option<RawWindowHandle>,
     ask: bool,
 }
 
@@ -40,8 +44,14 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
     use std::ptr::null_mut;
+    use winapi::shared::windef::HWND;
     use winapi::um::winuser::{
         MessageBoxW, IDYES, MB_ICONERROR, MB_ICONINFORMATION, MB_ICONWARNING, MB_OK, MB_YESNO,
+    };
+
+    let owner = match params.owner {
+        Some(RawWindowHandle::Windows(handle)) => handle.hwnd as HWND,
+        _ => null_mut(),
     };
 
     let text: Vec<u16> = OsStr::new(params.text)
@@ -61,7 +71,7 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     } | if params.ask { MB_YESNO } else { MB_OK };
 
     let ret = super::with_visual_styles(|| unsafe {
-        MessageBoxW(null_mut(), text.as_ptr(), caption.as_ptr(), u_type)
+        MessageBoxW(owner, text.as_ptr(), caption.as_ptr(), u_type)
     });
 
     match ret {

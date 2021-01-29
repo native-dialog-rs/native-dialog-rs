@@ -1,11 +1,12 @@
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::util::resolve_tilde;
 use crate::{Error, Filter, Result};
+use raw_window_handle::RawWindowHandle;
 use std::path::Path;
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, SaveDialogResult, FOS_ALLOWMULTISELECT,
     FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
-    FOS_PICKFOLDERS, FOS_STRICTFILETYPES,
+    FOS_PICKFOLDERS, FOS_STRICTFILETYPES, HWND,
 };
 
 impl DialogImpl for OpenSingleFile<'_> {
@@ -16,6 +17,7 @@ impl DialogImpl for OpenSingleFile<'_> {
             filename: self.filename,
             location: self.location,
             filters: &self.filters,
+            owner: self.owner,
             multiple: false,
             dir: false,
         })?;
@@ -32,6 +34,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
             filename: self.filename,
             location: self.location,
             filters: &self.filters,
+            owner: self.owner,
             multiple: true,
             dir: false,
         })?;
@@ -51,6 +54,7 @@ impl DialogImpl for OpenSingleDir<'_> {
             filename: self.filename,
             location: self.location,
             filters: &[],
+            owner: self.owner,
             multiple: false,
             dir: true,
         })?;
@@ -67,6 +71,7 @@ impl DialogImpl for SaveSingleFile<'_> {
             filename: self.filename,
             location: self.location,
             filters: &self.filters,
+            owner: self.owner,
         })?;
 
         Ok(result.map(|x| x.selected_file_path))
@@ -77,6 +82,7 @@ struct OpenDialogParams<'a> {
     filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
+    owner: Option<RawWindowHandle>,
     multiple: bool,
     dir: bool,
 }
@@ -98,11 +104,17 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
         options |= FOS_PICKFOLDERS;
     }
 
+    let owner = match params.owner {
+        Some(RawWindowHandle::Windows(handle)) => Some(handle.hwnd as HWND),
+        _ => None,
+    };
+
     let params = DialogParams {
         folder,
         file_types,
         file_name,
         options,
+        owner,
         ..Default::default()
     };
 
@@ -115,6 +127,7 @@ struct SaveDialogParams<'a> {
     filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
+    owner: Option<RawWindowHandle>,
 }
 
 fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
@@ -126,14 +139,18 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
 
     let file_name = params.filename.unwrap_or("");
 
-    let default_extension = if let Some(first_filter) = params.filters.first() {
-        first_filter.extensions[0]
-    } else {
-        ""
+    let default_extension = match params.filters {
+        [first_filter, ..] => first_filter.extensions[0],
+        _ => "",
     };
 
     let options =
         FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST | FOS_NOREADONLYRETURN | FOS_STRICTFILETYPES;
+
+    let owner = match params.owner {
+        Some(RawWindowHandle::Windows(handle)) => Some(handle.hwnd as HWND),
+        _ => None,
+    };
 
     let params = DialogParams {
         folder,
@@ -141,6 +158,7 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
         file_name,
         default_extension,
         options,
+        owner,
         ..Default::default()
     };
 

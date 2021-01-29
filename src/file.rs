@@ -2,6 +2,7 @@ use crate::dialog::{
     Dialog, DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
 use crate::Result;
+use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use std::path::Path;
 
 /// Represents a set of file extensions and their description.
@@ -17,6 +18,7 @@ pub struct FileDialog<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
     pub(crate) filters: Vec<Filter<'a>>,
+    pub(crate) owner: Option<RawWindowHandle>,
 }
 
 impl<'a> FileDialog<'a> {
@@ -26,6 +28,7 @@ impl<'a> FileDialog<'a> {
             filename: None,
             location: None,
             filters: vec![],
+            owner: None,
         }
     }
 
@@ -74,12 +77,31 @@ impl<'a> FileDialog<'a> {
         self
     }
 
+    /// Sets the owner of the dialog. On Unix and GNU/Linux, this is a no-op.
+    pub fn set_owner<W: HasRawWindowHandle>(mut self, window: &W) -> Self {
+        self.owner = Some(window.raw_window_handle());
+        self
+    }
+
+    /// Sets the owner of the dialog by raw handle. On Unix and GNU/Linux, this is a no-op.
+    pub fn set_owner_handle(mut self, handle: RawWindowHandle) -> Self {
+        self.owner = Some(handle);
+        self
+    }
+
+    /// Resets the owner of the dialog to nothing.
+    pub fn reset_owner(mut self) -> Self {
+        self.owner = None;
+        self
+    }
+
     /// Shows a dialog that let users to open one file.
     pub fn show_open_single_file(self) -> Result<<OpenSingleFile<'a> as Dialog>::Output> {
         let mut dialog = OpenSingleFile {
             filename: self.filename,
             location: self.location,
             filters: self.filters,
+            owner: self.owner,
         };
         dialog.show()
     }
@@ -90,6 +112,7 @@ impl<'a> FileDialog<'a> {
             filename: self.filename,
             location: self.location,
             filters: self.filters,
+            owner: self.owner,
         };
         dialog.show()
     }
@@ -99,6 +122,7 @@ impl<'a> FileDialog<'a> {
         let mut dialog = OpenSingleDir {
             filename: self.filename,
             location: self.location,
+            owner: self.owner,
         };
         dialog.show()
     }
@@ -109,6 +133,7 @@ impl<'a> FileDialog<'a> {
             filename: self.filename,
             location: self.location,
             filters: self.filters,
+            owner: self.owner,
         };
         dialog.show()
     }

@@ -1,10 +1,12 @@
 use super::Dialog;
 use crate::MessageType;
+use raw_window_handle::RawWindowHandle;
 
 pub struct MessageAlert<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
     pub(crate) typ: MessageType,
+    pub(crate) owner: Option<RawWindowHandle>,
 }
 
 impl Dialog for MessageAlert<'_> {
@@ -15,6 +17,7 @@ pub struct MessageConfirm<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
     pub(crate) typ: MessageType,
+    pub(crate) owner: Option<RawWindowHandle>,
 }
 
 impl Dialog for MessageConfirm<'_> {
