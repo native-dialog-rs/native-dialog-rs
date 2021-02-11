@@ -37,5 +37,3 @@ pub use message::*;
 
 mod file;
 pub use file::*;
-
-pub use raw_window_handle;

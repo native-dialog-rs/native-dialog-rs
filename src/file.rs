@@ -81,8 +81,9 @@ impl<'a> FileDialog<'a> {
         self
     }
 
-    /// Sets the owner of the dialog by raw handle. On Unix and GNU/Linux, this is a no-op.
-    pub fn set_owner_handle(mut self, handle: RawWindowHandle) -> Self {
+    /// Sets the owner of the dialog by raw handle. It's the caller's responsibility that ensuring
+    /// the handle is valid. On Unix and GNU/Linux, this is a no-op.
+    pub unsafe fn set_owner_handle(mut self, handle: RawWindowHandle) -> Self {
         self.owner = Some(handle);
         self
     }
