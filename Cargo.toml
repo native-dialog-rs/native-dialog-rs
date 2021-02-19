@@ -10,7 +10,7 @@ repository = "https://github.com/balthild/native-dialog-rs"
 
 [dependencies]
 thiserror = "1.0.19"
-dirs = "3.0.1"
+dirs-next = "2.0.0"
 raw-window-handle = "0.3.3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
