@@ -1,5 +1,6 @@
 mod file;
 mod message;
+mod progress;
 
 fn process_init() {
     use std::sync::Once;
