@@ -1,7 +1,9 @@
-use super::{should_use, UseCommand};
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
-use crate::{Error, MessageType, Result};
 use std::process::Command;
+
+use crate::{Error, MessageType, Result};
+use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+
+use super::{escape_pango_entities, should_use, UseCommand};
 
 impl DialogImpl for MessageAlert<'_> {
     fn show(&mut self) -> Result<Self::Output> {
@@ -39,17 +41,6 @@ impl DialogImpl for MessageConfirm<'_> {
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         }
     }
-}
-
-/// GMarkup flavoured XML has defined only 5 entities and doesn't support user-defined entities.
-/// Should we reimplement the complete `g_markup_escape_text` function?
-/// See https://gitlab.gnome.org/GNOME/glib/-/blob/353942c6/glib/gmarkup.c#L2296
-fn escape_pango_entities(text: &str) -> String {
-    text.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&apos;")
 }
 
 struct Params<'a> {
