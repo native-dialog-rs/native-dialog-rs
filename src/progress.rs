@@ -5,6 +5,13 @@ use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use crate::dialog::DialogImpl;
 use crate::Result;
 
+/// Builds and shows progress dialogs.
+///
+/// # Platform Notes
+///
+/// On Windows, your application must have Common Controls 6.0 or later loaded via the manifest,
+/// or trying to [`ProgressDialog::show`] this dialog will crash your application with a linker error.
+///
 pub struct ProgressDialog<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
@@ -19,6 +26,7 @@ pub trait ProgressHandle {
 }
 
 impl<'a> ProgressDialog<'a> {
+    /// Create a new progress dialog.
     pub fn new() -> Self {
         ProgressDialog {
             title: "",
