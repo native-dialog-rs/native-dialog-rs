@@ -13,7 +13,7 @@ impl DialogImpl for ProgressDialog<'_> {
 
         match command {
             UseCommand::KDialog(c) => call_kdialog(c, self),
-            UseCommand::Zenity(c) => call_zenity(c, self)
+            UseCommand::Zenity(c) => call_zenity(c, self),
         }
     }
 }
@@ -77,7 +77,10 @@ impl ProgressHandle for KdialogProgressHandle {
     }
 }
 
-fn call_kdialog(mut command: Command, settings: &ProgressDialog) -> Result<Box<RefCell<dyn ProgressHandle>>> {
+fn call_kdialog(
+    mut command: Command,
+    settings: &ProgressDialog,
+) -> Result<Box<RefCell<dyn ProgressHandle>>> {
     command.arg("--progressbar");
     command.arg(settings.text);
     command.arg("100");
@@ -101,7 +104,7 @@ impl ZenityProgressHandle {
     fn new(mut child: Child) -> Self {
         ZenityProgressHandle {
             stdin: child.stdin.take().unwrap(),
-            child
+            child,
         }
     }
 }
@@ -109,7 +112,7 @@ impl ZenityProgressHandle {
 impl ProgressHandle for ZenityProgressHandle {
     fn set_progress(&mut self, percent: f32) -> Result<()> {
         if percent < 0.0 || percent > 100.0 {
-            return Err(Error::InvalidPercentage(percent))
+            return Err(Error::InvalidPercentage(percent));
         }
 
         self.stdin.write(format!("{}\n", percent).as_bytes())?;
@@ -122,12 +125,13 @@ impl ProgressHandle for ZenityProgressHandle {
     }
 
     fn check_cancelled(&mut self) -> Result<bool> {
-        self.child.try_wait().map(|opt| {
-            match opt {
+        self.child
+            .try_wait()
+            .map(|opt| match opt {
                 None => false,
-                Some(status) => !status.success()
-            }
-        }).map_err(|e| Error::IoFailure(e))
+                Some(status) => !status.success(),
+            })
+            .map_err(|e| Error::IoFailure(e))
     }
 
     fn close(&mut self) -> Result<()> {
@@ -145,7 +149,10 @@ impl ProgressHandle for ZenityProgressHandle {
     }
 }
 
-fn call_zenity(mut command: Command, settings: &ProgressDialog) -> Result<Box<RefCell<dyn ProgressHandle>>> {
+fn call_zenity(
+    mut command: Command,
+    settings: &ProgressDialog,
+) -> Result<Box<RefCell<dyn ProgressHandle>>> {
     command.arg("--progress");
 
     command.arg("--title");

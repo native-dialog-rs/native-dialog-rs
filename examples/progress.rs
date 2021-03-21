@@ -15,7 +15,7 @@ fn main() -> Result<(), Error> {
     sleep(Duration::from_secs(3));
     if handle.check_cancelled()? {
         eprintln!("Cancelled!");
-        return Ok(())
+        return Ok(());
     }
 
     handle.set_progress(80.0)?;

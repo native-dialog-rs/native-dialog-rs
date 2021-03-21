@@ -17,12 +17,8 @@ impl<'a> DialogImpl for ProgressDialog<'a> {
         use std::iter::once;
         use std::os::windows::ffi::OsStrExt;
         use std::ptr::null_mut;
-        use winapi::um::winuser::{
-            CreateWindowExW, WS_BORDER, WS_POPUP, WS_VISIBLE
-        };
-        use winapi::um::commctrl::{
-            PROGRESS_CLASS, PBM_SETRANGE, PBM_SETSTEP,
-        };
+        use winapi::um::commctrl::{PBM_SETRANGE, PBM_SETSTEP, PROGRESS_CLASS};
+        use winapi::um::winuser::{CreateWindowExW, WS_BORDER, WS_POPUP, WS_VISIBLE};
 
         let class: Vec<u16> = OsStr::new(PROGRESS_CLASS)
             .encode_wide()
@@ -34,16 +30,22 @@ impl<'a> DialogImpl for ProgressDialog<'a> {
             .chain(once(0))
             .collect();
 
-        let handle = self.owner.map(|hndl| {
-            (hndlr as RawWindowHandle::Windows)
-        });
+        let handle = self.owner.map(|hndl| (hndlr as RawWindowHandle::Windows));
 
         let hwnd = super::with_visual_styles(|| unsafe {
             CreateWindowExW(
-                0,class.as_ptr(),caption.as_ptr(),
-                WS_BORDER | WS_POPUP | WS_VISIBLE, 0, 0, 300, 150,
-                handle.map(|h| h.hwnd).unwrap_or(null_mut()), null_mut(),
-                handle.map(|h| h.instance).unwrap_or(null_mut()), null_mut()
+                0,
+                class.as_ptr(),
+                caption.as_ptr(),
+                WS_BORDER | WS_POPUP | WS_VISIBLE,
+                0,
+                0,
+                300,
+                150,
+                handle.map(|h| h.hwnd).unwrap_or(null_mut()),
+                null_mut(),
+                handle.map(|h| h.instance).unwrap_or(null_mut()),
+                null_mut(),
             )
         });
 
@@ -67,7 +69,7 @@ impl ProgressHandle for WindowsProgressHandle {
         use winapi::um::commctrl::PBM_SETPOS;
 
         if percent < 0.0 || percent > 100.0 {
-            return Err(Error::InvalidPercentage(percent))
+            return Err(Error::InvalidPercentage(percent));
         }
 
         let pos = (percent * 10.0) as usize;
@@ -75,7 +77,7 @@ impl ProgressHandle for WindowsProgressHandle {
 
         match ret {
             0 => Err(std::io::Error::last_os_error().into()),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 
@@ -86,7 +88,7 @@ impl ProgressHandle for WindowsProgressHandle {
     }
 
     fn check_cancelled(&mut self) -> Result<bool> {
-        use winapi::um::winuser::{PeekMessageW, MSG, LPMSG, WM_CLOSE, PM_REMOVE};
+        use winapi::um::winuser::{PeekMessageW, LPMSG, MSG, PM_REMOVE, WM_CLOSE};
 
         let msg: LPMSG = null_mut();
         let ret = unsafe { PeekMessageW(msg, self.hwnd, WM_CLOSE, WM_CLOSE, PM_REMOVE) };
@@ -108,7 +110,7 @@ impl ProgressHandle for WindowsProgressHandle {
         let ret = unsafe { DestroyWindow(self.hwnd) };
         match ret {
             0 => Err(std::io::Error::last_os_error().into()),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 }

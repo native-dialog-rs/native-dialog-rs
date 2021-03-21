@@ -38,6 +38,6 @@ pub(crate) mod dialog;
 pub(crate) mod dialog_impl;
 pub(crate) mod util;
 
-mod message;
 mod file;
+mod message;
 mod progress;
