@@ -16,9 +16,9 @@ impl<'a> DialogImpl for ProgressDialog<'a> {
         use std::ffi::OsStr;
         use std::iter::once;
         use std::os::windows::ffi::OsStrExt;
-        use std::ptr::null_mut;
+        use winapi::shared::minwindef::HINSTANCE;
         use winapi::um::commctrl::{PBM_SETRANGE, PBM_SETSTEP, PROGRESS_CLASS};
-        use winapi::um::winuser::{CreateWindowExW, WS_BORDER, WS_POPUP, WS_VISIBLE};
+        use winapi::um::winuser::{CreateWindowExW, WS_CAPTION, WS_POPUP, WS_VISIBLE};
 
         let class: Vec<u16> = OsStr::new(PROGRESS_CLASS)
             .encode_wide()
@@ -30,21 +30,26 @@ impl<'a> DialogImpl for ProgressDialog<'a> {
             .chain(once(0))
             .collect();
 
-        let handle = self.owner.map(|hndl| (hndlr as RawWindowHandle::Windows));
+        let handle = self.owner.and_then(|hndl| {
+			match hndl {
+				RawWindowHandle::Windows(win) => Some(win),
+				_ => None
+			}
+		});
 
         let hwnd = super::with_visual_styles(|| unsafe {
             CreateWindowExW(
                 0,
                 class.as_ptr(),
                 caption.as_ptr(),
-                WS_BORDER | WS_POPUP | WS_VISIBLE,
-                0,
-                0,
-                300,
-                150,
-                handle.map(|h| h.hwnd).unwrap_or(null_mut()),
+                WS_CAPTION | WS_POPUP | WS_VISIBLE,
+                200,
+                200,
+                400,
+                250,
+                handle.map(|h| h.hwnd).unwrap_or(null_mut()) as HWND,
                 null_mut(),
-                handle.map(|h| h.instance).unwrap_or(null_mut()),
+                handle.map(|h| h.hinstance).unwrap_or(null_mut()) as HINSTANCE,
                 null_mut(),
             )
         });
@@ -81,14 +86,14 @@ impl ProgressHandle for WindowsProgressHandle {
         }
     }
 
-    fn set_text(&mut self, text: &str) -> Result<()> {
+    fn set_text(&mut self, _text: &str) -> Result<()> {
         // Currently a noop because the progress window doesn't show text :(
         // Maybe put it in the title bar?
         Ok(())
     }
 
     fn check_cancelled(&mut self) -> Result<bool> {
-        use winapi::um::winuser::{PeekMessageW, LPMSG, MSG, PM_REMOVE, WM_CLOSE};
+        use winapi::um::winuser::{PeekMessageW, LPMSG, PM_REMOVE, WM_CLOSE};
 
         let msg: LPMSG = null_mut();
         let ret = unsafe { PeekMessageW(msg, self.hwnd, WM_CLOSE, WM_CLOSE, PM_REMOVE) };
@@ -96,7 +101,7 @@ impl ProgressHandle for WindowsProgressHandle {
         let res = match ret {
             0 => false,
             _ => {
-                self.close(); // clean up!!
+                self.close()?; // clean up!!
                 true
             }
         };
