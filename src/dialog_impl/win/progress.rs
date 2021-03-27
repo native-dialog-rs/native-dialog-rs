@@ -139,9 +139,9 @@ fn open_task_dialog(
         _ => S_OK,
     };
 
+    let cb_trait: &dyn Fn(HWND, UINT, WPARAM, LPARAM) -> i32 = &cb;
+    let cb_trait_ref = &cb_trait;
     let lparam = {
-        let cb_trait: &dyn Fn(HWND, UINT, WPARAM, LPARAM) -> i32 = &cb;
-        let cb_trait_ref = &cb_trait;
         let cb_ptr = cb_trait_ref as *const _ as *const c_void;
         cb_ptr as isize
     };
