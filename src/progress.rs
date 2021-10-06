@@ -54,7 +54,7 @@ impl<'a> ProgressDialog<'a> {
     }
 
     /// Sets the owner of the dialog by raw handle. On Unix and GNU/Linux, this is a no-op.
-    ///pub(crate)
+    ///
     /// # Safety
     ///
     /// It's the caller's responsibility that ensuring the handle is valid.

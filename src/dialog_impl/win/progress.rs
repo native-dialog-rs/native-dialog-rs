@@ -165,22 +165,9 @@ fn open_task_dialog(
         pszWindowTitle: title.as_ptr(),
         u1: Default::default(),
         pszMainInstruction: content.as_ptr(),
-        pszContent: null(),
-        cButtons: 0,
-        pButtons: null(),
-        nDefaultButton: 0,
-        cRadioButtons: 0,
-        pRadioButtons: null(),
-        nDefaultRadioButton: 0,
-        pszVerificationText: null(),
-        pszExpandedInformation: null(),
-        pszExpandedControlText: null(),
-        pszCollapsedControlText: null(),
-        u2: Default::default(),
-        pszFooter: null(),
         pfCallback: Some(task_cb),
         lpCallbackData: lparam,
-        cxWidth: 0,
+        ..Default::default()
     };
 
     let (retval, result) = super::with_visual_styles(|| unsafe {
