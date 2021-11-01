@@ -1,13 +1,13 @@
 use std::cell::RefCell;
 use std::ffi::c_void;
-use std::ptr::{null, null_mut};
-use std::sync::{Arc, Condvar, mpsc, Mutex};
+use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::mpsc;
 
 use raw_window_handle::RawWindowHandle;
 use winapi::shared::minwindef::{LPARAM, UINT, WPARAM};
-use winapi::shared::windef::{HWND, HWND__};
-use winapi::um::winuser::SendMessageW;
+use winapi::shared::windef::HWND;
+use winapi::um::winuser::PostMessageW;
 
 use crate::{Error, Result};
 use crate::{ProgressDialog, ProgressHandle};
@@ -17,6 +17,14 @@ struct AtomicHandles {
     hwnd: AtomicPtr<c_void>,
     hinstance: AtomicPtr<c_void>,
 }
+
+struct HwndWrapper {
+    hwnd: HWND,
+}
+
+// SAFETY: HWNDs are OK to send between threads.
+// Be sure we don't use the pointer for anything else.
+unsafe impl Send for HwndWrapper {}
 
 struct Params {
     title: String,
@@ -33,42 +41,35 @@ impl<'a> DialogImpl for ProgressDialog<'a> {
             text: self.text.into(),
             owner: self.owner.and_then(|raw_handle| match raw_handle {
                 RawWindowHandle::Windows(win) => Some(AtomicHandles {
-                    hwnd: AtomicPtr::from(win.hwnd as *mut c_void),
-                    hinstance: AtomicPtr::from(win.hinstance as *mut c_void),
+                    hwnd: AtomicPtr::from(win.hwnd),
+                    hinstance: AtomicPtr::from(win.hinstance),
                 }),
                 _ => None,
             }),
         };
 
-        let pair = Arc::new((
-            AtomicPtr::new(null_mut::<HWND__>()),
-            Mutex::new(false),
-            Condvar::new(),
-        ));
-        let pair2 = Arc::clone(&pair);
+        let (hwnd_tx, hwnd_rx) = mpsc::channel::<HwndWrapper>();
         let (res_sender, res_recv) = mpsc::channel::<bool>();
         std::thread::spawn(move || {
-            let res = open_task_dialog(params, pair2);
+            let res = open_task_dialog(params, hwnd_tx);
             if let Ok(cancel) = res {
                 res_sender.send(cancel).ok();
             }
         });
 
-        let (ptr, lock, cvar) = &*pair;
-
-        let mut started = lock.lock().unwrap();
-        while !*started {
-            started = cvar.wait(started).unwrap();
-        }
-
-        let hwnd = ptr.load(Ordering::Acquire);
+        let hwnd = hwnd_rx
+            .recv()
+            .map_err(|_e| {
+                Error::ImplementationError("Window thread exited early (crashed?)".into())
+            })?
+            .hwnd;
 
         unsafe {
             use winapi::shared::minwindef::MAKELONG;
             use winapi::um::commctrl::TDM_SET_PROGRESS_BAR_RANGE;
 
             // 0-1000 resolution
-            SendMessageW(
+            PostMessageW(
                 hwnd,
                 TDM_SET_PROGRESS_BAR_RANGE,
                 0,
@@ -107,10 +108,7 @@ extern "system" fn task_cb(
     cb_ref(hwnd, msg, wparam, lparam)
 }
 
-fn open_task_dialog(
-    settings: Params,
-    handle: Arc<(AtomicPtr<HWND__>, Mutex<bool>, Condvar)>,
-) -> Result<bool> {
+fn open_task_dialog(settings: Params, handle: mpsc::Sender<HwndWrapper>) -> Result<bool> {
     use winapi::shared::minwindef::HINSTANCE;
     use winapi::shared::winerror::{E_FAIL, E_INVALIDARG, E_OUTOFMEMORY, S_FALSE, S_OK};
     use winapi::um::commctrl::{
@@ -121,12 +119,10 @@ fn open_task_dialog(
 
     let cb = |hwnd: HWND, msg: UINT, wparam: WPARAM, _lparam: LPARAM| match msg {
         TDN_CREATED => {
-            let (ptr, lock, cvar) = &*handle;
-            let mut complete = lock.lock().unwrap();
-
-            ptr.store(hwnd, Ordering::Relaxed);
-            *complete = true;
-            cvar.notify_all();
+            // No error handling here, we're inside a windows callback
+            // If this errors, the other side has hung up and is probably crashing.
+            // Windows might explode if we panic?
+            handle.send(HwndWrapper { hwnd }).ok();
             S_OK
         }
         TDN_BUTTON_CLICKED => {
@@ -203,7 +199,7 @@ impl ProgressHandle for WindowsProgressHandle {
         }
 
         let pos = (percent * 10.0) as usize;
-        unsafe { SendMessageW(self.hwnd, TDM_SET_PROGRESS_BAR_POS, pos, 0) };
+        unsafe { PostMessageW(self.hwnd, TDM_SET_PROGRESS_BAR_POS, pos, 0) };
 
         Ok(())
     }
@@ -214,7 +210,7 @@ impl ProgressHandle for WindowsProgressHandle {
         let content = str_to_pointer(text);
 
         unsafe {
-            SendMessageW(
+            PostMessageW(
                 self.hwnd,
                 TDM_UPDATE_ELEMENT_TEXT,
                 TDE_MAIN_INSTRUCTION as usize,
@@ -243,7 +239,7 @@ impl ProgressHandle for WindowsProgressHandle {
         use winapi::um::commctrl::TDM_CLICK_BUTTON;
         use winapi::um::winuser::IDCANCEL;
 
-        unsafe { SendMessageW(self.hwnd, TDM_CLICK_BUTTON, IDCANCEL as usize, 0) };
+        unsafe { PostMessageW(self.hwnd, TDM_CLICK_BUTTON, IDCANCEL as usize, 0) };
         Ok(())
     }
 }
