@@ -54,7 +54,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        panel.set_allowed_file_types(get_file_type_dropdown_items(&self.filters));
+        panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
 
         match panel.run_modal() {
             Ok(urls) => Ok(urls.to_vec().into_iter().map(INSURL::to_path_buf).collect()),
