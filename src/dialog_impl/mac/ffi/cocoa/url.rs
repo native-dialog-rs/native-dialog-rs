@@ -11,15 +11,22 @@ pub trait INSURL: INSObject {
         }
     }
 
-    fn absolute_string(&self) -> Id<NSString> {
+    fn absolute_url(&self) -> Id<Self> {
         unsafe {
-            let s = msg_send![self, absoluteString];
+            let s = msg_send![self, absoluteURL];
+            Id::from_retained_ptr(s)
+        }
+    }
+
+    fn path(&self) -> Id<NSString> {
+        unsafe {
+            let s = msg_send![self, path];
             Id::from_retained_ptr(s)
         }
     }
 
     fn to_path_buf(&self) -> PathBuf {
-        self.absolute_string().as_str().into()
+        self.absolute_url().path().as_str().into()
     }
 }
 
