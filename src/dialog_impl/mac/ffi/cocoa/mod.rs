@@ -31,6 +31,9 @@ fn objc_bool(value: bool) -> BOOL {
 mod url;
 pub use url::*;
 
+mod bundle;
+pub use bundle::*;
+
 mod alert;
 pub use alert::*;
 
