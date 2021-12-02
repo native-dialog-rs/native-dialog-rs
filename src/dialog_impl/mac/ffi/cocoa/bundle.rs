@@ -8,7 +8,7 @@ pub trait INSBundle: INSObject {
         unsafe {
             let path = NSString::from_str(path);
             let ptr = msg_send![class!(NSBundle), bundleWithPath: path];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 
@@ -16,7 +16,7 @@ pub trait INSBundle: INSObject {
         unsafe {
             let name = NSString::from_str(name);
             let ptr: id = msg_send![self, imageForResource: name];
-            Id::from_retained_ptr(ptr as _)
+            Id::from_ptr(ptr as _)
         }
     }
 }

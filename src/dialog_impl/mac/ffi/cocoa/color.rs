@@ -5,7 +5,7 @@ pub trait INSColor: INSObject {
     fn secondary_label_color() -> Id<Self> {
         unsafe {
             let ptr = msg_send![class!(NSColor), secondaryLabelColor];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 }

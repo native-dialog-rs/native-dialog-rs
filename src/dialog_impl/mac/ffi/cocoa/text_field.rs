@@ -3,11 +3,11 @@ use objc_foundation::{INSString, NSString};
 use objc_id::Id;
 
 pub trait INSTextField: INSView {
-    fn new_label_with_string(string: &str) -> Id<Self> {
+    fn label_with_string(string: &str) -> Id<Self> {
         let string = NSString::from_str(string);
         unsafe {
             let ptr = msg_send![class!(NSTextField), labelWithString: string];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 

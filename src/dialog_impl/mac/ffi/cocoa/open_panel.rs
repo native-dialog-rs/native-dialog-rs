@@ -7,7 +7,7 @@ pub trait INSOpenPanel: INSObject {
     fn open_panel() -> Id<Self> {
         unsafe {
             let ptr = msg_send![class!(NSOpenPanel), openPanel];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 
@@ -45,7 +45,7 @@ pub trait INSOpenPanel: INSObject {
         match response {
             1 => unsafe {
                 let urls = msg_send![self, URLs];
-                Ok(Id::from_retained_ptr(urls))
+                Ok(Id::from_ptr(urls))
             },
             x => Err(x),
         }

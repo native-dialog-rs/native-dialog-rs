@@ -7,7 +7,7 @@ pub trait INSImage: INSObject {
         unsafe {
             let name = NSString::from_str(name);
             let ptr = msg_send![class!(NSImage), imageNamed: name];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 

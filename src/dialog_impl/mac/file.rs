@@ -118,7 +118,7 @@ impl DialogImpl for SaveSingleFile<'_> {
             dropdown.set_action(sel!(onItemSelected:));
             dropdown.set_target(action_target.clone());
 
-            let label = NSTextField::new_label_with_string("File Type: ");
+            let label = NSTextField::label_with_string("File Type: ");
             label.set_text_color(NSColor::secondary_label_color());
 
             let stack = NSStackView::new();

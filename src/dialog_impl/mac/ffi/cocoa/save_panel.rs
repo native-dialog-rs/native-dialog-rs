@@ -1,4 +1,4 @@
-use super::{INSView, INSUrl, NSUrl};
+use super::{INSUrl, INSView, NSUrl};
 use cocoa::foundation::NSInteger;
 use objc_foundation::{INSMutableArray, INSObject, INSString, NSMutableArray, NSString};
 use objc_id::Id;
@@ -7,7 +7,7 @@ pub trait INSSavePanel: INSObject {
     fn save_panel() -> Id<Self> {
         unsafe {
             let ptr = msg_send![class!(NSSavePanel), savePanel];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 
@@ -61,7 +61,7 @@ pub trait INSSavePanel: INSObject {
         match response {
             1 => unsafe {
                 let urls = msg_send![self, URL];
-                Ok(Id::from_retained_ptr(urls))
+                Ok(Id::from_ptr(urls))
             },
             x => Err(x),
         }

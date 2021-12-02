@@ -7,21 +7,21 @@ pub trait INSUrl: INSObject {
         unsafe {
             let s = NSString::from_str(s);
             let ptr = msg_send![class!(NSURL), URLWithString: s];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 
     fn absolute_url(&self) -> Id<Self> {
         unsafe {
             let s = msg_send![self, absoluteURL];
-            Id::from_retained_ptr(s)
+            Id::from_ptr(s)
         }
     }
 
     fn path(&self) -> Id<NSString> {
         unsafe {
             let s = msg_send![self, path];
-            Id::from_retained_ptr(s)
+            Id::from_ptr(s)
         }
     }
 
