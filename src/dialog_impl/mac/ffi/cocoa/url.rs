@@ -2,7 +2,7 @@ use objc_foundation::{INSObject, INSString, NSString};
 use objc_id::Id;
 use std::path::PathBuf;
 
-pub trait INSURL: INSObject {
+pub trait INSUrl: INSObject {
     fn from_str(s: &str) -> Id<Self> {
         unsafe {
             let s = NSString::from_str(s);
@@ -30,6 +30,6 @@ pub trait INSURL: INSObject {
     }
 }
 
-object_struct!(NSURL);
+object_struct!(NSUrl);
 
-impl INSURL for NSURL {}
+impl INSUrl for NSUrl {}

@@ -1,4 +1,4 @@
-use super::{INSView, INSURL, NSURL};
+use super::{INSView, INSUrl, NSUrl};
 use cocoa::foundation::NSInteger;
 use objc_foundation::{INSMutableArray, INSObject, INSString, NSMutableArray, NSString};
 use objc_id::Id;
@@ -27,7 +27,7 @@ pub trait INSSavePanel: INSObject {
     }
 
     fn set_directory_url(&self, url: &str) {
-        let url = NSURL::from_str(url);
+        let url = NSUrl::from_str(url);
         unsafe { msg_send![self, setDirectoryURL: url] }
     }
 
@@ -56,7 +56,7 @@ pub trait INSSavePanel: INSObject {
         unsafe { msg_send![self, setAccessoryViewDisclosed: flag] }
     }
 
-    fn run_modal(&self) -> Result<Id<NSURL>, NSInteger> {
+    fn run_modal(&self) -> Result<Id<NSUrl>, NSInteger> {
         let response: NSInteger = unsafe { super::with_activation(|| msg_send![self, runModal]) };
         match response {
             1 => unsafe {

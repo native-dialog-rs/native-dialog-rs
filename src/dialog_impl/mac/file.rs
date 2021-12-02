@@ -1,7 +1,7 @@
 use super::ffi::cocoa::{
     INSColor, INSOpenPanel, INSPopUpButton, INSSavePanel, INSStackView, INSTextField, NSColor,
     NSEdgeInsets, NSOpenPanel, NSPopUpButton, NSSavePanel, NSStackView, NSStackViewGravity,
-    NSTextField, NSUserInterfaceLayoutOrientation, INSURL,
+    NSTextField, NSUserInterfaceLayoutOrientation, INSUrl,
 };
 use super::ffi::{DropdownAction, IDropdownAction};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
@@ -57,7 +57,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
         panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
 
         match panel.run_modal() {
-            Ok(urls) => Ok(urls.to_vec().into_iter().map(INSURL::to_path_buf).collect()),
+            Ok(urls) => Ok(urls.to_vec().into_iter().map(INSUrl::to_path_buf).collect()),
             Err(_) => Ok(vec![]),
         }
     }

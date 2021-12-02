@@ -1,4 +1,4 @@
-use super::{INSURL, NSURL};
+use super::{INSUrl, NSUrl};
 use cocoa::foundation::NSInteger;
 use objc_foundation::{INSArray, INSObject, INSString, NSArray, NSString};
 use objc_id::Id;
@@ -32,7 +32,7 @@ pub trait INSOpenPanel: INSObject {
     }
 
     fn set_directory_url(&self, url: &str) {
-        let url = NSURL::from_str(url);
+        let url = NSUrl::from_str(url);
         unsafe { msg_send![self, setDirectoryURL: url] }
     }
 
@@ -40,7 +40,7 @@ pub trait INSOpenPanel: INSObject {
         unsafe { msg_send![self, setAllowedFileTypes: types] }
     }
 
-    fn run_modal(&self) -> Result<Id<NSArray<NSURL>>, NSInteger> {
+    fn run_modal(&self) -> Result<Id<NSArray<NSUrl>>, NSInteger> {
         let response: NSInteger = unsafe { super::with_activation(|| msg_send![self, runModal]) };
         match response {
             1 => unsafe {
