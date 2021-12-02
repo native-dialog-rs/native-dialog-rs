@@ -1,4 +1,5 @@
 use native_dialog::{FileDialog, MessageDialog};
+use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, MouseButton, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
@@ -8,7 +9,7 @@ fn main() {
 
     let window = WindowBuilder::new()
         .with_title("A fantastic window!")
-        .with_inner_size(winit::dpi::LogicalSize::new(600.0, 400.0))
+        .with_inner_size(LogicalSize::new(600f64, 400f64))
         .build(&event_loop)
         .unwrap();
 
@@ -26,7 +27,8 @@ fn main() {
                     ..
                 } => {
                     let path = FileDialog::new().set_owner(&window).show_open_single_file();
-
+                    dbg!(path);
+                    #[cfg(fuck)]
                     MessageDialog::new()
                         .set_title("Message")
                         .set_text(&format!("{:?}", path))
