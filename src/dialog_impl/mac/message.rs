@@ -1,4 +1,4 @@
-use super::ffi::cocoa::{INSAlert, INSBundle, NSAlert, NSBundle, NSImage};
+use super::ffi::cocoa::{INSAlert, INSBundle, NSAlert, NSBundle, NSImage, INSWindow};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{MessageType, Result};
 use objc_foundation::INSObject;
@@ -12,7 +12,8 @@ impl DialogImpl for MessageAlert<'_> {
         panel.set_message_text(self.title);
         panel.set_icon(get_dialog_icon(self.typ));
 
-        panel.run_modal();
+        let owner = self.owner.and_then(INSWindow::from_raw_handle);
+        panel.run_modal(owner);
 
         Ok(())
     }
@@ -29,7 +30,8 @@ impl DialogImpl for MessageConfirm<'_> {
         panel.add_button("Yes");
         panel.add_button("No");
 
-        let res = panel.run_modal();
+        let owner = self.owner.and_then(INSWindow::from_raw_handle);
+        let res = panel.run_modal(owner);
 
         // NSAlertFirstButtonReturn = 1000
         Ok(res == 1000)

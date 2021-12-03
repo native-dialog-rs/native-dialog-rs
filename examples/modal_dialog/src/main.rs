@@ -17,24 +17,24 @@ fn main() {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => {
+            Event::WindowEvent { window_id, event } => match event {
+                WindowEvent::CloseRequested if window_id == window.id() => {
                     *control_flow = ControlFlow::Exit;
                 }
                 WindowEvent::MouseInput {
-                    state: ElementState::Pressed,
-                    button: MouseButton::Left,
+                    state: ElementState::Released,
+                    button: MouseButton::Right,
                     ..
                 } => {
                     let path = FileDialog::new().set_owner(&window).show_open_single_file();
-                    dbg!(path);
-                    #[cfg(fuck)]
-                    MessageDialog::new()
+
+                    let confirm = MessageDialog::new()
                         .set_title("Message")
                         .set_text(&format!("{:?}", path))
                         .set_owner(&window)
-                        .show_alert()
-                        .unwrap();
+                        .show_confirm();
+
+                    println!("{:?}", confirm);
                 }
                 _ => (),
             },
