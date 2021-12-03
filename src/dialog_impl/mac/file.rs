@@ -1,7 +1,7 @@
 use super::ffi::cocoa::{
     INSColor, INSOpenPanel, INSPopUpButton, INSSavePanel, INSStackView, INSTextField, INSUrl,
-    NSColor, NSEdgeInsets, NSOpenPanel, NSPopUpButton, NSSavePanel, NSStackView,
-    NSStackViewGravity, NSTextField, NSUserInterfaceLayoutOrientation, INSWindow,
+    INSWindow, NSColor, NSEdgeInsets, NSOpenPanel, NSPopUpButton, NSSavePanel, NSStackView,
+    NSStackViewGravity, NSTextField, NSUserInterfaceLayoutOrientation,
 };
 use super::ffi::{DropdownAction, IDropdownAction};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};

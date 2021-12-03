@@ -1,6 +1,7 @@
 use super::{INSImage, INSWindow, NSWindow};
 use block::ConcreteBlock;
-use cocoa::{appkit::NSApp, foundation::NSInteger};
+use cocoa::appkit::NSApp;
+use cocoa::foundation::NSInteger;
 use objc_foundation::{INSObject, INSString, NSString};
 use objc_id::Id;
 
@@ -39,7 +40,7 @@ pub trait INSAlert: INSObject {
                 let owner_window = window.clone();
                 let alert_window = self.window();
                 let handler = ConcreteBlock::new(move |response: NSInteger| {
-                    let () = msg_send![NSApp(), stopModalWithCode:response];
+                    let () = msg_send![NSApp(), stopModalWithCode: response];
                     let () = msg_send![owner_window, endSheet:&*alert_window returnCode:response];
                     alert_window.order_out();
                 });

@@ -1,4 +1,4 @@
-use super::{INSUrl, NSUrl, NSWindow, INSPanel};
+use super::{INSPanel, INSUrl, NSUrl, NSWindow};
 use cocoa::foundation::NSInteger;
 use objc_foundation::{INSArray, INSString, NSArray, NSString};
 use objc_id::Id;
