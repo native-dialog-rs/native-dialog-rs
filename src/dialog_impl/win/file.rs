@@ -105,7 +105,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     }
 
     let owner = match params.owner {
-        Some(RawWindowHandle::Windows(handle)) => Some(handle.hwnd as HWND),
+        Some(RawWindowHandle::Win32(handle)) => Some(handle.hwnd as HWND),
         _ => None,
     };
 
@@ -148,7 +148,7 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
         FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST | FOS_NOREADONLYRETURN | FOS_STRICTFILETYPES;
 
     let owner = match params.owner {
-        Some(RawWindowHandle::Windows(handle)) => Some(handle.hwnd as HWND),
+        Some(RawWindowHandle::Win32(handle)) => Some(handle.hwnd as HWND),
         _ => None,
     };
 
