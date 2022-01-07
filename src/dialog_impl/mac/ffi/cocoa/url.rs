@@ -11,6 +11,14 @@ pub trait INSUrl: INSObject {
         }
     }
 
+    fn from_path(s: &str) -> Id<Self> {
+        unsafe {
+            let s = NSString::from_str(s);
+            let ptr = msg_send![class!(NSURL), fileURLWithPath: s];
+            Id::from_ptr(ptr)
+        }
+    }
+
     fn absolute_url(&self) -> Id<Self> {
         unsafe {
             let s = msg_send![self, absoluteURL];

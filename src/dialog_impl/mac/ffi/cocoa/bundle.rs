@@ -1,5 +1,4 @@
 use super::NSImage;
-use cocoa::base::id;
 use objc_foundation::{INSObject, INSString, NSString};
 use objc_id::Id;
 
@@ -15,8 +14,8 @@ pub trait INSBundle: INSObject {
     fn image_named(&self, name: &str) -> Id<NSImage> {
         unsafe {
             let name = NSString::from_str(name);
-            let ptr: id = msg_send![self, imageForResource: name];
-            Id::from_ptr(ptr as _)
+            let ptr = msg_send![self, imageForResource: name];
+            Id::from_ptr(ptr)
         }
     }
 }

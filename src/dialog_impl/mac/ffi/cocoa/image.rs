@@ -11,7 +11,7 @@ pub trait INSImage: INSObject {
         }
     }
 
-    fn of_file(path: &str) -> Id<Self> {
+    fn new_with_file(path: &str) -> Id<Self> {
         unsafe {
             let path = NSString::from_str(path);
             let ptr: id = msg_send![class!(NSImage), alloc];

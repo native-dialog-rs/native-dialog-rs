@@ -32,7 +32,7 @@ pub trait INSOpenPanel: INSPanel {
     }
 
     fn set_directory_url(&self, url: &str) {
-        let url = NSUrl::from_str(url);
+        let url = NSUrl::from_path(url);
         unsafe { msg_send![self, setDirectoryURL: url] }
     }
 
