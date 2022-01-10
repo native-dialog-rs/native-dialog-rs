@@ -66,7 +66,8 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<bool> {
         command.arg("--msgbox");
     }
 
-    command.arg(escape_pango_entities(params.text));
+    // KDialog uses plain text rather than XML, thus entity escapes aren't needed.
+    command.arg(params.text);
 
     command.arg("--title");
     command.arg(params.title);
