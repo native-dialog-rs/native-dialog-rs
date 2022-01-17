@@ -19,7 +19,7 @@ pub enum Error {
     #[error("failed to parse the string returned from implementation")]
     UnexpectedOutput(&'static str),
 
-    #[error("cannot find any dialog implementation (kdialog/zanity)")]
+    #[error("cannot find any dialog implementation (kdialog/zenity)")]
     NoImplementation,
 
     #[error("the implementation reports error")]
