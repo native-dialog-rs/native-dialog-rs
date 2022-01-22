@@ -52,6 +52,16 @@ fn escape_pango_entities(text: &str) -> String {
         .replace('\'', "&apos;")
 }
 
+/// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
+fn convert_qt_text_document(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\n', "<br>")
+        .replace(&[' ', '\t'], "&nbsp;")
+}
+
 struct Params<'a> {
     title: &'a str,
     text: &'a str,
@@ -66,8 +76,7 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<bool> {
         command.arg("--msgbox");
     }
 
-    // KDialog uses plain text rather than XML, thus entity escapes aren't needed.
-    command.arg(params.text);
+    command.arg(convert_qt_text_document(params.text));
 
     command.arg("--title");
     command.arg(params.title);
