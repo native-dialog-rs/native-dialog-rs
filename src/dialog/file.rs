@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 pub struct OpenSingleFile<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
+    pub(crate) title: &'a str,
     pub(crate) filters: Vec<Filter<'a>>,
     #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
     pub(crate) owner: Option<RawWindowHandle>,
@@ -18,6 +19,7 @@ impl Dialog for OpenSingleFile<'_> {
 pub struct OpenMultipleFile<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
+    pub(crate) title: &'a str,
     pub(crate) filters: Vec<Filter<'a>>,
     #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
     pub(crate) owner: Option<RawWindowHandle>,
@@ -30,6 +32,7 @@ impl Dialog for OpenMultipleFile<'_> {
 pub struct OpenSingleDir<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
+    pub(crate) title: &'a str,
     #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
     pub(crate) owner: Option<RawWindowHandle>,
 }
@@ -41,6 +44,7 @@ impl Dialog for OpenSingleDir<'_> {
 pub struct SaveSingleFile<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
+    pub(crate) title: &'a str,
     pub(crate) filters: Vec<Filter<'a>>,
     #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
     pub(crate) owner: Option<RawWindowHandle>,
