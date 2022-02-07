@@ -59,7 +59,8 @@ fn convert_qt_text_document(text: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\n', "<br>")
-        .replace(&[' ', '\t'], "&nbsp;")
+        .replace(' ', "&nbsp")
+        .replace('\t', "&nbsp;")
 }
 
 struct Params<'a> {
