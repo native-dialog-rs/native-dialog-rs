@@ -293,11 +293,11 @@ fn call_zenity_warn_extension(mut command: Command, message: &str) -> Result<()>
 fn get_warn_extension_message(path: &Path) -> String {
     match path.extension() {
         None => String::from(
-            "You haven't specify a file extension in the filename. Please check it again.",
+            "You haven't specified a file extension in the filename. Please try again.",
         ),
         Some(ext) => {
             format!(
-                "We could not recognize the file extension \".{}\" you've input. Please check it again.",
+                "We could not recognize the file extension \".{}\" you've input. Please try again.",
                 ext.to_string_lossy()
             )
         }
