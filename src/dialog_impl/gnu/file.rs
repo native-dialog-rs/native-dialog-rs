@@ -297,7 +297,7 @@ fn get_warn_extension_message(path: &Path) -> String {
         ),
         Some(ext) => {
             format!(
-                "We could not recognize the file extension \".{}\" you've input. Please try again.",
+                "We could not recognize the file extension \".{}\". Please try again.",
                 ext.to_string_lossy()
             )
         }
