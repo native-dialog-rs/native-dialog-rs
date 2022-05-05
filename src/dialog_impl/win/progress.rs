@@ -1,11 +1,10 @@
 use std::cell::RefCell;
 use std::ffi::c_void;
 use std::ptr::null_mut;
-use std::sync::atomic::{AtomicPtr, Ordering};
 use std::sync::mpsc;
 
 use raw_window_handle::RawWindowHandle;
-use winapi::shared::minwindef::{LPARAM, UINT, WPARAM};
+use winapi::shared::minwindef::{HINSTANCE, LPARAM, UINT, WPARAM};
 use winapi::shared::windef::HWND;
 use winapi::um::winuser::PostMessageW;
 
@@ -13,10 +12,13 @@ use crate::{Error, Result};
 use crate::{ProgressDialog, ProgressHandle};
 use crate::dialog::DialogImpl;
 
-struct AtomicHandles {
-    hwnd: AtomicPtr<c_void>,
-    hinstance: AtomicPtr<c_void>,
+struct ParentWindow {
+    hwnd: HWND,
+    hinstance: HINSTANCE,
 }
+
+// SAFETY: No concurrent access worries, we move the pointers to the dialog thread.
+unsafe impl Send for ParentWindow {}
 
 struct HwndWrapper {
     hwnd: HWND,
@@ -29,7 +31,7 @@ unsafe impl Send for HwndWrapper {}
 struct Params {
     title: String,
     text: String,
-    owner: Option<AtomicHandles>,
+    owner: Option<ParentWindow>,
 }
 
 impl<'a> DialogImpl for ProgressDialog<'a> {
@@ -40,9 +42,9 @@ impl<'a> DialogImpl for ProgressDialog<'a> {
             title: self.title.into(),
             text: self.text.into(),
             owner: self.owner.and_then(|raw_handle| match raw_handle {
-                RawWindowHandle::Windows(win) => Some(AtomicHandles {
-                    hwnd: AtomicPtr::from(win.hwnd),
-                    hinstance: AtomicPtr::from(win.hinstance),
+                RawWindowHandle::Windows(win) => Some(ParentWindow {
+                    hwnd: win.hwnd as HWND,
+                    hinstance: win.hinstance as HINSTANCE,
                 }),
                 _ => None,
             }),
@@ -109,7 +111,6 @@ extern "system" fn task_cb(
 }
 
 fn open_task_dialog(settings: Params, handle: mpsc::Sender<HwndWrapper>) -> Result<bool> {
-    use winapi::shared::minwindef::HINSTANCE;
     use winapi::shared::winerror::{E_FAIL, E_INVALIDARG, E_OUTOFMEMORY, S_FALSE, S_OK};
     use winapi::um::commctrl::{
         TaskDialogIndirect, TASKDIALOGCONFIG, TDCBF_CANCEL_BUTTON, TDF_SHOW_PROGRESS_BAR,
@@ -150,12 +151,12 @@ fn open_task_dialog(settings: Params, handle: mpsc::Sender<HwndWrapper>) -> Resu
         cbSize: std::mem::size_of::<TASKDIALOGCONFIG>() as u32,
         hwndParent: handle
             .as_ref()
-            .map(|h| h.hwnd.load(Ordering::Relaxed))
-            .unwrap_or(null_mut()) as HWND,
+            .map(|h| h.hwnd)
+            .unwrap_or(null_mut()),
         hInstance: handle
             .as_ref()
-            .map(|h| h.hinstance.load(Ordering::Relaxed))
-            .unwrap_or(null_mut()) as HINSTANCE,
+            .map(|h| h.hinstance)
+            .unwrap_or(null_mut()),
         dwFlags: TDF_SHOW_PROGRESS_BAR,
         dwCommonButtons: TDCBF_CANCEL_BUTTON,
         pszWindowTitle: title.as_ptr(),
