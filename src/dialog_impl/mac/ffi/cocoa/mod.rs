@@ -58,9 +58,6 @@ pub use window::*;
 mod panel;
 pub use panel::*;
 
-mod alert;
-pub use alert::*;
-
 mod open_panel;
 pub use open_panel::*;
 
