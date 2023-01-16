@@ -5,7 +5,7 @@ authors = ["Balthild <ibalthild@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-winit = "0.26.0"
+winit = "0.27"
 
 [dependencies.native-dialog]
 # version = "0.2.2"
