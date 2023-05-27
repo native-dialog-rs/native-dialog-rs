@@ -111,7 +111,7 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<bool> {
         command.arg("--msgbox");
     }
 
-    command.arg(params.text);
+    command.arg(convert_qt_text_document(params.text));
 
     command.arg("--title");
     command.arg(params.title);
