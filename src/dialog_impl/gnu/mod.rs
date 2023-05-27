@@ -3,7 +3,7 @@ use std::env;
 use std::process::Command;
 
 mod file;
-mod message;
+pub(crate) mod message;
 
 enum UseCommand {
     KDialog(Command),
