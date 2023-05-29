@@ -69,7 +69,10 @@ fn convert_qt_text_document(text: &str) -> String {
         }
     }
 
-    text.replace('\n', "<br>").replace('\t', " ")
+    text.replace('\n', "<br>")
+        .replace('\t', " ")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 pub(crate) fn get_kdialog_version() -> Option<(i32, i32, i32)> {
