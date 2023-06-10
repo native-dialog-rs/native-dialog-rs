@@ -1,5 +1,4 @@
 #[cfg(test)]
-
 use crate::dialog_impl::gnu::message;
 
 #[test]

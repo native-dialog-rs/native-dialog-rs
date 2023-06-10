@@ -83,10 +83,10 @@ pub(crate) fn get_kdialog_version() -> Option<(i32, i32, i32)> {
     let stdout = output.stdout.as_ascii_str().ok()?;
     let ver_str = stdout.to_string();
 
-    let mut split = ver_str.split(".");
+    let mut split = ver_str.split('.');
 
     let major_with_name = split.next()?;
-    let major_ver_str = major_with_name.split(" ").last()?;
+    let major_ver_str = major_with_name.split(' ').last()?;
     let major_ver = major_ver_str.parse::<i32>().ok()?;
 
     let minor_ver_str = split.next()?;

@@ -187,7 +187,7 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<Option<Vec<u8>>>
     };
 
     if params.multiple {
-        command.args(&["--multiple", "--separate-output"]);
+        command.args(["--multiple", "--separate-output"]);
     }
 
     if !params.filters.is_empty() {
@@ -223,11 +223,11 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
     }
 
     if params.save {
-        command.args(&["--save", "--confirm-overwrite"]);
+        command.args(["--save", "--confirm-overwrite"]);
     };
 
     if params.multiple {
-        command.args(&["--multiple", "--separator", "\n"]);
+        command.args(["--multiple", "--separator", "\n"]);
     }
 
     command.arg("--filename");
@@ -264,7 +264,7 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
 }
 
 fn call_kdialog_warn_extension(mut command: Command, message: &str) -> Result<()> {
-    command.args(&[
+    command.args([
         "--msgbox",
         message,
         "--title",
@@ -277,7 +277,7 @@ fn call_kdialog_warn_extension(mut command: Command, message: &str) -> Result<()
 }
 
 fn call_zenity_warn_extension(mut command: Command, message: &str) -> Result<()> {
-    command.args(&[
+    command.args([
         "--width=400",
         "--warning",
         "--title",

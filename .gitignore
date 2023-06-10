@@ -1,2 +1,9 @@
+/.vscode/
+/.fleet/
+/.idea/
+/*.iml
+
+/examples/_ignored.rs
+
 /target
 Cargo.lock

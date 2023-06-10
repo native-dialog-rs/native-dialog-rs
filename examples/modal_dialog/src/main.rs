@@ -16,6 +16,7 @@ fn main() {
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
+        #[allow(clippy::single_match)]
         match event {
             Event::WindowEvent { window_id, event } => match event {
                 WindowEvent::CloseRequested if window_id == window.id() => {
