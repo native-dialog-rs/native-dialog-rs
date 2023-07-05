@@ -241,12 +241,10 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
         command.args(&["--multiple", "--separator", "\n"]);
     }
 
-    command.arg("--filename");
-
-    match params.path {
-        Some(path) => command.arg(path),
-        None => command.arg(""),
-    };
+    if let Some(path) = params.path {
+        command.arg("--filename");
+        command.arg(path);
+    }
 
     if !params.filters.is_empty() {
         for filter in params.filters {

@@ -138,9 +138,9 @@ fn call_zenity(mut command: Command, params: Params) -> Result<bool> {
     if params.ask {
         command.arg("--question");
         match params.typ {
-            MessageType::Info => command.arg("--icon-name=dialog-information"),
-            MessageType::Warning => command.arg("--icon-name=dialog-warning"),
-            MessageType::Error => command.arg("--icon-name=dialog-error"),
+            MessageType::Info => command.arg("--icon=dialog-information"),
+            MessageType::Warning => command.arg("--icon=dialog-warning"),
+            MessageType::Error => command.arg("--icon=dialog-error"),
         };
     } else {
         match params.typ {
