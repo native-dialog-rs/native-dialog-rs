@@ -1,10 +1,9 @@
+use crate::Error;
 use std::env;
 use std::process::Command;
 
-use crate::Error;
-
 mod file;
-mod message;
+pub(crate) mod message;
 mod progress;
 
 enum UseCommand {

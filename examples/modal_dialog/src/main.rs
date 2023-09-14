@@ -1,4 +1,5 @@
 use native_dialog::{FileDialog, MessageDialog};
+use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, MouseButton, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
@@ -8,7 +9,7 @@ fn main() {
 
     let window = WindowBuilder::new()
         .with_title("A fantastic window!")
-        .with_inner_size(winit::dpi::LogicalSize::new(600.0, 400.0))
+        .with_inner_size(LogicalSize::new(600f64, 400f64))
         .build(&event_loop)
         .unwrap();
 
@@ -16,23 +17,24 @@ fn main() {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => {
+            Event::WindowEvent { window_id, event } => match event {
+                WindowEvent::CloseRequested if window_id == window.id() => {
                     *control_flow = ControlFlow::Exit;
                 }
                 WindowEvent::MouseInput {
-                    state: ElementState::Pressed,
-                    button: MouseButton::Left,
+                    state: ElementState::Released,
+                    button: MouseButton::Right,
                     ..
                 } => {
                     let path = FileDialog::new().set_owner(&window).show_open_single_file();
 
-                    MessageDialog::new()
+                    let confirm = MessageDialog::new()
                         .set_title("Message")
                         .set_text(&format!("{:?}", path))
                         .set_owner(&window)
-                        .show_alert()
-                        .unwrap();
+                        .show_confirm();
+
+                    println!("{:?}", confirm);
                 }
                 _ => (),
             },

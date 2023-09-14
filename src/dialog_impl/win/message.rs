@@ -50,7 +50,7 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     };
 
     let owner = match params.owner {
-        Some(RawWindowHandle::Windows(handle)) => handle.hwnd as HWND,
+        Some(RawWindowHandle::Win32(handle)) => handle.hwnd as HWND,
         _ => null_mut(),
     };
 

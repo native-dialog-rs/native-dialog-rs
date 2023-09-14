@@ -1,9 +1,9 @@
-use std::process::Command;
-
-use crate::{Error, MessageType, Result};
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use ascii::AsAsciiStr;
 
 use super::{escape_pango_entities, should_use, UseCommand};
+use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use crate::{Error, MessageType, Result};
+use std::process::Command;
 
 impl DialogImpl for MessageAlert<'_> {
     fn show(&mut self) -> Result<Self::Output> {
@@ -43,6 +43,50 @@ impl DialogImpl for MessageConfirm<'_> {
     }
 }
 
+/// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
+fn convert_qt_text_document(text: &str) -> String {
+    if let Some(version) = get_kdialog_version() {
+        if version.0 <= 19 {
+            return text
+                .replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;")
+                .replace('"', "&quot;")
+                .replace('\n', "<br>")
+                .replace(' ', "&nbsp")
+                .replace('\t', "&nbsp;");
+        }
+    }
+
+    text.replace('\n', "<br>")
+        .replace('\t', " ")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+}
+
+pub(crate) fn get_kdialog_version() -> Option<(i32, i32, i32)> {
+    let mut command = Command::new("kdialog");
+    command.arg("--version");
+
+    let output = command.output().ok()?;
+    let stdout = output.stdout.as_ascii_str().ok()?;
+    let ver_str = stdout.to_string();
+
+    let mut split = ver_str.split(".");
+
+    let major_with_name = split.next()?;
+    let major_ver_str = major_with_name.split(" ").last()?;
+    let major_ver = major_ver_str.parse::<i32>().ok()?;
+
+    let minor_ver_str = split.next()?;
+    let minor_ver = minor_ver_str.parse::<i32>().ok()?;
+
+    let patch_str_ascii = split.next()?;
+    let patch_ver = patch_str_ascii.replace('\n', "").parse::<i32>().ok()?;
+
+    Some((major_ver, minor_ver, patch_ver))
+}
+
 struct Params<'a> {
     title: &'a str,
     text: &'a str,
@@ -57,7 +101,7 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<bool> {
         command.arg("--msgbox");
     }
 
-    command.arg(escape_pango_entities(params.text));
+    command.arg(convert_qt_text_document(params.text));
 
     command.arg("--title");
     command.arg(params.title);

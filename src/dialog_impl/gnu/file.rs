@@ -16,6 +16,7 @@ impl DialogImpl for OpenSingleFile<'_> {
             multiple: false,
             dir: false,
             save: false,
+            title: self.title,
         };
 
         let command = should_use().ok_or(Error::NoImplementation)?;
@@ -37,6 +38,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
             multiple: true,
             dir: false,
             save: false,
+            title: self.title,
         };
 
         let command = should_use().ok_or(Error::NoImplementation)?;
@@ -68,6 +70,7 @@ impl DialogImpl for OpenSingleDir<'_> {
             multiple: false,
             dir: true,
             save: false,
+            title: self.title,
         };
 
         let command = should_use().ok_or(Error::NoImplementation)?;
@@ -92,6 +95,7 @@ impl DialogImpl for SaveSingleFile<'_> {
                 multiple: false,
                 dir: false,
                 save: true,
+                title: self.title,
             };
 
             let command = should_use().ok_or(Error::NoImplementation)?;
@@ -171,6 +175,7 @@ struct Params<'a> {
     multiple: bool,
     dir: bool,
     save: bool,
+    title: &'a str,
 }
 
 fn call_kdialog(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> {
@@ -180,6 +185,9 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<Option<Vec<u8>>>
         (true, false) => command.arg("--getexistingdirectory"),
         (true, true) => unreachable!("???"),
     };
+
+    command.arg("--title");
+    command.arg(params.title);
 
     match params.path {
         Some(path) => command.arg(path),
@@ -217,6 +225,9 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<Option<Vec<u8>>>
 
 fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> {
     command.arg("--file-selection");
+
+    command.arg("--title");
+    command.arg(params.title);
 
     if params.dir {
         command.arg("--directory");
@@ -293,11 +304,11 @@ fn call_zenity_warn_extension(mut command: Command, message: &str) -> Result<()>
 fn get_warn_extension_message(path: &Path) -> String {
     match path.extension() {
         None => String::from(
-            "You haven't specify a file extension in the filename. Please check it again.",
+            "You haven't specified a file extension in the filename. Please try again.",
         ),
         Some(ext) => {
             format!(
-                "We could not recognize the file extension \".{}\" you've input. Please check it again.",
+                "We could not recognize the file extension \".{}\". Please try again.",
                 ext.to_string_lossy()
             )
         }

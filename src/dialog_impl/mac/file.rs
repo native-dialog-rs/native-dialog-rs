@@ -1,7 +1,7 @@
 use super::ffi::cocoa::{
-    INSColor, INSOpenPanel, INSPopUpButton, INSSavePanel, INSStackView, INSTextField, NSColor,
-    NSEdgeInsets, NSOpenPanel, NSPopUpButton, NSSavePanel, NSStackView, NSStackViewGravity,
-    NSTextField, NSUserInterfaceLayoutOrientation, INSURL,
+    INSColor, INSOpenPanel, INSPopUpButton, INSSavePanel, INSStackView, INSTextField, INSUrl,
+    INSWindow, NSColor, NSEdgeInsets, NSOpenPanel, NSPopUpButton, NSSavePanel, NSStackView,
+    NSStackViewGravity, NSTextField, NSUserInterfaceLayoutOrientation,
 };
 use super::ffi::{DropdownAction, IDropdownAction};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
@@ -28,7 +28,8 @@ impl DialogImpl for OpenSingleFile<'_> {
 
         panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
 
-        match panel.run_modal() {
+        let owner = self.owner.and_then(INSWindow::from_raw_handle);
+        match panel.run_modal(owner) {
             Ok(urls) => {
                 let url = urls.first_object().unwrap();
                 Ok(Some(url.to_path_buf()))
@@ -54,10 +55,11 @@ impl DialogImpl for OpenMultipleFile<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        panel.set_allowed_file_types(get_file_type_dropdown_items(&self.filters));
+        panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
 
-        match panel.run_modal() {
-            Ok(urls) => Ok(urls.to_vec().into_iter().map(INSURL::to_path_buf).collect()),
+        let owner = self.owner.and_then(INSWindow::from_raw_handle);
+        match panel.run_modal(owner) {
+            Ok(urls) => Ok(urls.to_vec().into_iter().map(INSUrl::to_path_buf).collect()),
             Err(_) => Ok(vec![]),
         }
     }
@@ -79,7 +81,8 @@ impl DialogImpl for OpenSingleDir<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        match panel.run_modal() {
+        let owner = self.owner.and_then(INSWindow::from_raw_handle);
+        match panel.run_modal(owner) {
             Ok(urls) => {
                 let url = urls.first_object().unwrap();
                 Ok(Some(url.to_path_buf()))
@@ -118,7 +121,7 @@ impl DialogImpl for SaveSingleFile<'_> {
             dropdown.set_action(sel!(onItemSelected:));
             dropdown.set_target(action_target.clone());
 
-            let label = NSTextField::new_label_with_string("File Type: ");
+            let label = NSTextField::label_with_string("File Type: ");
             label.set_text_color(NSColor::secondary_label_color());
 
             let stack = NSStackView::new();
@@ -133,13 +136,15 @@ impl DialogImpl for SaveSingleFile<'_> {
             panel.set_allowed_file_types(first_filter.extensions);
             panel.set_accessory_view(stack);
 
-            let res = panel.run_modal();
+            let owner = self.owner.and_then(INSWindow::from_raw_handle);
+            let res = panel.run_modal(owner);
 
             unsafe { action_target.set_filters(std::ptr::null()) };
 
             res
         } else {
-            panel.run_modal()
+            let owner = self.owner.and_then(INSWindow::from_raw_handle);
+            panel.run_modal(owner)
         };
 
         match res {

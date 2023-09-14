@@ -1,13 +1,13 @@
-use super::{INSView, INSURL, NSURL};
+use super::{INSPanel, INSUrl, INSView, NSUrl, NSWindow};
 use cocoa::foundation::NSInteger;
 use objc_foundation::{INSMutableArray, INSObject, INSString, NSMutableArray, NSString};
 use objc_id::Id;
 
-pub trait INSSavePanel: INSObject {
+pub trait INSSavePanel: INSPanel {
     fn save_panel() -> Id<Self> {
         unsafe {
             let ptr = msg_send![class!(NSSavePanel), savePanel];
-            Id::from_retained_ptr(ptr)
+            Id::from_ptr(ptr)
         }
     }
 
@@ -27,7 +27,7 @@ pub trait INSSavePanel: INSObject {
     }
 
     fn set_directory_url(&self, url: &str) {
-        let url = NSURL::from_str(url);
+        let url = NSUrl::from_path(url);
         unsafe { msg_send![self, setDirectoryURL: url] }
     }
 
@@ -56,12 +56,11 @@ pub trait INSSavePanel: INSObject {
         unsafe { msg_send![self, setAccessoryViewDisclosed: flag] }
     }
 
-    fn run_modal(&self) -> Result<Id<NSURL>, NSInteger> {
-        let response: NSInteger = unsafe { super::with_activation(|| msg_send![self, runModal]) };
-        match response {
+    fn run_modal(&self, owner: Option<Id<NSWindow>>) -> Result<Id<NSUrl>, NSInteger> {
+        match self.run_sheet_or_modal(owner) {
             1 => unsafe {
                 let urls = msg_send![self, URL];
-                Ok(Id::from_retained_ptr(urls))
+                Ok(Id::from_ptr(urls))
             },
             x => Err(x),
         }
@@ -69,5 +68,7 @@ pub trait INSSavePanel: INSObject {
 }
 
 object_struct!(NSSavePanel);
+
+impl INSPanel for NSSavePanel {}
 
 impl INSSavePanel for NSSavePanel {}
