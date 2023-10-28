@@ -14,6 +14,7 @@ impl DialogImpl for OpenSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
+        panel.set_title(self.title);
         panel.set_can_choose_files(true);
         panel.set_can_choose_directories(false);
         panel.set_allows_multiple_selection(false);
@@ -43,6 +44,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
+        panel.set_title(self.title);
         panel.set_can_choose_files(true);
         panel.set_can_choose_directories(false);
         panel.set_allows_multiple_selection(true);
@@ -69,6 +71,7 @@ impl DialogImpl for OpenSingleDir<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
+        panel.set_title(self.title);
         panel.set_can_choose_files(false);
         panel.set_can_choose_directories(true);
         panel.set_allows_multiple_selection(false);
@@ -96,6 +99,7 @@ impl DialogImpl for SaveSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSSavePanel::save_panel().share();
 
+        panel.set_title(self.title);
         panel.set_can_create_directories(false);
         panel.set_extension_hidden(false);
 
@@ -116,7 +120,7 @@ impl DialogImpl for SaveSingleFile<'_> {
 
             let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(480.0, 0.0));
             let dropdown = NSPopUpButton::new_with_frame(frame, false);
-            dropdown.add_items_with_titles(get_file_type_dropdown_items(&self.filters));
+            dropdown.add_items_with_titles(file_type_dropdown_items(&self.filters));
             dropdown.select_item_at(0);
             dropdown.set_action(sel!(onItemSelected:));
             dropdown.set_target(action_target.clone());
@@ -158,7 +162,7 @@ fn all_extensions<'a>(filters: &'a [Filter<'a>]) -> Vec<&'a str> {
     filters.iter().flat_map(|x| x.extensions).copied().collect()
 }
 
-fn get_file_type_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
+fn file_type_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
     let mut titles = NSMutableArray::new();
     for filter in filters {
         let extensions: Vec<String> = filter

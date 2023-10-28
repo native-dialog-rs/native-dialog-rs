@@ -5,6 +5,11 @@ use objc_foundation::{INSMutableArray, INSObject, INSString, NSMutableArray, NSS
 use objc_id::Id;
 
 pub trait INSSavePanel: INSPanel {
+    fn set_title(&self, title: &str) {
+        let title = NSString::from_str(title);
+        unsafe { msg_send![self, setTitle: title] }
+    }
+
     fn set_name_field_string_value(&self, value: &str) {
         let value = NSString::from_str(value);
         unsafe { msg_send![self, setNameFieldStringValue: value] }
