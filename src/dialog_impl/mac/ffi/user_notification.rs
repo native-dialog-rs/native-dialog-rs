@@ -1,5 +1,8 @@
+use core_foundation::base::{CFOptionFlags, SInt32, TCFType};
+use core_foundation::date::CFTimeInterval;
+use core_foundation::string::{CFString, CFStringRef, __CFString};
+use core_foundation::url::CFURLRef;
 use std::ptr::null;
-use core_foundation::{date::CFTimeInterval, base::{CFOptionFlags, SInt32, TCFType}, string::{CFString, CFStringRef, __CFString}, url::CFURLRef};
 
 pub struct CFUserNotification<'a> {
     pub header: &'a str,
@@ -32,14 +35,14 @@ impl<'a> CFUserNotification<'a> {
                 dbt,
                 abt,
                 null(),
-                &mut response
+                &mut response,
             );
             response
         }
     }
 }
 
-extern {
+extern "C" {
     fn CFUserNotificationDisplayAlert(
         timeout: CFTimeInterval,
         flags: CFOptionFlags,
@@ -51,5 +54,6 @@ extern {
         defaultButtonTitle: CFStringRef,
         alternateButtonTitle: CFStringRef,
         otherButtonTitle: CFStringRef,
-        responseFlags: *mut SInt32) -> SInt32;
+        responseFlags: *mut SInt32,
+    ) -> SInt32;
 }
