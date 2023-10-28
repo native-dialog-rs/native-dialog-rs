@@ -14,6 +14,7 @@ impl DialogImpl for OpenSingleFile<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
+            title: self.title,
             filename: self.filename,
             location: self.location,
             filters: &self.filters,
@@ -31,6 +32,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
+            title: self.title,
             filename: self.filename,
             location: self.location,
             filters: &self.filters,
@@ -51,6 +53,7 @@ impl DialogImpl for OpenSingleDir<'_> {
         super::process_init();
 
         let result = open_dialog(OpenDialogParams {
+            title: self.title,
             filename: self.filename,
             location: self.location,
             filters: &[],
@@ -68,6 +71,7 @@ impl DialogImpl for SaveSingleFile<'_> {
         super::process_init();
 
         let result = save_dialog(SaveDialogParams {
+            title: self.title,
             filename: self.filename,
             location: self.location,
             filters: &self.filters,
@@ -79,6 +83,7 @@ impl DialogImpl for SaveSingleFile<'_> {
 }
 
 struct OpenDialogParams<'a> {
+    title: &'a str,
     filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
@@ -115,6 +120,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
         file_name,
         options,
         owner,
+        title: params.title,
         ..Default::default()
     };
 
@@ -124,6 +130,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
 }
 
 struct SaveDialogParams<'a> {
+    title: &'a str,
     filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter<'a>],
@@ -159,6 +166,7 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
         default_extension,
         options,
         owner,
+        title: params.title,
         ..Default::default()
     };
 
