@@ -38,7 +38,7 @@ fn declare_class() -> &'static Class {
 
             let panel = *this.get_ivar::<id>("_panel") as *mut NSSavePanel;
             let panel: Id<NSSavePanel> = Id::from_ptr(panel);
-            panel.set_allowed_file_types(filter.extensions);
+            panel.set_allowed_extensions(filter.extensions);
         }
     }
 

@@ -28,8 +28,16 @@ impl<'a> UserNotificationAlert<'a> {
                 null(),
                 header.as_CFTypeRef() as _,
                 message.as_CFTypeRef() as _,
-                if self.confirm { default.as_CFTypeRef() as _ } else { null() },
-                if self.confirm { alternate.as_CFTypeRef() as _ } else { null() },
+                if self.confirm {
+                    default.as_CFTypeRef() as _
+                } else {
+                    null()
+                },
+                if self.confirm {
+                    alternate.as_CFTypeRef() as _
+                } else {
+                    null()
+                },
                 null(),
                 &mut response,
             );
