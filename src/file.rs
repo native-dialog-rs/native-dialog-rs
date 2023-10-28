@@ -17,6 +17,7 @@ pub struct FileDialog<'a> {
     pub(crate) location: Option<&'a Path>,
     pub(crate) filters: Vec<Filter<'a>>,
     pub(crate) owner: Option<RawWindowHandle>,
+    pub(crate) title: Option<&'a str>,
 }
 
 impl<'a> FileDialog<'a> {
@@ -27,7 +28,14 @@ impl<'a> FileDialog<'a> {
             location: None,
             filters: vec![],
             owner: None,
+            title: None,
         }
+    }
+
+    /// Sets the window title for the dialog.
+    pub fn set_title(mut self, title: &'a str) -> Self {
+        self.title = Some(title);
+        self
     }
 
     /// Sets the default value of the filename text field in the dialog. For open dialogs of macOS
@@ -104,6 +112,7 @@ impl<'a> FileDialog<'a> {
             location: self.location,
             filters: self.filters,
             owner: self.owner,
+            title: self.title.unwrap_or("Open File"),
         };
         dialog.show()
     }
@@ -115,6 +124,7 @@ impl<'a> FileDialog<'a> {
             location: self.location,
             filters: self.filters,
             owner: self.owner,
+            title: self.title.unwrap_or("Open File"),
         };
         dialog.show()
     }
@@ -125,6 +135,7 @@ impl<'a> FileDialog<'a> {
             filename: self.filename,
             location: self.location,
             owner: self.owner,
+            title: self.title.unwrap_or("Open Folder"),
         };
         dialog.show()
     }
@@ -136,6 +147,7 @@ impl<'a> FileDialog<'a> {
             location: self.location,
             filters: self.filters,
             owner: self.owner,
+            title: self.title.unwrap_or("Save As"),
         };
         dialog.show()
     }
