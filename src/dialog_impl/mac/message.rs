@@ -1,32 +1,30 @@
-use super::ffi::user_notification::CFUserNotification;
+use super::ffi::UserNotificationAlert;
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{MessageType, Result};
 
 impl DialogImpl for MessageAlert<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        let alert = CFUserNotification {
+        let alert = UserNotificationAlert {
             header: self.title,
             message: self.text,
             icon: get_dialog_icon(self.typ),
-            default_button_title: None,
-            alternate_button_title: None,
+            confirm: false,
         };
-        alert.display_alert();
+        alert.display();
         Ok(())
     }
 }
 
 impl DialogImpl for MessageConfirm<'_> {
     fn show(&mut self) -> Result<Self::Output> {
-        let alert = CFUserNotification {
+        let alert = UserNotificationAlert {
             header: self.title,
             message: self.text,
             icon: get_dialog_icon(self.typ),
-            default_button_title: Some("Yes"),
-            alternate_button_title: Some("No"),
+            confirm: true,
         };
 
-        let res = alert.display_alert();
+        let res = alert.display();
 
         // kCFUserNotificationDefaultResponse = 0
         Ok(res == 0)

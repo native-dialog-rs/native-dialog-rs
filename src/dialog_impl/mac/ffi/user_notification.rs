@@ -1,44 +1,41 @@
 use core_foundation::base::{CFOptionFlags, SInt32, TCFType};
 use core_foundation::date::CFTimeInterval;
-use core_foundation::string::{CFString, CFStringRef, __CFString};
+use core_foundation::string::{CFString, CFStringRef};
 use core_foundation::url::CFURLRef;
 use std::ptr::null;
 
-pub struct CFUserNotification<'a> {
+pub struct UserNotificationAlert<'a> {
     pub header: &'a str,
     pub message: &'a str,
     pub icon: usize,
-    pub default_button_title: Option<&'a str>,
-    pub alternate_button_title: Option<&'a str>,
+    pub confirm: bool,
 }
 
-impl<'a> CFUserNotification<'a> {
-    pub fn display_alert(&self) -> i32 {
+impl<'a> UserNotificationAlert<'a> {
+    pub fn display(&self) -> i32 {
+        let default = CFString::from_static_string("Yes");
+        let alternate = CFString::from_static_string("No");
+        let header = CFString::new(self.header);
+        let message = CFString::new(self.message);
+
+        let mut response = 0;
         unsafe {
-            let mut response = 0;
-            let mut dbt: CFStringRef = null();
-            if let Some(s) = self.default_button_title {
-                dbt = CFString::new(s).as_CFTypeRef() as *const __CFString;
-            }
-            let mut abt: CFStringRef = null();
-            if let Some(s) = self.alternate_button_title {
-                abt = CFString::new(s).as_CFTypeRef() as *const __CFString;
-            }
             CFUserNotificationDisplayAlert(
                 0 as f64,
                 self.icon,
                 null(),
                 null(),
                 null(),
-                CFString::new(self.header).as_CFTypeRef() as *const __CFString,
-                CFString::new(self.message).as_CFTypeRef() as *const __CFString,
-                dbt,
-                abt,
+                header.as_CFTypeRef() as _,
+                message.as_CFTypeRef() as _,
+                if self.confirm { default.as_CFTypeRef() as _ } else { null() },
+                if self.confirm { alternate.as_CFTypeRef() as _ } else { null() },
                 null(),
                 &mut response,
             );
-            response
         }
+
+        response
     }
 }
 
