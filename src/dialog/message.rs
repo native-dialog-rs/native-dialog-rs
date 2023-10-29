@@ -6,7 +6,7 @@ pub struct MessageAlert<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
     pub(crate) typ: MessageType,
-    #[cfg_attr(not(any(target_os = "windows")), allow(dead_code))]
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     pub(crate) owner: Option<RawWindowHandle>,
 }
 
@@ -18,7 +18,7 @@ pub struct MessageConfirm<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
     pub(crate) typ: MessageType,
-    #[cfg_attr(not(any(target_os = "windows")), allow(dead_code))]
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     pub(crate) owner: Option<RawWindowHandle>,
 }
 

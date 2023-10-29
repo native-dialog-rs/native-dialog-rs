@@ -11,6 +11,7 @@ impl DialogImpl for MessageAlert<'_> {
             confirm: false,
         };
         alert.display();
+
         Ok(())
     }
 }
@@ -23,7 +24,6 @@ impl DialogImpl for MessageConfirm<'_> {
             icon: get_dialog_icon(self.typ),
             confirm: true,
         };
-
         let res = alert.display();
 
         // kCFUserNotificationDefaultResponse = 0
@@ -33,8 +33,11 @@ impl DialogImpl for MessageConfirm<'_> {
 
 fn get_dialog_icon(typ: MessageType) -> usize {
     match typ {
+        // kCFUserNotificationNoteAlertLevel = 1
         MessageType::Info => 1,
+        // kCFUserNotificationCautionAlertLevel = 2
         MessageType::Warning => 2,
+        // kCFUserNotificationStopAlertLevel = 0
         MessageType::Error => 0,
     }
 }
