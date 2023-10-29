@@ -1,3 +1,7 @@
+pub use file::*;
+pub use message::*;
+pub use progress::*;
+
 pub trait Dialog {
     type Output;
 }
@@ -7,7 +11,5 @@ pub trait DialogImpl: Dialog {
 }
 
 mod file;
-pub use file::*;
-
 mod message;
-pub use message::*;
+mod progress;

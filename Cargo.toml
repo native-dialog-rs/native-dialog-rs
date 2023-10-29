@@ -16,7 +16,7 @@ ascii = "1.1.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wfd = "0.1.7"
-winapi = { version = "0.3", features = ["winuser"] }
+winapi = { version = "0.3", features = ["winuser", "windef", "impl-default"] }
 once_cell = { version = "1.4.0", optional = true }
 
 [target.'cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))'.dependencies]
