@@ -21,22 +21,20 @@ impl<'a> UserNotificationAlert<'a> {
         let mut response = 0;
         unsafe {
             CFUserNotificationDisplayAlert(
-                0 as f64,
+                0f64,
                 self.icon,
                 null(),
                 null(),
                 null(),
                 header.as_CFTypeRef() as _,
                 message.as_CFTypeRef() as _,
-                if self.confirm {
-                    default.as_CFTypeRef() as _
-                } else {
-                    null()
+                match self.confirm {
+                    true => default.as_CFTypeRef() as _,
+                    false => null(),
                 },
-                if self.confirm {
-                    alternate.as_CFTypeRef() as _
-                } else {
-                    null()
+                match self.confirm {
+                    true => alternate.as_CFTypeRef() as _,
+                    false => null(),
                 },
                 null(),
                 &mut response,
