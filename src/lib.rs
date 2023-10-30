@@ -37,5 +37,3 @@ pub use message::*;
 
 mod file;
 pub use file::*;
-
-mod tests;

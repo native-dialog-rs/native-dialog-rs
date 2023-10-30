@@ -60,21 +60,21 @@ mod act_ctx {
         const ACTCTX_FLAG_RESOURCE_NAME_VALID: DWORD = 0x008;
         const ACTCTX_FLAG_HMODULE_VALID: DWORD = 0x080;
 
-        let mut module_name: Vec<u16> = OsStr::new("shell32.dll")
+        let module_name: Vec<u16> = OsStr::new("shell32.dll")
             .encode_wide()
             .chain(std::iter::once(0))
             .collect();
 
-        let mut context = ACTCTXW {
-            cbSize: std::mem::size_of::<ACTCTXW> as ULONG,
-            hModule: unsafe { GetModuleHandleW(module_name.as_mut_ptr()) },
+        let context = ACTCTXW {
+            cbSize: std::mem::size_of::<ACTCTXW>() as ULONG,
+            hModule: unsafe { GetModuleHandleW(module_name.as_ptr()) },
             lpResourceName: MAKEINTRESOURCEW(124),
             dwFlags: ACTCTX_FLAG_HMODULE_VALID | ACTCTX_FLAG_RESOURCE_NAME_VALID,
             ..unsafe { std::mem::zeroed() }
         };
 
         ActCtxHandle {
-            handle: unsafe { CreateActCtxW(&mut context) },
+            handle: unsafe { CreateActCtxW(&context) },
         }
     }
 

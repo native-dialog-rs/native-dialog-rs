@@ -1,21 +1,9 @@
-use super::{INSPanel, INSUrl, NSUrl, NSWindow};
+use super::{INSPanel, INSSavePanel, NSUrl, NSWindow};
 use cocoa::foundation::NSInteger;
-use objc_foundation::{INSArray, INSString, NSArray, NSString};
+use objc_foundation::NSArray;
 use objc_id::Id;
 
 pub trait INSOpenPanel: INSPanel {
-    fn open_panel() -> Id<Self> {
-        unsafe {
-            let ptr = msg_send![class!(NSOpenPanel), openPanel];
-            Id::from_ptr(ptr)
-        }
-    }
-
-    fn set_name_field_string_value(&self, value: &str) {
-        let value = NSString::from_str(value);
-        unsafe { msg_send![self, setNameFieldStringValue: value] }
-    }
-
     fn set_can_choose_files(&self, flag: bool) {
         let flag = super::objc_bool(flag);
         unsafe { msg_send![self, setCanChooseFiles: flag] }
@@ -30,17 +18,25 @@ pub trait INSOpenPanel: INSPanel {
         let flag = super::objc_bool(flag);
         unsafe { msg_send![self, setAllowsMultipleSelection: flag] }
     }
+}
 
-    fn set_directory_url(&self, url: &str) {
-        let url = NSUrl::from_path(url);
-        unsafe { msg_send![self, setDirectoryURL: url] }
+object_struct!(NSOpenPanel);
+
+impl INSPanel for NSOpenPanel {}
+
+impl INSOpenPanel for NSOpenPanel {}
+
+impl INSSavePanel for NSOpenPanel {}
+
+impl NSOpenPanel {
+    pub fn open_panel() -> Id<Self> {
+        unsafe {
+            let ptr = msg_send![class!(NSOpenPanel), openPanel];
+            Id::from_ptr(ptr)
+        }
     }
 
-    fn set_allowed_file_types(&self, types: Id<impl INSArray>) {
-        unsafe { msg_send![self, setAllowedFileTypes: types] }
-    }
-
-    fn run_modal(&self, owner: Option<Id<NSWindow>>) -> Result<Id<NSArray<NSUrl>>, NSInteger> {
+    pub fn run_modal(&self, owner: Option<Id<NSWindow>>) -> Result<Id<NSArray<NSUrl>>, NSInteger> {
         match self.run_sheet_or_modal(owner) {
             1 => unsafe {
                 let urls = msg_send![self, URLs];
@@ -50,9 +46,3 @@ pub trait INSOpenPanel: INSPanel {
         }
     }
 }
-
-object_struct!(NSOpenPanel);
-
-impl INSPanel for NSOpenPanel {}
-
-impl INSOpenPanel for NSOpenPanel {}

@@ -14,6 +14,7 @@ impl DialogImpl for OpenSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
+        panel.set_title(self.title);
         panel.set_can_choose_files(true);
         panel.set_can_choose_directories(false);
         panel.set_allows_multiple_selection(false);
@@ -26,7 +27,7 @@ impl DialogImpl for OpenSingleFile<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
+        panel.set_allowed_extensions(&all_extensions(&self.filters));
 
         let owner = self.owner.and_then(INSWindow::from_raw_handle);
         match panel.run_modal(owner) {
@@ -43,6 +44,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
+        panel.set_title(self.title);
         panel.set_can_choose_files(true);
         panel.set_can_choose_directories(false);
         panel.set_allows_multiple_selection(true);
@@ -55,7 +57,7 @@ impl DialogImpl for OpenMultipleFile<'_> {
             panel.set_directory_url(&location.to_string_lossy());
         }
 
-        panel.set_allowed_file_types(get_all_allowed_types(&self.filters));
+        panel.set_allowed_extensions(&all_extensions(&self.filters));
 
         let owner = self.owner.and_then(INSWindow::from_raw_handle);
         match panel.run_modal(owner) {
@@ -69,6 +71,7 @@ impl DialogImpl for OpenSingleDir<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSOpenPanel::open_panel();
 
+        panel.set_title(self.title);
         panel.set_can_choose_files(false);
         panel.set_can_choose_directories(true);
         panel.set_allows_multiple_selection(false);
@@ -96,6 +99,7 @@ impl DialogImpl for SaveSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
         let panel = NSSavePanel::save_panel().share();
 
+        panel.set_title(self.title);
         panel.set_can_create_directories(false);
         panel.set_extension_hidden(false);
 
@@ -116,7 +120,7 @@ impl DialogImpl for SaveSingleFile<'_> {
 
             let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(480.0, 0.0));
             let dropdown = NSPopUpButton::new_with_frame(frame, false);
-            dropdown.add_items_with_titles(get_file_type_dropdown_items(&self.filters));
+            dropdown.add_items_with_titles(file_type_dropdown_items(&self.filters));
             dropdown.select_item_at(0);
             dropdown.set_action(sel!(onItemSelected:));
             dropdown.set_target(action_target.clone());
@@ -133,7 +137,7 @@ impl DialogImpl for SaveSingleFile<'_> {
             stack.add_view_in_gravity(label, NSStackViewGravity::Center);
             stack.add_view_in_gravity(dropdown, NSStackViewGravity::Center);
 
-            panel.set_allowed_file_types(first_filter.extensions);
+            panel.set_allowed_extensions(first_filter.extensions);
             panel.set_accessory_view(stack);
 
             let owner = self.owner.and_then(INSWindow::from_raw_handle);
@@ -154,18 +158,11 @@ impl DialogImpl for SaveSingleFile<'_> {
     }
 }
 
-fn get_all_allowed_types(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
-    let mut extensions = NSMutableArray::new();
-    for filter in filters {
-        for ext in filter.extensions {
-            let s = NSString::from_str(ext);
-            extensions.add_object(s);
-        }
-    }
-    extensions
+fn all_extensions<'a>(filters: &'a [Filter<'a>]) -> Vec<&'a str> {
+    filters.iter().flat_map(|x| x.extensions).copied().collect()
 }
 
-fn get_file_type_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
+fn file_type_dropdown_items(filters: &[Filter<'_>]) -> Id<NSMutableArray<NSString>> {
     let mut titles = NSMutableArray::new();
     for filter in filters {
         let extensions: Vec<String> = filter

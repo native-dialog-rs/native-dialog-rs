@@ -36,7 +36,11 @@ fn main() {
     let result = FileDialog::new().show_open_single_dir().unwrap();
     echo("show_open_single_dir", &result);
 
-    let result = FileDialog::new().show_save_single_file().unwrap();
+    let result = FileDialog::new()
+        .add_filter("Rust Source", &["rs"])
+        .add_filter("Image", &["png", "jpg", "gif"])
+        .show_save_single_file()
+        .unwrap();
     echo("show_save_single_file", &result);
 
     MessageDialog::new()
