@@ -1,4 +1,4 @@
-use super::{should_use, Error, UseCommand};
+use super::{should_use, Error, UseCommand, get_zenity_version};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::util::resolve_tilde;
 use crate::{Filter, Result};
@@ -235,6 +235,14 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
 
     if params.save {
         command.arg("--save");
+
+        // `--confirm-overwrite` was removed at zenity 3.91.0
+        // https://gitlab.gnome.org/GNOME/zenity/-/issues/55
+        if let Some(v) = get_zenity_version() {
+            if v.major < 3 || (v.major == 3 && v.minor < 91) {
+                command.arg("--confirm-overwrite");
+            }
+        }
     };
 
     if params.multiple {
