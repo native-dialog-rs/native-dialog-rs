@@ -234,7 +234,7 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
     }
 
     if params.save {
-        command.args(["--save", "--confirm-overwrite"]);
+        command.arg("--save");
     };
 
     if params.multiple {
