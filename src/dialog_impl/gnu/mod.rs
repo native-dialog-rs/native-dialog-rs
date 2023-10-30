@@ -16,12 +16,9 @@ fn should_use() -> Option<UseCommand> {
         Ok(display) => !display.is_empty(),
         _ => false,
     };
-    if !has_display {
-        return None;
-    }
 
     let candidates = match std::env::var("XDG_CURRENT_DESKTOP").as_deref() {
-        Ok("KDE") => [use_kdialog, use_zenity],
+        Ok("KDE") if has_display => [use_kdialog, use_zenity],
         _ => [use_zenity, use_kdialog],
     };
 
