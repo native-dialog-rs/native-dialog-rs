@@ -1,10 +1,11 @@
 use crate::Error;
 use ascii::AsAsciiStr;
 use std::process::Command;
-use versions::SemVer;
+use version::Ver;
 
 mod file;
-pub(crate) mod message;
+mod message;
+mod version;
 
 enum UseCommand {
     KDialog(Command),
@@ -16,6 +17,8 @@ fn should_use() -> Option<UseCommand> {
         Ok(display) => !display.is_empty(),
         _ => false,
     };
+
+    // TODO: Support TUI dialogs when has_display == false
 
     let candidates = match std::env::var("XDG_CURRENT_DESKTOP").as_deref() {
         Ok("KDE") if has_display => [use_kdialog, use_zenity],
@@ -43,17 +46,17 @@ fn use_zenity() -> Option<UseCommand> {
     Some(UseCommand::Zenity(command))
 }
 
-fn get_kdialog_version() -> Option<SemVer> {
+fn get_kdialog_version() -> Option<Ver> {
     get_version_output("kdialog")
         .as_deref()
         .and_then(|s| s.split_whitespace().last())
-        .and_then(SemVer::new)
+        .and_then(Ver::new)
 }
 
-fn get_zenity_version() -> Option<SemVer> {
+fn get_zenity_version() -> Option<Ver> {
     get_version_output("zenity")
         .as_deref()
-        .and_then(SemVer::new)
+        .and_then(Ver::new)
 }
 
 fn get_version_output(program: &str) -> Option<String> {

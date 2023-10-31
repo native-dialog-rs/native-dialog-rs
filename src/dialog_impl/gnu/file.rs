@@ -238,10 +238,8 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
 
         // `--confirm-overwrite` was removed at zenity 3.91.0
         // https://gitlab.gnome.org/GNOME/zenity/-/issues/55
-        if let Some(v) = get_zenity_version() {
-            if v.major < 3 || (v.major == 3 && v.minor < 91) {
-                command.arg("--confirm-overwrite");
-            }
+        if matches!(get_zenity_version(), Some(v) if v < (3, 91, 0)) {
+            command.arg("--confirm-overwrite");
         }
     };
 

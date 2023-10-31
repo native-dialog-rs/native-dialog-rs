@@ -54,20 +54,18 @@ fn escape_pango_entities(text: &str) -> String {
 
 /// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
 fn convert_qt_text_document(text: &str) -> String {
-    match get_kdialog_version() {
-        Some(v) if v.major <= 19 => text
-            .replace('\n', "<br>")
-            .replace('\t', "&nbsp;")
+    if matches!(get_kdialog_version(), Some(v) if v < (19, 0, 0)) {
+        text.replace('\n', "<br>")
+            .replace('\t', " ")
             .replace('<', "&lt;")
             .replace('>', "&gt;")
             .replace('&', "&amp;")
             .replace('"', "&quot;")
-            .replace(' ', "&nbsp"),
-        _ => text
-            .replace('\n', "<br>")
+    } else {
+        text.replace('\n', "<br>")
             .replace('\t', " ")
             .replace('<', "&lt;")
-            .replace('>', "&gt;"),
+            .replace('>', "&gt;")
     }
 }
 
@@ -113,13 +111,9 @@ fn call_zenity(mut command: Command, params: Params) -> Result<bool> {
 
         // `--icon-name` was renamed to `--icon` at zenity 3.90.0
         match get_zenity_version() {
-            Some(v) if v.major < 3 || (v.major == 3 && v.minor < 90) => {
-                command.arg("--icon-name");
-            }
-            _ => {
-                command.arg("--icon");
-            }
-        }
+            Some(v) if v < (3, 90, 0) => command.arg("--icon-name"),
+            _ => command.arg("--icon"),
+        };
         match params.typ {
             MessageType::Info => command.arg("dialog-information"),
             MessageType::Warning => command.arg("dialog-warning"),
