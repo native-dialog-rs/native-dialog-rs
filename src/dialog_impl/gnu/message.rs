@@ -1,4 +1,4 @@
-use super::{get_kdialog_version, should_use, UseCommand};
+use super::{get_kdialog_version, get_zenity_version, should_use, UseCommand};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{Error, MessageType, Result};
 use std::process::Command;
@@ -110,10 +110,20 @@ fn call_zenity(mut command: Command, params: Params) -> Result<bool> {
 
     if params.ask {
         command.arg("--question");
+
+        // `--icon-name` was renamed to `--icon` at zenity 3.90.0
+        match get_zenity_version() {
+            Some(v) if v.major < 3 || (v.major == 3 && v.minor < 90) => {
+                command.arg("--icon-name");
+            }
+            _ => {
+                command.arg("--icon");
+            }
+        }
         match params.typ {
-            MessageType::Info => command.arg("--icon=dialog-information"),
-            MessageType::Warning => command.arg("--icon=dialog-warning"),
-            MessageType::Error => command.arg("--icon=dialog-error"),
+            MessageType::Info => command.arg("dialog-information"),
+            MessageType::Warning => command.arg("dialog-warning"),
+            MessageType::Error => command.arg("dialog-error"),
         };
     } else {
         match params.typ {
