@@ -56,7 +56,7 @@ fn get_kdialog_version() -> Option<Ver> {
 fn get_zenity_version() -> Option<Ver> {
     get_version_output("zenity")
         .as_deref()
-        .and_then(Ver::new)
+        .and_then(|s| Ver::new(s.trim_end()))
 }
 
 fn get_version_output(program: &str) -> Option<String> {
