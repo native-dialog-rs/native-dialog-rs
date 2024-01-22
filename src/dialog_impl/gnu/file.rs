@@ -219,7 +219,14 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<Option<Vec<u8>>>
     match output.status.code() {
         Some(0) => Ok(Some(output.stdout)),
         Some(1) => Ok(None),
-        _ => Err(Error::UnexpectedOutput("kdialog")),
+        Some(exit_code) => Err(Error::UnexpectedOutput(format!(
+            "'kdialog' exit code:{} with error:{}",
+            exit_code,
+            std::str::from_utf8(&output.stderr).unwrap_or_default()
+        ))),
+        None => Err(Error::UnexpectedOutput(
+            "'kdialog' process terminated by signal".to_string(),
+        )),
     }
 }
 
@@ -274,7 +281,14 @@ fn call_zenity(mut command: Command, params: Params) -> Result<Option<Vec<u8>>> 
     match output.status.code() {
         Some(0) => Ok(Some(output.stdout)),
         Some(1) => Ok(None),
-        _ => Err(Error::UnexpectedOutput("zenity")),
+        Some(exit_code) => Err(Error::UnexpectedOutput(format!(
+            "'zenity' exit code:{} with error:{}",
+            exit_code,
+            std::str::from_utf8(&output.stderr).unwrap_or_default()
+        ))),
+        None => Err(Error::UnexpectedOutput(
+            "'zenity' process terminated by signal".to_string(),
+        )),
     }
 }
 
