@@ -17,7 +17,7 @@ pub enum Error {
     InvalidString(#[from] std::string::FromUtf8Error),
 
     #[error("failed to parse the string returned from implementation")]
-    UnexpectedOutput(&'static str),
+    UnexpectedOutput(String),
 
     #[error("cannot find any dialog implementation (kdialog/zenity)")]
     NoImplementation,

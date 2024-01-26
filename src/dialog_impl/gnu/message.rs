@@ -98,8 +98,15 @@ fn call_kdialog(mut command: Command, params: Params) -> Result<bool> {
 
     match output.status.code() {
         Some(0) => Ok(true),
-        Some(_) => Ok(false),
-        _ => Err(Error::UnexpectedOutput("kdialog")),
+        Some(1) => Ok(false),
+        Some(exit_code) => Err(Error::UnexpectedOutput(format!(
+            "'kdialog' exit code:{} with error:{}",
+            exit_code,
+            std::str::from_utf8(&output.stderr).unwrap_or_default()
+        ))),
+        None => Err(Error::UnexpectedOutput(
+            "'kdialog' process terminated by signal".to_string(),
+        )),
     }
 }
 
@@ -135,9 +142,17 @@ fn call_zenity(mut command: Command, params: Params) -> Result<bool> {
 
     let output = command.output()?;
 
+    // "zenity" exit codes are '0', '1', '5', '-1' (https://help.gnome.org/users/zenity/stable/usage.html.en)
     match output.status.code() {
         Some(0) => Ok(true),
-        Some(_) => Ok(false),
-        _ => Err(Error::UnexpectedOutput("zenity")),
+        Some(1) => Ok(false),
+        Some(exit_code) => Err(Error::UnexpectedOutput(format!(
+            "'zenity' exit code:{} with error:{}",
+            exit_code,
+            std::str::from_utf8(&output.stderr).unwrap_or_default()
+        ))),
+        None => Err(Error::UnexpectedOutput(
+            "'zenity' process terminated by signal".to_string(),
+        )),
     }
 }
