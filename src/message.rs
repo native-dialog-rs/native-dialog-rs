@@ -1,4 +1,6 @@
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use crate::dialog::{
+    DialogImpl, FallbackMessageAlert, FallbackMessageConfirm, MessageAlert, MessageConfirm,
+};
 use crate::Result;
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
@@ -76,7 +78,22 @@ impl<'a> MessageDialog<'a> {
             typ: self.typ,
             owner: self.owner,
         };
-        dialog.show()
+
+        let show = dialog.show();
+
+        match show {
+            Ok(_) => Ok(()),
+            Err(_) => {
+                let mut fallback = FallbackMessageAlert {
+                    title: dialog.title,
+                    text: dialog.text,
+                    typ: dialog.typ,
+                };
+
+                fallback.show()?;
+                Ok(())
+            }
+        }
     }
 
     /// Shows a dialog that let users to choose Yes/No.
@@ -87,7 +104,19 @@ impl<'a> MessageDialog<'a> {
             typ: self.typ,
             owner: self.owner,
         };
-        dialog.show()
+
+        match dialog.show() {
+            Ok(val) => Ok(val),
+            Err(_) => {
+                let mut fallback = FallbackMessageConfirm {
+                    title: dialog.title,
+                    text: dialog.text,
+                    typ: dialog.typ,
+                };
+
+                fallback.show()
+            }
+        }
     }
 }
 

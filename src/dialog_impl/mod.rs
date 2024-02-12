@@ -11,3 +11,5 @@ pub(crate) mod gnu;
 
 #[cfg(target_os = "windows")]
 pub(crate) mod win;
+
+pub(crate) mod sdl;
