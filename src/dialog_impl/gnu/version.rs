@@ -6,7 +6,7 @@ pub struct Ver(SemVer);
 
 impl Ver {
     pub fn new(s: &str) -> Option<Self> {
-        let semver = SemVer::new(s)?;
+        let semver = SemVer::new(s.trim())?;
         Some(Self(semver))
     }
 }
