@@ -57,12 +57,9 @@ fn get_zenity_version() -> Option<Ver> {
     get_version_output("zenity")
         .as_deref()
         .and_then(Ver::new)
-        .map(|ver| { println!("ver: {:?}", ver); ver })
-        .or_else(|| { println!("can't get zenity ver"); None })
 }
 
 fn get_version_output(program: &str) -> Option<String> {
     let output = Command::new(program).arg("--version").output().ok()?;
-    println!("version: {:?}", output);
     Some(output.stdout.as_ascii_str().ok()?.to_string())
 }
