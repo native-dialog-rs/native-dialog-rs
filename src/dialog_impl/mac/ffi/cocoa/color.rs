@@ -1,15 +1,10 @@
-use objc_foundation::INSObject;
-use objc_id::Id;
+use objc2::rc::Id;
+use objc2_app_kit::NSColor;
 
-pub trait INSColor: INSObject {
-    fn secondary_label_color() -> Id<Self> {
-        unsafe {
-            let ptr = msg_send![class!(NSColor), secondaryLabelColor];
-            Id::from_ptr(ptr)
-        }
+pub trait INSColor {
+    fn secondary_label_color() -> Id<NSColor> {
+        unsafe { NSColor::secondaryLabelColor() }
     }
 }
-
-object_struct!(NSColor);
 
 impl INSColor for NSColor {}

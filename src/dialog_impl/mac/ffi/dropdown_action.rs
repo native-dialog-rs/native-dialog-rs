@@ -1,86 +1,62 @@
-use super::cocoa::{INSSavePanel, NSSavePanel};
+use std::cell::Cell;
+use std::ptr;
+
 use crate::Filter;
-use cocoa::base::id;
-use cocoa::foundation::NSInteger;
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
-use objc::Message;
-use objc_foundation::INSObject;
-use objc_id::Id;
-use once_cell::sync::OnceCell;
+use objc2::mutability::InteriorMutable;
+use objc2::rc::Id;
+use objc2::runtime::AnyObject;
+use objc2::{declare_class, msg_send, msg_send_id, ClassType, DeclaredClass};
+use objc2_app_kit::NSSavePanel;
+use objc2_foundation::{NSInteger, NSObject};
 
-static CLASS: OnceCell<&Class> = OnceCell::new();
+use super::cocoa::INSSavePanel;
 
-fn declare_class() -> &'static Class {
-    let classname = "__RustNativeDialogSavePanelDropdownAction";
-    let mut decl = ClassDecl::new(classname, class!(NSObject)).unwrap();
-
-    decl.add_ivar::<id>("_panel");
-    decl.add_ivar::<usize>("_filters");
-
-    extern "C" fn set_save_panel(this: &mut Object, _sel: Sel, panel: id) {
-        unsafe { this.set_ivar("_panel", panel) };
-    }
-
-    extern "C" fn set_filters(this: &mut Object, _sel: Sel, filters: usize) {
-        unsafe { this.set_ivar("_filters", filters) };
-    }
-
-    extern "C" fn on_item_selected(this: &Object, _sel: Sel, sender: id) {
-        unsafe {
-            let ptr_filters = *this.get_ivar::<usize>("_filters") as *const Vec<Filter>;
-            if ptr_filters.is_null() {
-                return;
-            }
-
-            let index: NSInteger = msg_send![sender, indexOfSelectedItem];
-            let filter = (*ptr_filters).get(index as usize).unwrap();
-
-            let panel = *this.get_ivar::<id>("_panel") as *mut NSSavePanel;
-            let panel: Id<NSSavePanel> = Id::from_ptr(panel);
-            panel.set_allowed_extensions(filter.extensions);
-        }
-    }
-
-    unsafe {
-        decl.add_method(
-            sel!(setSavePanel:),
-            set_save_panel as extern "C" fn(&mut Object, Sel, id),
-        );
-        decl.add_method(
-            sel!(setFilters:),
-            set_filters as extern "C" fn(&mut Object, Sel, usize),
-        );
-        decl.add_method(
-            sel!(onItemSelected:),
-            on_item_selected as extern "C" fn(&Object, Sel, id),
-        );
-    }
-
-    decl.register()
+#[derive(Debug)]
+pub struct Ivars {
+    panel: Id<NSSavePanel>,
+    filters: Cell<*const Vec<Filter<'static>>>,
 }
 
-pub trait IDropdownAction: INSObject {
-    fn set_save_panel<T>(&self, panel: Id<NSSavePanel, T>) {
-        unsafe { msg_send![self, setSavePanel: panel] }
+declare_class!(
+    #[derive(Debug)]
+    pub struct DropdownAction;
+
+    unsafe impl ClassType for DropdownAction {
+        type Super = NSObject;
+        type Mutability = InteriorMutable;
+        const NAME: &'static str = "__RustNativeDialogSavePanelDropdownAction";
+    }
+
+    impl DeclaredClass for DropdownAction {
+        type Ivars = Ivars;
+    }
+
+    unsafe impl DropdownAction {
+        #[method(onItemSelected:)]
+        fn on_item_selected(&self, sender: &AnyObject) {
+            let filters = self.ivars().filters.get();
+            if let Some(filters) = unsafe { filters.as_ref() } {
+                let index: NSInteger = unsafe { msg_send![sender, indexOfSelectedItem] };
+                let filter = filters.get(index as usize).unwrap();
+
+                self.ivars().panel.set_allowed_extensions(filter.extensions);
+            }
+        }
+    }
+);
+
+impl DropdownAction {
+    pub fn new_with_save_panel(panel: &NSSavePanel) -> Id<Self> {
+        let this = Self::alloc().set_ivars(Ivars {
+            panel: panel.retain(),
+            filters: Cell::new(ptr::null()),
+        });
+        unsafe { msg_send_id![super(this), init] }
     }
 
     /// The caller has the responsibility to reset the pointer before the pointed value is dropped.
-    unsafe fn set_filters(&self, filters: *const Vec<Filter>) {
-        msg_send![self, setFilters: filters as usize]
+    pub unsafe fn set_filters(&self, filters: *const Vec<Filter<'_>>) {
+        let filters: *const Vec<Filter<'static>> = filters.cast();
+        self.ivars().filters.set(filters);
     }
 }
-
-pub struct DropdownAction {
-    _private: (),
-}
-
-unsafe impl Message for DropdownAction {}
-
-impl INSObject for DropdownAction {
-    fn class() -> &'static Class {
-        CLASS.get_or_init(declare_class)
-    }
-}
-
-impl IDropdownAction for DropdownAction {}

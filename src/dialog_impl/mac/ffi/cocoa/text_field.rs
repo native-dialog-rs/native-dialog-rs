@@ -1,22 +1,22 @@
-use super::{INSColor, INSView};
-use objc_foundation::{INSString, NSString};
-use objc_id::Id;
+use objc2::rc::Id;
+use objc2_app_kit::{NSColor, NSTextField};
+use objc2_foundation::{MainThreadMarker, NSString};
 
-pub trait INSTextField: INSView {
-    fn label_with_string(string: &str) -> Id<Self> {
-        let string = NSString::from_str(string);
-        unsafe {
-            let ptr = msg_send![class!(NSTextField), labelWithString: string];
-            Id::from_ptr(ptr)
-        }
-    }
+pub trait INSTextField {
+    fn label_with_string(string: &str) -> Id<Self>;
 
-    fn set_text_color(&self, color: Id<impl INSColor>) {
-        unsafe { msg_send![self, setTextColor: color] }
-    }
+    fn set_text_color(&self, color: &NSColor);
 }
 
-object_struct!(NSTextField);
+impl INSTextField for NSTextField {
+    fn label_with_string(string: &str) -> Id<Self> {
+        // TODO: Main Thread Safety
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+        let string = NSString::from_str(string);
+        unsafe { NSTextField::labelWithString(&string, mtm) }
+    }
 
-impl INSView for NSTextField {}
-impl INSTextField for NSTextField {}
+    fn set_text_color(&self, color: &NSColor) {
+        unsafe { self.setTextColor(Some(color)) }
+    }
+}
