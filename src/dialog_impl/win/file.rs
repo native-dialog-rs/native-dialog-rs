@@ -6,7 +6,7 @@ use std::path::Path;
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, SaveDialogResult, FOS_ALLOWMULTISELECT,
     FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
-    FOS_PICKFOLDERS, FOS_STRICTFILETYPES, HWND,
+    FOS_PICKFOLDERS, FOS_STRICTFILETYPES,
 };
 
 impl DialogImpl for OpenSingleFile<'_> {
@@ -110,7 +110,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
     }
 
     let owner = match params.owner {
-        Some(RawWindowHandle::Win32(handle)) => Some(handle.hwnd as HWND),
+        Some(RawWindowHandle::Win32(handle)) => Some(handle.hwnd.get() as *mut _),
         _ => None,
     };
 
@@ -155,7 +155,7 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
         FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST | FOS_NOREADONLYRETURN | FOS_STRICTFILETYPES;
 
     let owner = match params.owner {
-        Some(RawWindowHandle::Win32(handle)) => Some(handle.hwnd as HWND),
+        Some(RawWindowHandle::Win32(handle)) => Some(handle.hwnd.get() as *mut _),
         _ => None,
     };
 
