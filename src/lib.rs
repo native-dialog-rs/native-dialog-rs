@@ -1,11 +1,3 @@
-#[cfg(target_os = "macos")]
-#[macro_use]
-extern crate objc;
-
-#[cfg(target_os = "macos")]
-#[macro_use]
-extern crate objc_foundation;
-
 use thiserror::Error;
 
 #[derive(Error, Debug)]

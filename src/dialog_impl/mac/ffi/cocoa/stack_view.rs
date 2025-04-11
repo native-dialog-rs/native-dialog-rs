@@ -1,39 +1,41 @@
-use super::{INSView, NSEdgeInsets, NSUserInterfaceLayoutOrientation};
-use cocoa::base::id;
-use cocoa::foundation::NSRect;
-use objc_id::Id;
+use objc2::rc::Id;
+use objc2_app_kit::{NSLayoutConstraintOrientation, NSStackView, NSStackViewGravity, NSView};
+use objc2_foundation::{MainThreadMarker, NSEdgeInsets, NSRect};
 
-#[allow(dead_code)]
-#[repr(usize)]
-pub enum NSStackViewGravity {
-    Leading = 1,
-    Center = 2,
-    Trailing = 3,
+pub trait INSStackView {
+    fn new_empty() -> Id<Self>;
+
+    fn new_with_frame(frame: NSRect) -> Id<Self>;
+
+    fn set_hugging_priority(&self, priority: f32, orientation: NSLayoutConstraintOrientation);
+
+    fn set_edge_insets(&self, insets: NSEdgeInsets);
+
+    fn add_view_in_gravity(&self, view: &NSView, gravity: NSStackViewGravity);
 }
 
-pub trait INSStackView: INSView {
-    fn new_with_frame(frame: NSRect) -> Id<Self> {
-        unsafe {
-            let ptr: id = msg_send![class!(NSStackView), alloc];
-            let ptr = msg_send![ptr, initWithFrame: frame];
-            Id::from_retained_ptr(ptr)
-        }
+impl INSStackView for NSStackView {
+    fn new_empty() -> Id<Self> {
+        // TODO: Main Thread Safety
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+        unsafe { NSStackView::new(mtm) }
     }
 
-    fn set_hugging_priority(&self, priority: f32, orientation: NSUserInterfaceLayoutOrientation) {
-        unsafe { msg_send![self, setHuggingPriority:priority forOrientation:orientation] }
+    fn new_with_frame(frame: NSRect) -> Id<Self> {
+        // TODO: Main Thread Safety
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+        unsafe { NSStackView::initWithFrame(mtm.alloc(), frame) }
+    }
+
+    fn set_hugging_priority(&self, priority: f32, orientation: NSLayoutConstraintOrientation) {
+        unsafe { self.setHuggingPriority_forOrientation(priority, orientation) }
     }
 
     fn set_edge_insets(&self, insets: NSEdgeInsets) {
-        unsafe { msg_send![self, setEdgeInsets: insets] }
+        unsafe { self.setEdgeInsets(insets) }
     }
 
-    fn add_view_in_gravity(&self, view: Id<impl INSView>, gravity: NSStackViewGravity) {
-        unsafe { msg_send![self, addView:view inGravity:gravity] }
+    fn add_view_in_gravity(&self, view: &NSView, gravity: NSStackViewGravity) {
+        unsafe { self.addView_inGravity(&view, gravity) }
     }
 }
-
-object_struct!(NSStackView);
-
-impl INSView for NSStackView {}
-impl INSStackView for NSStackView {}

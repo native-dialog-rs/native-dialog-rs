@@ -1,48 +1,54 @@
-use super::{INSPanel, INSSavePanel, NSUrl, NSWindow};
-use cocoa::foundation::NSInteger;
-use objc_foundation::NSArray;
-use objc_id::Id;
+use objc2::rc::Id;
+use objc2_app_kit::{NSModalResponse, NSOpenPanel, NSWindow};
+use objc2_foundation::{MainThreadMarker, NSArray, NSURL};
 
-pub trait INSOpenPanel: INSPanel {
+use super::INSSavePanel;
+
+pub trait INSOpenPanel {
+    fn open_panel() -> Id<NSOpenPanel>;
+
+    fn run_modal(&self, owner: Option<Id<NSWindow>>)
+        -> Result<Id<NSArray<NSURL>>, NSModalResponse>;
+
+    fn set_can_choose_files(&self, flag: bool);
+
+    fn set_can_choose_directories(&self, flag: bool);
+
+    fn set_allows_multiple_selection(&self, flag: bool);
+
+    fn set_accessory_view_disclosed(&self, flag: bool);
+}
+
+impl INSOpenPanel for NSOpenPanel {
+    fn open_panel() -> Id<Self> {
+        // TODO: Main Thread Safety
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+        unsafe { NSOpenPanel::openPanel(mtm) }
+    }
+
+    fn run_modal(
+        &self,
+        owner: Option<Id<NSWindow>>,
+    ) -> Result<Id<NSArray<NSURL>>, NSModalResponse> {
+        match self.run_sheet_or_modal(owner) {
+            1 => unsafe { Ok(self.URLs()) },
+            x => Err(x),
+        }
+    }
+
     fn set_can_choose_files(&self, flag: bool) {
-        let flag = super::objc_bool(flag);
-        unsafe { msg_send![self, setCanChooseFiles: flag] }
+        unsafe { self.setCanChooseFiles(flag) };
     }
 
     fn set_can_choose_directories(&self, flag: bool) {
-        let flag = super::objc_bool(flag);
-        unsafe { msg_send![self, setCanChooseDirectories: flag] }
+        unsafe { self.setCanChooseDirectories(flag) };
     }
 
     fn set_allows_multiple_selection(&self, flag: bool) {
-        let flag = super::objc_bool(flag);
-        unsafe { msg_send![self, setAllowsMultipleSelection: flag] }
-    }
-}
-
-object_struct!(NSOpenPanel);
-
-impl INSPanel for NSOpenPanel {}
-
-impl INSOpenPanel for NSOpenPanel {}
-
-impl INSSavePanel for NSOpenPanel {}
-
-impl NSOpenPanel {
-    pub fn open_panel() -> Id<Self> {
-        unsafe {
-            let ptr = msg_send![class!(NSOpenPanel), openPanel];
-            Id::from_ptr(ptr)
-        }
+        unsafe { self.setAllowsMultipleSelection(flag) };
     }
 
-    pub fn run_modal(&self, owner: Option<Id<NSWindow>>) -> Result<Id<NSArray<NSUrl>>, NSInteger> {
-        match self.run_sheet_or_modal(owner) {
-            1 => unsafe {
-                let urls = msg_send![self, URLs];
-                Ok(Id::from_ptr(urls))
-            },
-            x => Err(x),
-        }
+    fn set_accessory_view_disclosed(&self, flag: bool) {
+        unsafe { self.setAccessoryViewDisclosed(flag) }
     }
 }
