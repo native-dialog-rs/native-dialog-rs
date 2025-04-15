@@ -44,13 +44,12 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
     use std::ptr::null_mut;
-    use winapi::shared::windef::HWND;
     use winapi::um::winuser::{
         MessageBoxW, IDYES, MB_ICONERROR, MB_ICONINFORMATION, MB_ICONWARNING, MB_OK, MB_YESNO,
     };
 
     let owner = match params.owner {
-        Some(RawWindowHandle::Win32(handle)) => handle.hwnd as HWND,
+        Some(RawWindowHandle::Win32(handle)) => handle.hwnd.get() as *mut _,
         _ => null_mut(),
     };
 

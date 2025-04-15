@@ -1,6 +1,6 @@
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::Result;
-use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
+use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 
 /// Represents the type of the message in the dialog.
 #[derive(Copy, Clone)]
@@ -47,8 +47,14 @@ impl<'a> MessageDialog<'a> {
     }
 
     /// Sets the owner of the dialog. On Unix and GNU/Linux, this is a no-op.
-    pub fn set_owner<W: HasRawWindowHandle>(mut self, window: &W) -> Self {
-        self.owner = Some(window.raw_window_handle());
+    pub fn set_owner<W: HasWindowHandle>(mut self, window: Option<&W>) -> Self {
+        let handle = window
+            .map(W::window_handle)
+            .transpose()
+            .ok()
+            .flatten()
+            .map(|x| x.as_raw());
+        self.owner = handle;
         self
     }
 
@@ -57,8 +63,8 @@ impl<'a> MessageDialog<'a> {
     /// # Safety
     ///
     /// It's the caller's responsibility that ensuring the handle is valid.
-    pub unsafe fn set_owner_handle(mut self, handle: RawWindowHandle) -> Self {
-        self.owner = Some(handle);
+    pub unsafe fn set_owner_handle(mut self, handle: Option<RawWindowHandle>) -> Self {
+        self.owner = handle;
         self
     }
 
