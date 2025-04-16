@@ -1,8 +1,8 @@
-use objc2::rc::Id;
+use objc2::rc::Retained as Id;
 use objc2_app_kit::{NSLayoutConstraintOrientation, NSStackView, NSStackViewGravity, NSView};
 use objc2_foundation::{MainThreadMarker, NSEdgeInsets, NSRect};
 
-pub trait INSStackView {
+pub trait NSStackViewExt {
     fn new_empty() -> Id<Self>;
 
     fn new_with_frame(frame: NSRect) -> Id<Self>;
@@ -14,7 +14,7 @@ pub trait INSStackView {
     fn add_view_in_gravity(&self, view: &NSView, gravity: NSStackViewGravity);
 }
 
-impl INSStackView for NSStackView {
+impl NSStackViewExt for NSStackView {
     fn new_empty() -> Id<Self> {
         // TODO: Main Thread Safety
         let mtm = unsafe { MainThreadMarker::new_unchecked() };
@@ -36,6 +36,6 @@ impl INSStackView for NSStackView {
     }
 
     fn add_view_in_gravity(&self, view: &NSView, gravity: NSStackViewGravity) {
-        unsafe { self.addView_inGravity(&view, gravity) }
+        unsafe { self.addView_inGravity(view, gravity) }
     }
 }

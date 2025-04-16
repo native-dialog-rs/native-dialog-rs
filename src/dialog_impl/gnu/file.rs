@@ -1,4 +1,4 @@
-use super::{should_use, Error, UseCommand, get_zenity_version};
+use super::{get_zenity_version, should_use, Error, UseCommand};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::util::resolve_tilde;
 use crate::{Filter, Result};

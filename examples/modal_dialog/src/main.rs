@@ -1,4 +1,4 @@
-use native_dialog::{FileDialog, MessageDialog};
+use native_dialog::{FileDialog, MessageDialogBuilder};
 use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, MouseButton, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -26,13 +26,17 @@ fn main() {
                     button: MouseButton::Right,
                     ..
                 } => {
-                    let path = FileDialog::new().set_owner(&window).show_open_single_file();
+                    let path = FileDialog::new()
+                        .set_owner(&window)
+                        .open_single_file()
+                        .show();
 
-                    let confirm = MessageDialog::new()
+                    let confirm = MessageDialogBuilder::new()
                         .set_title("Message")
                         .set_text(&format!("{:?}", path))
                         .set_owner(&window)
-                        .show_confirm();
+                        .confirm()
+                        .show();
 
                     println!("{:?}", confirm);
                 }

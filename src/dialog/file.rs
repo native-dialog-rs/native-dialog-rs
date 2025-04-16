@@ -16,6 +16,10 @@ impl Dialog for OpenSingleFile<'_> {
     type Output = Option<PathBuf>;
 }
 
+impl<'a> OpenSingleFile<'a> {
+    dialog_delegate!();
+}
+
 pub struct OpenMultipleFile<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
@@ -27,6 +31,10 @@ pub struct OpenMultipleFile<'a> {
 
 impl Dialog for OpenMultipleFile<'_> {
     type Output = Vec<PathBuf>;
+}
+
+impl<'a> OpenMultipleFile<'a> {
+    dialog_delegate!();
 }
 
 pub struct OpenSingleDir<'a> {
@@ -41,6 +49,10 @@ impl Dialog for OpenSingleDir<'_> {
     type Output = Option<PathBuf>;
 }
 
+impl<'a> OpenSingleDir<'a> {
+    dialog_delegate!();
+}
+
 pub struct SaveSingleFile<'a> {
     pub(crate) filename: Option<&'a str>,
     pub(crate) location: Option<&'a Path>,
@@ -52,4 +64,8 @@ pub struct SaveSingleFile<'a> {
 
 impl Dialog for SaveSingleFile<'_> {
     type Output = Option<PathBuf>;
+}
+
+impl<'a> SaveSingleFile<'a> {
+    dialog_delegate!();
 }

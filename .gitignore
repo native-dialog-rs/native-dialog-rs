@@ -1,2 +1,4 @@
+.direnv
+
 /target
 Cargo.lock

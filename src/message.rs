@@ -1,5 +1,4 @@
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
-use crate::Result;
+use crate::dialog::{MessageAlert, MessageConfirm};
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
 /// Represents the type of the message in the dialog.
@@ -11,16 +10,16 @@ pub enum MessageType {
 }
 
 /// Builds and shows message dialogs.
-pub struct MessageDialog<'a> {
+pub struct MessageDialogBuilder<'a> {
     pub(crate) title: &'a str,
     pub(crate) text: &'a str,
     pub(crate) typ: MessageType,
     pub(crate) owner: Option<RawWindowHandle>,
 }
 
-impl<'a> MessageDialog<'a> {
+impl<'a> MessageDialogBuilder<'a> {
     pub fn new() -> Self {
-        MessageDialog {
+        MessageDialogBuilder {
             title: "",
             text: "",
             typ: MessageType::Info,
@@ -69,29 +68,27 @@ impl<'a> MessageDialog<'a> {
     }
 
     /// Shows a dialog that alert users with some message.
-    pub fn show_alert(self) -> Result<()> {
-        let mut dialog = MessageAlert {
+    pub fn alert(self) -> MessageAlert<'a> {
+        MessageAlert {
             title: self.title,
             text: self.text,
             typ: self.typ,
             owner: self.owner,
-        };
-        dialog.show()
+        }
     }
 
     /// Shows a dialog that let users to choose Yes/No.
-    pub fn show_confirm(self) -> Result<bool> {
-        let mut dialog = MessageConfirm {
+    pub fn confirm(self) -> MessageConfirm<'a> {
+        MessageConfirm {
             title: self.title,
             text: self.text,
             typ: self.typ,
             owner: self.owner,
-        };
-        dialog.show()
+        }
     }
 }
 
-impl Default for MessageDialog<'_> {
+impl Default for MessageDialogBuilder<'_> {
     fn default() -> Self {
         Self::new()
     }

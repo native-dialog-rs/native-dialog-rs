@@ -1,38 +1,42 @@
-use objc2::rc::Id;
-use objc2_app_kit::{NSModalResponse, NSOpenPanel, NSWindow};
+use objc2::rc::Retained as Id;
+use objc2_app_kit::NSOpenPanel;
 use objc2_foundation::{MainThreadMarker, NSArray, NSURL};
+use raw_window_handle::RawWindowHandle;
 
-use super::INSSavePanel;
+use super::NSSavePanelExt;
 
-pub trait INSOpenPanel {
+pub trait NSOpenPanelExt {
     fn open_panel() -> Id<NSOpenPanel>;
 
-    fn run_modal(&self, owner: Option<Id<NSWindow>>)
-        -> Result<Id<NSArray<NSURL>>, NSModalResponse>;
+    #[cfg(feature = "async")]
+    async fn spawn(&self, owner: Option<RawWindowHandle>) -> Option<Id<NSArray<NSURL>>>;
+    fn show(&self, owner: Option<RawWindowHandle>) -> Option<Id<NSArray<NSURL>>>;
 
     fn set_can_choose_files(&self, flag: bool);
-
     fn set_can_choose_directories(&self, flag: bool);
-
     fn set_allows_multiple_selection(&self, flag: bool);
-
     fn set_accessory_view_disclosed(&self, flag: bool);
 }
 
-impl INSOpenPanel for NSOpenPanel {
+impl NSOpenPanelExt for NSOpenPanel {
     fn open_panel() -> Id<Self> {
         // TODO: Main Thread Safety
         let mtm = unsafe { MainThreadMarker::new_unchecked() };
         unsafe { NSOpenPanel::openPanel(mtm) }
     }
 
-    fn run_modal(
-        &self,
-        owner: Option<Id<NSWindow>>,
-    ) -> Result<Id<NSArray<NSURL>>, NSModalResponse> {
-        match self.run_sheet_or_modal(owner) {
-            1 => unsafe { Ok(self.URLs()) },
-            x => Err(x),
+    #[cfg(feature = "async")]
+    async fn spawn(&self, owner: Option<RawWindowHandle>) -> Option<Id<NSArray<NSURL>>> {
+        match self.run_completion(owner).await {
+            1 => unsafe { Some(self.URLs()) },
+            _ => None,
+        }
+    }
+
+    fn show(&self, owner: Option<RawWindowHandle>) -> Option<Id<NSArray<NSURL>>> {
+        match self.run_blocking(owner) {
+            1 => unsafe { Some(self.URLs()) },
+            _ => None,
         }
     }
 

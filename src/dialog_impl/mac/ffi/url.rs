@@ -1,8 +1,8 @@
-use objc2::rc::Id;
+use objc2::rc::Retained as Id;
 use objc2_foundation::{NSString, NSURL};
 use std::path::PathBuf;
 
-pub trait INSURL {
+pub trait NSURLExt {
     fn from_str(s: &str) -> Id<Self>;
 
     fn from_path(s: &str) -> Id<Self>;
@@ -10,7 +10,7 @@ pub trait INSURL {
     fn to_path_buf(&self) -> PathBuf;
 }
 
-impl INSURL for NSURL {
+impl NSURLExt for NSURL {
     fn from_str(s: &str) -> Id<Self> {
         let s = NSString::from_str(s);
         unsafe { NSURL::URLWithString(&s).unwrap() }

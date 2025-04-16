@@ -4,7 +4,7 @@
 [![Docs.rs](https://docs.rs/native-dialog/badge.svg)](https://docs.rs/native-dialog)
 [![License](https://img.shields.io/crates/l/native-dialog.svg)](LICENSE)
 
-A library to display file choosers and message boxes. Supports GNU/Linux, BSD Unix, macOS and Windows.
+A library to display file choosers and message boxes. Supports GNU/Linux, BSD, macOS and Windows.
 
 ## Installation
 
@@ -53,5 +53,5 @@ Turn on crate features or embed manifests into the `.exe` to enable visual styli
 
 The UI framework of macOS (Cocoa) has a limitation that all UI operations must be performed on the main thread.
 
-### Linux dependencies
+#### Linux dependencies
 The Linux implementation of native-dialog requires either Zenity or Kdialog to be installed. Otherwise you'll get a `No Implementation` error.

@@ -1,33 +1,53 @@
 use super::ffi::UserNotificationAlert;
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use crate::dialog::{MessageAlert, MessageConfirm};
+use crate::dialog_impl::DialogImpl;
 use crate::{MessageType, Result};
 
-impl DialogImpl for MessageAlert<'_> {
-    fn show(&mut self) -> Result<Self::Output> {
-        let alert = UserNotificationAlert {
+impl<'a> DialogImpl for MessageAlert<'a> {
+    type Impl = UserNotificationAlert<'a>;
+
+    fn create(&self) -> Self::Impl {
+        UserNotificationAlert {
             header: self.title,
             message: self.text,
             icon: get_dialog_icon(self.typ),
             confirm: false,
-        };
-        alert.display();
+        }
+    }
 
+    fn show(&mut self) -> Result<Self::Output> {
+        self.create().display();
         Ok(())
+    }
+
+    #[cfg(feature = "async")]
+    async fn spawn(&mut self) -> Result<Self::Output> {
+        self.show()
     }
 }
 
-impl DialogImpl for MessageConfirm<'_> {
-    fn show(&mut self) -> Result<Self::Output> {
-        let alert = UserNotificationAlert {
+impl<'a> DialogImpl for MessageConfirm<'a> {
+    type Impl = UserNotificationAlert<'a>;
+
+    fn create(&self) -> Self::Impl {
+        UserNotificationAlert {
             header: self.title,
             message: self.text,
             icon: get_dialog_icon(self.typ),
             confirm: true,
-        };
-        let res = alert.display();
+        }
+    }
+
+    fn show(&mut self) -> Result<Self::Output> {
+        let res = self.create().display();
 
         // kCFUserNotificationDefaultResponse = 0
         Ok(res == 0)
+    }
+
+    #[cfg(feature = "async")]
+    async fn spawn(&mut self) -> Result<Self::Output> {
+        self.show()
     }
 }
 

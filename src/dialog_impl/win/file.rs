@@ -1,6 +1,3 @@
-use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
-use crate::util::resolve_tilde;
-use crate::{Error, Filter, Result};
 use raw_window_handle::RawWindowHandle;
 use std::path::Path;
 use wfd::{
@@ -8,6 +5,11 @@ use wfd::{
     FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
     FOS_PICKFOLDERS, FOS_STRICTFILETYPES, HWND,
 };
+
+use crate::dialog::{OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
+use crate::dialog_impl::DialogImpl;
+use crate::util::resolve_tilde;
+use crate::{Error, Filter, Result};
 
 impl DialogImpl for OpenSingleFile<'_> {
     fn show(&mut self) -> Result<Self::Output> {
@@ -179,8 +181,9 @@ fn get_dialog_file_types<'a>(filters: &'a [Filter<'a>]) -> Vec<(&'a str, String)
     filters
         .iter()
         .map(|filter| {
-            let extensions = filter.extensions.iter().map(|x| format!("*.{}", x));
-            (filter.description, extensions.collect::<Vec<_>>().join(";"))
+            let desc = filter.description;
+            let types = filter.format("{types}", "*.{ext}", ";");
+            (desc, types)
         })
         .collect()
 }

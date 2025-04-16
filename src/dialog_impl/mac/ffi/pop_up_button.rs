@@ -1,9 +1,9 @@
-use objc2::rc::Id;
+use objc2::rc::Retained as Id;
 use objc2::runtime::Sel;
 use objc2_app_kit::NSPopUpButton;
 use objc2_foundation::{MainThreadMarker, NSArray, NSInteger, NSObject, NSRect, NSString};
 
-pub trait INSPopUpButton {
+pub trait NSPopUpButtonExt {
     fn new_with_frame(frame: NSRect, pulls_down: bool) -> Id<Self>;
 
     fn add_items_with_titles(&self, items: &NSArray<NSString>);
@@ -15,7 +15,7 @@ pub trait INSPopUpButton {
     fn set_target(&self, target: &NSObject);
 }
 
-impl INSPopUpButton for NSPopUpButton {
+impl NSPopUpButtonExt for NSPopUpButton {
     fn new_with_frame(frame: NSRect, pulls_down: bool) -> Id<Self> {
         // TODO: Main Thread Safety
         let mtm = unsafe { MainThreadMarker::new_unchecked() };

@@ -1,33 +1,53 @@
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
-use crate::{MessageType, Result};
 use raw_window_handle::RawWindowHandle;
 
-impl DialogImpl for MessageAlert<'_> {
-    fn show(&mut self) -> Result<Self::Output> {
-        super::process_init();
+use crate::dialog::{MessageAlert, MessageConfirm};
+use crate::dialog_impl::DialogImpl;
+use crate::{MessageType, Result};
 
-        message_box(MessageBoxParams {
+impl<'a> DialogImpl for MessageAlert<'a> {
+    type Impl = MessageBoxParams<'a>;
+
+    fn create(&self) -> Self::Impl {
+        MessageBoxParams {
             title: self.title,
             text: self.text,
             typ: self.typ,
             owner: self.owner,
             ask: false,
-        })?;
+        }
+    }
+
+    fn show(&mut self) -> Result<Self::Output> {
+        super::process_init();
+        message_box(self.create())?;
         Ok(())
+    }
+
+    async fn spawn(&mut self) -> Result<Self::Output> {
+        self.show()
     }
 }
 
-impl DialogImpl for MessageConfirm<'_> {
-    fn show(&mut self) -> Result<Self::Output> {
-        super::process_init();
+impl<'a> DialogImpl for MessageConfirm<'a> {
+    type Impl = MessageBoxParams<'a>;
 
-        message_box(MessageBoxParams {
+    fn create(&self) -> Self::Impl {
+        MessageBoxParams {
             title: self.title,
             text: self.text,
             typ: self.typ,
             owner: self.owner,
             ask: true,
-        })
+        }
+    }
+
+    fn show(&mut self) -> Result<Self::Output> {
+        super::process_init();
+        message_box(self.create())
+    }
+
+    async fn spawn(&mut self) -> Result<Self::Output> {
+        self.show()
     }
 }
 

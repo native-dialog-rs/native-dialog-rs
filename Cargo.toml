@@ -9,9 +9,12 @@ documentation = "https://docs.rs/native-dialog"
 repository = "https://github.com/balthild/native-dialog-rs"
 
 [dependencies]
-thiserror = "1.0.19"
-dirs-next = "2.0.0"
+dirs = "6.0.0"
 raw-window-handle = "0.5.0"
+thiserror = "1.0.19"
+futures-lite = { version = "2.6.0", optional = true }
+futures-channel = { version = "0.3.31", optional = true }
+formatx = "0.2.3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wfd = "0.1.7"
@@ -24,43 +27,18 @@ ascii = "1.1.0"
 versions = "5.0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2 = "0.5.1"
-objc2-foundation = { version = "0.2.0", default-features = false, features = [
-    "std",
-    "NSArray",
-    "NSGeometry",
-    "NSObjCRuntime",
-    "NSString",
-    "NSThread",
-    "NSURL",
+block2 = "0.6.0"
+objc2 = "0.6.0"
+objc2-foundation = "0.3.0"
+objc2-app-kit = { version = "0.3.0", features = [
+    "objc2-uniform-type-identifiers",
 ] }
-objc2-app-kit = { version = "0.2.0", default-features = false, features = [
-    "std",
-    "block2",
-    "NSApplication",
-    "NSButton",
-    "NSColor",
-    "NSControl",
-    "NSLayoutConstraint",
-    "NSOpenPanel",
-    "NSPanel",
-    "NSPopUpButton",
-    "NSResponder",
-    "NSRunningApplication",
-    "NSSavePanel",
-    "NSStackView",
-    "NSTextField",
-    "NSView",
-    "NSWindow",
-] }
-objc2-uniform-type-identifiers = { version = "0.2.0", default-features = false, features = [
-    "std",
-    "UTType",
-] }
+objc2-uniform-type-identifiers = "0.3.0"
 core-foundation = "0.9.3"
 once_cell = "1.4.0"
 
 [features]
+async = ["dep:futures-lite", "dep:futures-channel"]
 windows_dpi_awareness = []
 windows_visual_styles = [
     "once_cell",

@@ -1,13 +1,30 @@
-use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
-use crate::Result;
+use crate::dialog::{OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
+use formatx::formatx;
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 /// Represents a set of file extensions and their description.
 #[derive(Debug, Clone)]
 pub struct Filter<'a> {
     pub(crate) description: &'a str,
     pub(crate) extensions: &'a [&'a str],
+}
+
+impl<'a> Filter<'a> {
+    pub fn format(&self, fmt_line: &str, fmt_type: &str, delimeter: &str) -> String {
+        let exts: Vec<String> = self
+            .extensions
+            .iter()
+            .map(|ext| formatx!(fmt_type, ext = ext).unwrap())
+            .collect();
+
+        formatx!(
+            fmt_line,
+            desc = self.description,
+            types = exts.join(delimeter)
+        )
+        .unwrap()
+    }
 }
 
 /// Builds and shows file dialogs.
@@ -106,50 +123,46 @@ impl<'a> FileDialog<'a> {
     }
 
     /// Shows a dialog that let users to open one file.
-    pub fn show_open_single_file(self) -> Result<Option<PathBuf>> {
-        let mut dialog = OpenSingleFile {
+    pub fn open_single_file(self) -> OpenSingleFile<'a> {
+        OpenSingleFile {
             filename: self.filename,
             location: self.location,
             filters: self.filters,
             owner: self.owner,
             title: self.title.unwrap_or("Open File"),
-        };
-        dialog.show()
+        }
     }
 
     /// Shows a dialog that let users to open multiple files.
-    pub fn show_open_multiple_file(self) -> Result<Vec<PathBuf>> {
-        let mut dialog = OpenMultipleFile {
+    pub fn open_multiple_file(self) -> OpenMultipleFile<'a> {
+        OpenMultipleFile {
             filename: self.filename,
             location: self.location,
             filters: self.filters,
             owner: self.owner,
             title: self.title.unwrap_or("Open File"),
-        };
-        dialog.show()
+        }
     }
 
     /// Shows a dialog that let users to open one directory.
-    pub fn show_open_single_dir(self) -> Result<Option<PathBuf>> {
-        let mut dialog = OpenSingleDir {
+    pub fn open_single_dir(self) -> OpenSingleDir<'a> {
+        OpenSingleDir {
             filename: self.filename,
             location: self.location,
             owner: self.owner,
             title: self.title.unwrap_or("Open Folder"),
-        };
-        dialog.show()
+        }
     }
 
     /// Shows a dialog that let users to save one file.
-    pub fn show_save_single_file(self) -> Result<Option<PathBuf>> {
-        let mut dialog = SaveSingleFile {
+    pub fn save_single_file(self) -> SaveSingleFile<'a> {
+        SaveSingleFile {
             filename: self.filename,
             location: self.location,
             filters: self.filters,
             owner: self.owner,
             title: self.title.unwrap_or("Save As"),
-        };
-        dialog.show()
+        }
     }
 }
 
