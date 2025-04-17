@@ -16,7 +16,7 @@ impl Version {
     }
 
     pub fn parse(s: &str) -> Option<Self> {
-        let semver = SemVer::new(s)?;
+        let semver = SemVer::new(s.trim_ascii())?;
         Some(Self(semver))
     }
 }

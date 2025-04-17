@@ -1,5 +1,6 @@
-use ascii::AsAsciiStr;
 use std::process::Command;
+
+use ascii::AsAsciiStr;
 use version::Version;
 
 use crate::{Error, Result};
@@ -18,8 +19,6 @@ fn should_use() -> Option<UseCommand> {
         Ok(display) => !display.is_empty(),
         _ => false,
     };
-
-    // TODO: Support TUI dialogs when has_display == false
 
     let candidates = match std::env::var("XDG_CURRENT_DESKTOP").as_deref() {
         Ok("KDE") if has_display => [use_kdialog, use_zenity],
@@ -66,11 +65,13 @@ fn get_version_output(program: &str) -> Option<String> {
 }
 
 pub fn execute_command(mut command: Command) -> Result<Option<Vec<u8>>> {
+    let program = command.get_program().to_os_string();
     let output = command.output()?;
 
     match output.status.code() {
         Some(0) => Ok(Some(output.stdout)),
-        _ => Ok(None),
+        Some(_) => Ok(None),
+        None => Err(Error::Killed(program)),
     }
 }
 

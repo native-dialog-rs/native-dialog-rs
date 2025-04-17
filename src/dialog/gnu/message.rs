@@ -15,7 +15,7 @@ impl MessageAlert {
             attach: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         };
@@ -49,7 +49,7 @@ impl MessageConfirm {
             attach: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         };

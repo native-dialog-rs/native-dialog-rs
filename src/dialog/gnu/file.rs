@@ -25,7 +25,7 @@ impl OpenSingleFile {
             attach: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         };
@@ -63,7 +63,7 @@ impl OpenMultipleFile {
             attach: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         };
@@ -121,7 +121,7 @@ impl OpenSingleDir {
             attach: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         };
@@ -157,7 +157,7 @@ impl SaveSingleFile {
             attach: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
             UseCommand::Zenity(cmd) => call_zenity(cmd, params),
         };
@@ -174,7 +174,7 @@ impl SaveSingleFile {
             }
         };
 
-        let command = match should_use().ok_or(Error::NoImplementation)? {
+        let command = match should_use().ok_or(Error::ImplMissing)? {
             UseCommand::KDialog(cmd) => call_kdialog_warn(cmd, &message),
             UseCommand::Zenity(cmd) => call_zenity_warn(cmd, &message),
         };
