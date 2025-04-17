@@ -1,35 +1,46 @@
 use super::Dialog;
-use crate::MessageType;
-use raw_window_handle::RawWindowHandle;
+use crate::util::UnsafeWindowHandle;
 
-pub struct MessageAlert<'a> {
-    pub(crate) title: &'a str,
-    pub(crate) text: &'a str,
-    pub(crate) typ: MessageType,
-    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
-    pub(crate) owner: Option<RawWindowHandle>,
+/// Represents the type of the message in the dialog.
+#[derive(Debug, Clone, Copy)]
+pub enum MessageLevel {
+    Info,
+    Warning,
+    Error,
 }
 
-impl Dialog for MessageAlert<'_> {
+impl Default for MessageLevel {
+    fn default() -> Self {
+        Self::Info
+    }
+}
+
+pub struct MessageAlert {
+    pub title: String,
+    pub text: String,
+    pub level: MessageLevel,
+    pub owner: Option<UnsafeWindowHandle>,
+}
+
+impl Dialog for MessageAlert {
     type Output = ();
 }
 
-impl<'a> MessageAlert<'a> {
-    dialog_delegate!();
+impl MessageAlert {
+    super::dialog_delegate!();
 }
 
-pub struct MessageConfirm<'a> {
-    pub(crate) title: &'a str,
-    pub(crate) text: &'a str,
-    pub(crate) typ: MessageType,
-    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
-    pub(crate) owner: Option<RawWindowHandle>,
+pub struct MessageConfirm {
+    pub title: String,
+    pub text: String,
+    pub level: MessageLevel,
+    pub owner: Option<UnsafeWindowHandle>,
 }
 
-impl Dialog for MessageConfirm<'_> {
+impl Dialog for MessageConfirm {
     type Output = bool;
 }
 
-impl<'a> MessageConfirm<'a> {
-    dialog_delegate!();
+impl MessageConfirm {
+    super::dialog_delegate!();
 }

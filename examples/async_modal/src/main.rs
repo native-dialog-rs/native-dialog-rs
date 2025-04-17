@@ -1,0 +1,70 @@
+use std::path::PathBuf;
+
+use kas::config::Config;
+use kas::dir::Directions;
+use kas::prelude::*;
+use kas::text::fonts::FontSelector;
+use kas::theme::{FlatTheme, MarginStyle, TextClass};
+use kas::widgets::{column, Adapt, Button, EditBox};
+use native_dialog::DialogBuilder;
+
+#[derive(Debug, Clone, Default)]
+struct State {
+    id: Id,
+    path: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone)]
+struct Configure(Id);
+
+#[derive(Debug, Clone)]
+struct Update(Option<PathBuf>);
+
+#[derive(Debug, Clone)]
+struct Pick;
+
+fn view() -> impl Widget<Data = ()> {
+    let tree = column![
+        EditBox::string(|state: &State| format!("{:?}", state.path))
+            .with_multi_line(true)
+            .with_lines(3, 3)
+            .with_width_em(16.0, 16.0),
+        Button::label_msg("Pick a File", Pick).map_any(),
+    ]
+    .margins(Directions::all(), MarginStyle::Em(1.0))
+    .on_configure(|ctx, widget| {
+        ctx.send(widget.id(), Configure(widget.id()));
+    });
+
+    Adapt::new(tree, State::default())
+        .on_message(|_ctx, state, Configure(id)| state.id = id)
+        .on_message(|_ctx, state, Update(path)| state.path = path)
+        .on_message(|ctx, state, Pick| {
+            let owner = ctx.winit_window().unwrap();
+            let dialog = DialogBuilder::file().set_owner(owner).open_single_file();
+
+            ctx.push_async(state.id.clone(), async {
+                Update(dialog.spawn().await.unwrap())
+            });
+        })
+}
+
+fn config() -> Config {
+    let mut selector = FontSelector::new();
+    selector.set_families(vec!["monospace".into()]);
+
+    let mut config = Config::default();
+    config.font.size = 24.0;
+    config.font.fonts.insert(TextClass::Edit(true), selector);
+
+    config
+}
+
+fn main() -> kas::runner::Result<()> {
+    let app = kas::runner::Default::with_theme(FlatTheme::default())
+        .with_config(config())
+        .build(())?;
+
+    let window = Window::new(view(), "A fantastic window!");
+    app.with(window).run()
+}

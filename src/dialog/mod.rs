@@ -1,22 +1,45 @@
+mod file;
+pub use file::*;
+
+mod message;
+pub use message::*;
+
 pub trait Dialog {
     type Output;
 }
 
 macro_rules! dialog_delegate {
     () => {
-        pub fn show(mut self) -> crate::Result<<Self as crate::dialog::Dialog>::Output> {
-            <Self as crate::dialog_impl::DialogImpl>::show(&mut self)
+        pub fn show(self) -> $crate::Result<<Self as $crate::dialog::Dialog>::Output> {
+            <Self as $crate::dialog::DialogImpl>::show(self)
         }
 
         #[cfg(feature = "async")]
-        pub async fn spawn(mut self) -> crate::Result<<Self as crate::dialog::Dialog>::Output> {
-            <Self as crate::dialog_impl::DialogImpl>::spawn(&mut self).await
+        pub async fn spawn(self) -> $crate::Result<<Self as $crate::dialog::Dialog>::Output> {
+            <Self as $crate::dialog::DialogImpl>::spawn(self).await
         }
     };
 }
 
-mod file;
-pub use file::*;
+use dialog_delegate;
 
-mod message;
-pub use message::*;
+pub trait DialogImpl: Dialog {
+    fn show(self) -> crate::Result<Self::Output>;
+
+    #[cfg(feature = "async")]
+    async fn spawn(self) -> crate::Result<Self::Output>;
+}
+
+#[cfg(target_os = "macos")]
+pub mod mac;
+
+#[cfg(all(
+    unix,
+    not(target_os = "macos"),
+    not(target_os = "ios"),
+    not(target_os = "android")
+))]
+pub mod gnu;
+
+#[cfg(target_os = "windows")]
+pub mod win;

@@ -1,71 +1,93 @@
-use super::Dialog;
-use crate::Filter;
-use raw_window_handle::RawWindowHandle;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-pub struct OpenSingleFile<'a> {
-    pub(crate) filename: Option<&'a str>,
-    pub(crate) location: Option<&'a Path>,
-    pub(crate) title: &'a str,
-    pub(crate) filters: Vec<Filter<'a>>,
-    #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
-    pub(crate) owner: Option<RawWindowHandle>,
+use formatx::formatx;
+
+use super::Dialog;
+use crate::util::UnsafeWindowHandle;
+
+/// Represents a set of file extensions and their description.
+#[derive(Debug, Clone)]
+pub struct Filter {
+    pub description: String,
+    pub extensions: Vec<String>,
 }
 
-impl Dialog for OpenSingleFile<'_> {
+impl Filter {
+    pub fn format(&self, fmt_line: &str, fmt_type: &str, delimeter: &str) -> String {
+        let exts: Vec<String> = self
+            .extensions
+            .iter()
+            .map(|ext| formatx!(fmt_type, ext = ext).unwrap())
+            .collect();
+
+        formatx!(
+            fmt_line,
+            desc = &self.description,
+            types = exts.join(delimeter)
+        )
+        .unwrap()
+    }
+}
+
+pub struct OpenSingleFile {
+    pub filename: Option<String>,
+    pub location: Option<PathBuf>,
+    pub title: String,
+    pub filters: Vec<Filter>,
+    pub owner: Option<UnsafeWindowHandle>,
+}
+
+impl Dialog for OpenSingleFile {
     type Output = Option<PathBuf>;
 }
 
-impl<'a> OpenSingleFile<'a> {
-    dialog_delegate!();
+impl OpenSingleFile {
+    super::dialog_delegate!();
 }
 
-pub struct OpenMultipleFile<'a> {
-    pub(crate) filename: Option<&'a str>,
-    pub(crate) location: Option<&'a Path>,
-    pub(crate) title: &'a str,
-    pub(crate) filters: Vec<Filter<'a>>,
-    #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
-    pub(crate) owner: Option<RawWindowHandle>,
+pub struct OpenMultipleFile {
+    pub filename: Option<String>,
+    pub location: Option<PathBuf>,
+    pub title: String,
+    pub filters: Vec<Filter>,
+    pub owner: Option<UnsafeWindowHandle>,
 }
 
-impl Dialog for OpenMultipleFile<'_> {
+impl Dialog for OpenMultipleFile {
     type Output = Vec<PathBuf>;
 }
 
-impl<'a> OpenMultipleFile<'a> {
-    dialog_delegate!();
+impl OpenMultipleFile {
+    super::dialog_delegate!();
 }
 
-pub struct OpenSingleDir<'a> {
-    pub(crate) filename: Option<&'a str>,
-    pub(crate) location: Option<&'a Path>,
-    pub(crate) title: &'a str,
-    #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
-    pub(crate) owner: Option<RawWindowHandle>,
+pub struct OpenSingleDir {
+    pub filename: Option<String>,
+    pub location: Option<PathBuf>,
+    pub title: String,
+    pub owner: Option<UnsafeWindowHandle>,
 }
 
-impl Dialog for OpenSingleDir<'_> {
+impl Dialog for OpenSingleDir {
     type Output = Option<PathBuf>;
 }
 
-impl<'a> OpenSingleDir<'a> {
-    dialog_delegate!();
+impl OpenSingleDir {
+    super::dialog_delegate!();
 }
 
-pub struct SaveSingleFile<'a> {
-    pub(crate) filename: Option<&'a str>,
-    pub(crate) location: Option<&'a Path>,
-    pub(crate) title: &'a str,
-    pub(crate) filters: Vec<Filter<'a>>,
-    #[cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
-    pub(crate) owner: Option<RawWindowHandle>,
+pub struct SaveSingleFile {
+    pub filename: Option<String>,
+    pub location: Option<PathBuf>,
+    pub title: String,
+    pub filters: Vec<Filter>,
+    pub owner: Option<UnsafeWindowHandle>,
 }
 
-impl Dialog for SaveSingleFile<'_> {
+impl Dialog for SaveSingleFile {
     type Output = Option<PathBuf>;
 }
 
-impl<'a> SaveSingleFile<'a> {
-    dialog_delegate!();
+impl SaveSingleFile {
+    super::dialog_delegate!();
 }

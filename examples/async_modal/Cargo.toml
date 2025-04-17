@@ -1,0 +1,14 @@
+[package]
+name = "async_modal"
+version = "0.1.0"
+authors = ["Balthild <ibalthild@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+kas = "0.15.0"
+lock_api = { version = "0.4.12", features = ["nightly"] }
+wgpu = "23.0.1"
+
+[dependencies.native-dialog]
+path = "../.."
+features = ["async"]

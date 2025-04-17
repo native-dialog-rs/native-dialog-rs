@@ -1,5 +1,7 @@
-extern crate embed_resource;
+use winresource::WindowsResource;
 
 fn main() {
-    embed_resource::compile("program.rc");
+    let mut res = WindowsResource::new();
+    res.set_manifest_file("manifest.xml");
+    res.compile().unwrap();
 }
