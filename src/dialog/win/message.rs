@@ -1,4 +1,5 @@
-use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm, UnsafeWindowHandle};
+use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use crate::utils::UnsafeWindowHandle;
 use crate::{MessageLevel, Result};
 
 impl MessageAlert {
@@ -7,7 +8,7 @@ impl MessageAlert {
             title: &self.title,
             text: &self.text,
             level: self.level,
-            owner: self.owner,
+            owner: self.owner.clone(),
             ask: false,
         }
     }
@@ -32,7 +33,7 @@ impl MessageConfirm {
             title: &self.title,
             text: &self.text,
             level: self.level,
-            owner: self.owner,
+            owner: self.owner.clone(),
             ask: true,
         }
     }
@@ -54,7 +55,7 @@ pub struct MessageBoxParams<'a> {
     title: &'a str,
     text: &'a str,
     level: MessageLevel,
-    owner: Option<UnsafeWindowHandle>,
+    owner: UnsafeWindowHandle,
     ask: bool,
 }
 
@@ -63,16 +64,11 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
     use std::ptr::null_mut;
-    use winapi::shared::windef::HWND;
     use winapi::um::winuser::{
         MessageBoxW, IDYES, MB_ICONERROR, MB_ICONINFORMATION, MB_ICONWARNING, MB_OK, MB_YESNO,
     };
 
-    let owner = params
-        .owner
-        .and_then(|owner| unsafe { owner.as_win32() })
-        .map(|handle| handle.hwnd.get() as HWND)
-        .unwrap_or(null_mut());
+    let owner = unsafe { params.owner.as_win32().unwrap_or(null_mut()) };
 
     let text: Vec<u16> = OsStr::new(params.text)
         .encode_wide()

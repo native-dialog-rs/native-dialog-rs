@@ -15,43 +15,41 @@ cargo add native-dialog
 ## Usage
 
 ```rust
-use native_dialog::{FileDialog, MessageDialog, MessageType};
+use native_dialog::{DialogBuilder, MessageLevel};
 
-fn main() {
-    let path = FileDialog::new()
-        .set_location("~/Desktop")
-        .add_filter("PNG Image", &["png"])
-        .add_filter("JPEG Image", &["jpg", "jpeg"])
-        .show_open_single_file()
-        .unwrap();
+let path = DialogBuilder::file()
+    .set_location("~/Desktop")
+    .add_filter("PNG Image", &["png"])
+    .add_filter("JPEG Image", &["jpg", "jpeg"])
+    .open_single_file()
+    .show()
+    .unwrap();
 
-    let path = match path {
-        Some(path) => path,
-        None => return,
-    };
+let path = match path {
+    Some(path) => path,
+    None => return,
+};
 
-    let yes = MessageDialog::new()
-        .set_type(MessageType::Info)
-        .set_title("Do you want to open the file?")
-        .set_text(&format!("{:#?}", path))
-        .show_confirm()
-        .unwrap();
+// Asyncronous Dialog
+let yes = MessageDialog::new()
+    .set_type(MessageType::Info)
+    .set_title("Do you want to open the file?")
+    .set_text(&format!("{:#?}", path))
+    .confirm()
+    .spawn()
+    .await
+    .unwrap();
 
-    if yes {
-        do_something(path);
-    }
+if yes {
+    do_something(path).await;
 }
 ```
 
 ## Misc
 
-#### Why the dialogs look ugly/blurry on Windows?
+#### Ugly or blurry dialogs on Windows
 
 Turn on crate features or embed manifests into the `.exe` to enable visual styling and dpi awareness for your program. Check out [examples/windows_manifest](examples/windows_manifest) and [examples/windows_features](examples/windows_features) for example.
-
-#### Why the program crashed when opening a dialog on macOS?
-
-The UI framework of macOS (Cocoa) has a limitation that all UI operations must be performed on the main thread.
 
 #### Linux dependencies
 The Linux implementation of native-dialog requires either Zenity or Kdialog to be installed. Otherwise you'll get a `No Implementation` error.

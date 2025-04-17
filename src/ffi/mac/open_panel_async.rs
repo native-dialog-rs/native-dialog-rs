@@ -1,20 +1,18 @@
 use std::path::PathBuf;
 
 use futures_channel::oneshot::Receiver;
-use objc2::MainThreadOnly;
-use objc2_app_kit::{NSModalResponseOK, NSOpenPanel, NSWindow};
+use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
 
-use crate::dialog::UnsafeWindowHandle;
-
-use super::{NSSavePanelAsyncExt, NSURLExt, NSWindowExt};
+use super::{NSSavePanelAsyncExt, NSURLExt};
+use crate::utils::UnsafeWindowHandle;
 
 pub trait NSOpenPanelAsyncExt {
-    fn spawn(&self, owner: Option<UnsafeWindowHandle>) -> Receiver<Vec<PathBuf>>;
+    fn spawn(&self, owner: UnsafeWindowHandle) -> Receiver<Vec<PathBuf>>;
 }
 
 impl NSOpenPanelAsyncExt for NSOpenPanel {
-    fn spawn(&self, owner: Option<UnsafeWindowHandle>) -> Receiver<Vec<PathBuf>> {
-        let owner = NSWindow::from_handle(self.mtm(), owner);
+    fn spawn(&self, owner: UnsafeWindowHandle) -> Receiver<Vec<PathBuf>> {
+        let owner = unsafe { owner.as_appkit() };
 
         self.begin(owner.as_deref(), move |panel, response| {
             let panel = panel.downcast_ref::<NSOpenPanel>().unwrap();

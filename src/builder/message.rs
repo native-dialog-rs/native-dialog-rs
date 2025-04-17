@@ -1,7 +1,7 @@
 use raw_window_handle::HasWindowHandle;
 
 use crate::dialog::{MessageAlert, MessageConfirm};
-use crate::util::UnsafeWindowHandle;
+use crate::utils::UnsafeWindowHandle;
 
 pub use crate::dialog::MessageLevel;
 
@@ -11,7 +11,7 @@ pub struct MessageDialogBuilder {
     pub title: String,
     pub text: String,
     pub level: MessageLevel,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl MessageDialogBuilder {
@@ -41,7 +41,7 @@ impl MessageDialogBuilder {
 
     /// Resets the owner of the dialog to nothing.
     pub fn reset_owner(mut self) -> Self {
-        self.owner = None;
+        self.owner = UnsafeWindowHandle::default();
         self
     }
 

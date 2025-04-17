@@ -2,7 +2,8 @@ use thiserror::Error;
 
 pub(crate) mod builder;
 pub(crate) mod dialog;
-pub(crate) mod util;
+pub(crate) mod ffi;
+pub(crate) mod utils;
 
 pub use builder::*;
 

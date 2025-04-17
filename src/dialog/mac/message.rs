@@ -1,7 +1,7 @@
 use objc2_core_foundation::kCFUserNotificationDefaultResponse;
 
-use super::ffi::Alert;
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
+use crate::ffi::mac::Alert;
 use crate::Result;
 
 impl MessageAlert {

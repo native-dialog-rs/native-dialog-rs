@@ -3,15 +3,14 @@ use std::path::PathBuf;
 
 use block2::RcBlock;
 use futures_channel::oneshot::Receiver;
-use objc2::{MainThreadOnly, Message};
+use objc2::Message;
 use objc2_app_kit::{NSModalResponse, NSModalResponseOK, NSSavePanel, NSWindow};
 
-use crate::dialog::UnsafeWindowHandle;
-
-use super::{NSURLExt, NSWindowExt};
+use super::NSURLExt;
+use crate::utils::UnsafeWindowHandle;
 
 pub trait NSSavePanelAsyncExt {
-    fn spawn(&self, owner: Option<UnsafeWindowHandle>) -> Receiver<Option<PathBuf>>;
+    fn spawn(&self, owner: UnsafeWindowHandle) -> Receiver<Option<PathBuf>>;
 
     fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> Receiver<T>
     where
@@ -20,8 +19,8 @@ pub trait NSSavePanelAsyncExt {
 }
 
 impl NSSavePanelAsyncExt for NSSavePanel {
-    fn spawn(&self, owner: Option<UnsafeWindowHandle>) -> Receiver<Option<PathBuf>> {
-        let owner = NSWindow::from_handle(self.mtm(), owner);
+    fn spawn(&self, owner: UnsafeWindowHandle) -> Receiver<Option<PathBuf>> {
+        let owner = unsafe { owner.as_appkit() };
 
         self.begin(owner.as_deref(), move |panel, response| {
             (response == NSModalResponseOK)

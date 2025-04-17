@@ -2,7 +2,7 @@ use raw_window_handle::HasWindowHandle;
 use std::path::{Path, PathBuf};
 
 use crate::dialog::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
-use crate::util::UnsafeWindowHandle;
+use crate::utils::UnsafeWindowHandle;
 
 /// Builds and shows file dialogs.
 #[derive(Debug, Clone, Default)]
@@ -10,7 +10,7 @@ pub struct FileDialogBuilder {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,
     pub filters: Vec<Filter>,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
     pub title: Option<String>,
 }
 
@@ -76,7 +76,7 @@ impl FileDialogBuilder {
 
     /// Resets the owner of the dialog to nothing.
     pub fn reset_owner(mut self) -> Self {
-        self.owner = None;
+        self.owner = UnsafeWindowHandle::default();
         self
     }
 

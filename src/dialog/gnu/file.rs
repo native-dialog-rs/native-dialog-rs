@@ -8,7 +8,7 @@ use super::{execute_command, get_zenity_version, should_use, spawn_command, Erro
 use crate::dialog::{
     DialogImpl, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
-use crate::util::resolve_tilde;
+use crate::utils::resolve_tilde;
 use crate::Result;
 
 impl OpenSingleFile {
@@ -22,7 +22,7 @@ impl OpenSingleFile {
             dir: false,
             save: false,
             title: &self.title,
-            attach: self.owner.and_then(|x| unsafe { x.as_x11() }),
+            attach: unsafe { self.owner.as_x11() },
         };
 
         let command = match should_use().ok_or(Error::NoImplementation)? {
@@ -60,7 +60,7 @@ impl OpenMultipleFile {
             dir: false,
             save: false,
             title: &self.title,
-            attach: self.owner.and_then(|x| unsafe { x.as_x11() }),
+            attach: unsafe { self.owner.as_x11() },
         };
 
         let command = match should_use().ok_or(Error::NoImplementation)? {
@@ -118,7 +118,7 @@ impl OpenSingleDir {
             dir: true,
             save: false,
             title: &self.title,
-            attach: self.owner.and_then(|x| unsafe { x.as_x11() }),
+            attach: unsafe { self.owner.as_x11() },
         };
 
         let command = match should_use().ok_or(Error::NoImplementation)? {
@@ -154,7 +154,7 @@ impl SaveSingleFile {
             dir: false,
             save: true,
             title: &self.title,
-            attach: self.owner.and_then(|x| unsafe { x.as_x11() }),
+            attach: unsafe { self.owner.as_x11() },
         };
 
         let command = match should_use().ok_or(Error::NoImplementation)? {
@@ -273,7 +273,7 @@ struct Params<'a> {
     dir: bool,
     save: bool,
     title: &'a str,
-    attach: Option<usize>,
+    attach: Option<u64>,
 }
 
 fn call_kdialog(mut command: Command, params: Params) -> Command {
@@ -306,14 +306,18 @@ fn call_kdialog(mut command: Command, params: Params) -> Command {
             .filters
             .iter()
             .map(|filter| {
-                let extensions: Vec<String> = filter
-                    .extensions
-                    .iter()
-                    .map(|s| format!("*.{}", s))
-                    .collect();
-                format!("{} ({})", filter.description, extensions.join(" "))
+                // let extensions: Vec<String> = filter
+                //     .extensions
+                //     .iter()
+                //     .map(|s| format!("*.{}", s))
+                //     .collect();
+                // format!("{} ({})", filter.description, extensions.join(" "))
+
+                // TODO: test this
+                filter.format("{desc} ({types})", "*.{ext}", " ")
             })
             .collect();
+
         command.arg(filters.join("\n"));
     }
 

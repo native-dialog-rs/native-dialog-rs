@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use formatx::formatx;
 
 use super::Dialog;
-use crate::util::UnsafeWindowHandle;
+use crate::utils::UnsafeWindowHandle;
 
 /// Represents a set of file extensions and their description.
 #[derive(Debug, Clone)]
@@ -34,7 +34,7 @@ pub struct OpenSingleFile {
     pub location: Option<PathBuf>,
     pub title: String,
     pub filters: Vec<Filter>,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl Dialog for OpenSingleFile {
@@ -50,7 +50,7 @@ pub struct OpenMultipleFile {
     pub location: Option<PathBuf>,
     pub title: String,
     pub filters: Vec<Filter>,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl Dialog for OpenMultipleFile {
@@ -65,7 +65,7 @@ pub struct OpenSingleDir {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,
     pub title: String,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl Dialog for OpenSingleDir {
@@ -81,7 +81,7 @@ pub struct SaveSingleFile {
     pub location: Option<PathBuf>,
     pub title: String,
     pub filters: Vec<Filter>,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl Dialog for SaveSingleFile {

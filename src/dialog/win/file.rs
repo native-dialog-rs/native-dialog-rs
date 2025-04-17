@@ -2,14 +2,13 @@ use std::path::Path;
 use wfd::{
     DialogError, DialogParams, OpenDialogResult, SaveDialogResult, FOS_ALLOWMULTISELECT,
     FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
-    FOS_PICKFOLDERS, FOS_STRICTFILETYPES, HWND,
+    FOS_PICKFOLDERS, FOS_STRICTFILETYPES,
 };
 
 use crate::dialog::{
     DialogImpl, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
-    UnsafeWindowHandle,
 };
-use crate::util::resolve_tilde;
+use crate::utils::{resolve_tilde, UnsafeWindowHandle};
 use crate::{Error, Result};
 
 impl OpenSingleFile {
@@ -19,7 +18,7 @@ impl OpenSingleFile {
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
             filters: &self.filters,
-            owner: self.owner,
+            owner: self.owner.clone(),
             multiple: false,
             dir: false,
         }
@@ -46,7 +45,7 @@ impl OpenMultipleFile {
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
             filters: &self.filters,
-            owner: self.owner,
+            owner: self.owner.clone(),
             multiple: true,
             dir: false,
         }
@@ -77,7 +76,7 @@ impl OpenSingleDir {
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
             filters: &[],
-            owner: self.owner,
+            owner: self.owner.clone(),
             multiple: false,
             dir: true,
         }
@@ -105,7 +104,7 @@ impl SaveSingleFile {
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
             filters: &self.filters,
-            owner: self.owner,
+            owner: self.owner.clone(),
         }
     }
 }
@@ -129,7 +128,7 @@ pub struct OpenDialogParams<'a> {
     filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter],
-    owner: Option<UnsafeWindowHandle>,
+    owner: UnsafeWindowHandle,
     multiple: bool,
     dir: bool,
 }
@@ -151,10 +150,7 @@ fn open_dialog(params: OpenDialogParams) -> Result<Option<OpenDialogResult>> {
         options |= FOS_PICKFOLDERS;
     }
 
-    let owner = params
-        .owner
-        .and_then(|owner| unsafe { owner.as_win32() })
-        .map(|handle| handle.hwnd.get() as HWND);
+    let owner = unsafe { params.owner.as_win32() };
 
     let params = DialogParams {
         folder,
@@ -176,7 +172,7 @@ pub struct SaveDialogParams<'a> {
     filename: Option<&'a str>,
     location: Option<&'a Path>,
     filters: &'a [Filter],
-    owner: Option<UnsafeWindowHandle>,
+    owner: UnsafeWindowHandle,
 }
 
 fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
@@ -196,10 +192,7 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
     let options =
         FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST | FOS_NOREADONLYRETURN | FOS_STRICTFILETYPES;
 
-    let owner = params
-        .owner
-        .and_then(|owner| unsafe { owner.as_win32() })
-        .map(|handle| handle.hwnd.get() as HWND);
+    let owner = unsafe { params.owner.as_win32() };
 
     let params = DialogParams {
         folder,

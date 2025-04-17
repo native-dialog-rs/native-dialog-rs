@@ -1,5 +1,5 @@
 use super::Dialog;
-use crate::util::UnsafeWindowHandle;
+use crate::utils::UnsafeWindowHandle;
 
 /// Represents the type of the message in the dialog.
 #[derive(Debug, Clone, Copy)]
@@ -19,7 +19,7 @@ pub struct MessageAlert {
     pub title: String,
     pub text: String,
     pub level: MessageLevel,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl Dialog for MessageAlert {
@@ -34,7 +34,7 @@ pub struct MessageConfirm {
     pub title: String,
     pub text: String,
     pub level: MessageLevel,
-    pub owner: Option<UnsafeWindowHandle>,
+    pub owner: UnsafeWindowHandle,
 }
 
 impl Dialog for MessageConfirm {

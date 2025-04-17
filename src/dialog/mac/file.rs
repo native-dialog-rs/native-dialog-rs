@@ -3,8 +3,8 @@ use objc2::rc::Retained as Id;
 use objc2::MainThreadMarker;
 use objc2_app_kit::{NSOpenPanel, NSSavePanel};
 
-use super::ffi::{NSOpenPanelExt, NSSavePanelExt, SavePanelFilters};
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
+use crate::ffi::mac::{NSOpenPanelExt, NSSavePanelExt, SavePanelFilters};
 use crate::Result;
 
 impl OpenSingleFile {
@@ -39,7 +39,7 @@ impl DialogImpl for OpenSingleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::ffi::NSOpenPanelAsyncExt;
+        use crate::ffi::mac::NSOpenPanelAsyncExt;
 
         let res = run_on_main(|mtm| self.create(mtm).spawn(self.owner));
         Ok(res.await.unwrap_or_default().into_iter().next())
@@ -77,7 +77,7 @@ impl DialogImpl for OpenMultipleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
-        use super::ffi::NSOpenPanelAsyncExt;
+        use crate::ffi::mac::NSOpenPanelAsyncExt;
 
         let res = run_on_main(|mtm| self.create(mtm).spawn(self.owner));
         Ok(res.await.unwrap_or_default())
@@ -113,7 +113,7 @@ impl DialogImpl for OpenSingleDir {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::ffi::NSOpenPanelAsyncExt;
+        use crate::ffi::mac::NSOpenPanelAsyncExt;
 
         let res = run_on_main(|mtm| self.create(mtm).spawn(self.owner));
         Ok(res.await.unwrap_or_default().into_iter().next())
@@ -153,7 +153,7 @@ impl DialogImpl for SaveSingleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::ffi::NSSavePanelAsyncExt;
+        use crate::ffi::mac::NSSavePanelAsyncExt;
 
         let res = run_on_main(|mtm| {
             let panel = self.create(mtm);

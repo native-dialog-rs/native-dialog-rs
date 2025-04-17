@@ -1,18 +1,16 @@
 use std::path::PathBuf;
 
 use objc2::rc::Retained as Id;
-use objc2::MainThreadOnly;
-use objc2_app_kit::{NSModalResponseOK, NSOpenPanel, NSWindow};
+use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
 use objc2_foundation::MainThreadMarker;
 
-use crate::dialog::UnsafeWindowHandle;
-
-use super::{NSSavePanelExt, NSURLExt, NSWindowExt};
+use super::{NSSavePanelExt, NSURLExt};
+use crate::utils::UnsafeWindowHandle;
 
 pub trait NSOpenPanelExt {
     fn open_panel(mtm: MainThreadMarker) -> Id<NSOpenPanel>;
 
-    fn show(&self, owner: Option<UnsafeWindowHandle>) -> Vec<PathBuf>;
+    fn show(&self, owner: UnsafeWindowHandle) -> Vec<PathBuf>;
 
     fn set_can_choose_files(&self, flag: bool);
     fn set_can_choose_directories(&self, flag: bool);
@@ -24,8 +22,8 @@ impl NSOpenPanelExt for NSOpenPanel {
         unsafe { NSOpenPanel::openPanel(mtm) }
     }
 
-    fn show(&self, owner: Option<UnsafeWindowHandle>) -> Vec<PathBuf> {
-        let owner = NSWindow::from_handle(self.mtm(), owner);
+    fn show(&self, owner: UnsafeWindowHandle) -> Vec<PathBuf> {
+        let owner = unsafe { owner.as_appkit() };
         let response = self.run(owner.as_deref());
 
         (response == NSModalResponseOK)

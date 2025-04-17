@@ -10,12 +10,13 @@ use objc2_foundation::{MainThreadMarker, NSString, NSURL};
 use objc2_uniform_type_identifiers::UTType;
 
 use super::{NSURLExt, NSWindowExt};
-use crate::dialog::{UnsafeWindowHandle, Filter};
+use crate::dialog::Filter;
+use crate::utils::UnsafeWindowHandle;
 
 pub trait NSSavePanelExt {
     fn save_panel(mtm: MainThreadMarker) -> Id<Self>;
 
-    fn show(&self, owner: Option<UnsafeWindowHandle>) -> Option<PathBuf>;
+    fn show(&self, owner: UnsafeWindowHandle) -> Option<PathBuf>;
     fn run(&self, owner: Option<&NSWindow>) -> NSModalResponse;
 
     fn set_title(&self, title: &str);
@@ -32,8 +33,8 @@ impl NSSavePanelExt for NSSavePanel {
         unsafe { NSSavePanel::savePanel(mtm) }
     }
 
-    fn show(&self, owner: Option<UnsafeWindowHandle>) -> Option<PathBuf> {
-        let owner = NSWindow::from_handle(self.mtm(), owner);
+    fn show(&self, owner: UnsafeWindowHandle) -> Option<PathBuf> {
+        let owner = unsafe { owner.as_appkit() };
         let response = self.run(owner.as_deref());
 
         (response == NSModalResponseOK)

@@ -12,7 +12,7 @@ impl MessageAlert {
             text: &self.text,
             level: self.level,
             ask: false,
-            attach: self.owner.and_then(|x| unsafe { x.as_x11() }),
+            attach: unsafe { self.owner.as_x11() },
         };
 
         let command = match should_use().ok_or(Error::NoImplementation)? {
@@ -46,7 +46,7 @@ impl MessageConfirm {
             text: &self.text,
             level: self.level,
             ask: true,
-            attach: self.owner.and_then(|x| unsafe { x.as_x11() }),
+            attach: unsafe { self.owner.as_x11() },
         };
 
         let command = match should_use().ok_or(Error::NoImplementation)? {
@@ -106,7 +106,7 @@ struct Params<'a> {
     text: &'a str,
     level: MessageLevel,
     ask: bool,
-    attach: Option<usize>,
+    attach: Option<u64>,
 }
 
 fn call_kdialog(mut command: Command, params: Params) -> Command {
