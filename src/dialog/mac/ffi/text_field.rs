@@ -9,7 +9,6 @@ pub trait NSTextFieldExt {
 
 impl NSTextFieldExt for NSTextField {
     fn label_with_string(mtm: MainThreadMarker, string: &str) -> Id<Self> {
-        // TODO: Main Thread Safety
         let string = NSString::from_str(string);
         unsafe { NSTextField::labelWithString(&string, mtm) }
     }

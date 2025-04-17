@@ -41,6 +41,7 @@ impl DialogImpl for OpenSingleFile {
         Ok(output.map(parse_output))
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
         let command = self.create()?;
         let output = spawn_command(command).await?;
@@ -88,6 +89,7 @@ impl DialogImpl for OpenMultipleFile {
         Ok(paths)
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
         let command = self.create()?;
         let output = spawn_command(command).await?;
@@ -135,6 +137,7 @@ impl DialogImpl for OpenSingleDir {
         Ok(output.map(parse_output))
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
         let command = self.create()?;
         let output = spawn_command(command).await?;
@@ -219,6 +222,7 @@ impl DialogImpl for SaveSingleFile {
         }
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
         let extensions = get_extensions(&self.filters);
 

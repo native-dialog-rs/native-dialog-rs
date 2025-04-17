@@ -31,6 +31,7 @@ impl DialogImpl for MessageAlert {
         Ok(())
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
         let command = self.create()?;
         spawn_command(command).await?;
@@ -64,6 +65,7 @@ impl DialogImpl for MessageConfirm {
         Ok(output.is_some())
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
         let command = self.create()?;
         let output = spawn_command(command).await?;

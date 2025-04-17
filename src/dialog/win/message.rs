@@ -20,6 +20,7 @@ impl DialogImpl for MessageAlert {
         Ok(())
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
         self.show()
     }
@@ -43,6 +44,7 @@ impl DialogImpl for MessageConfirm {
         message_box(self.create())
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
         self.show()
     }

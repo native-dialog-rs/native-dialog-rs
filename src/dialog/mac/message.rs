@@ -18,9 +18,7 @@ impl DialogImpl for MessageAlert {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        // TODO
-        self.create().display();
-        Ok(())
+        self.show()
     }
 }
 
@@ -38,8 +36,6 @@ impl DialogImpl for MessageConfirm {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        // TODO
-        let response = self.create().display();
-        Ok(response == kCFUserNotificationDefaultResponse)
+        self.show()
     }
 }

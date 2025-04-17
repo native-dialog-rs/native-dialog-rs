@@ -33,8 +33,9 @@ impl DialogImpl for OpenSingleFile {
         Ok(result.map(|x| x.selected_file_path))
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        todo!()
+        self.show()
     }
 }
 
@@ -63,8 +64,9 @@ impl DialogImpl for OpenMultipleFile {
         }
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        todo!()
+        self.show()
     }
 }
 
@@ -90,8 +92,9 @@ impl DialogImpl for OpenSingleDir {
         Ok(result.map(|x| x.selected_file_path))
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        todo!()
+        self.show()
     }
 }
 
@@ -115,8 +118,9 @@ impl DialogImpl for SaveSingleFile {
         Ok(result.map(|x| x.selected_file_path))
     }
 
+    #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        todo!()
+        self.show()
     }
 }
 
