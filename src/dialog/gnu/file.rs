@@ -4,7 +4,7 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use super::{execute_command, get_zenity_version, should_use, spawn_command, Error, UseCommand};
+use super::{execute_command, get_zenity_version, should_use, Error, UseCommand};
 use crate::dialog::{
     DialogImpl, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
@@ -43,6 +43,8 @@ impl DialogImpl for OpenSingleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
+        use super::spawn_command;
+
         let command = self.create()?;
         let output = spawn_command(command).await?;
         Ok(output.map(parse_output))
@@ -91,6 +93,8 @@ impl DialogImpl for OpenMultipleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
+        use super::spawn_command;
+
         let command = self.create()?;
         let output = spawn_command(command).await?;
 
@@ -139,6 +143,8 @@ impl DialogImpl for OpenSingleDir {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
+        use super::spawn_command;
+
         let command = self.create()?;
         let output = spawn_command(command).await?;
         Ok(output.map(parse_output))
@@ -224,6 +230,8 @@ impl DialogImpl for SaveSingleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
+        use super::spawn_command;
+
         let extensions = get_extensions(&self.filters);
 
         let mut target = get_target(self.location.as_deref(), self.filename.as_deref());

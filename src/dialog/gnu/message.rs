@@ -1,6 +1,4 @@
-use super::{
-    execute_command, get_kdialog_version, get_zenity_version, should_use, spawn_command, UseCommand,
-};
+use super::{execute_command, get_kdialog_version, get_zenity_version, should_use, UseCommand};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{Error, MessageLevel, Result};
 use std::process::Command;
@@ -33,6 +31,8 @@ impl DialogImpl for MessageAlert {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
+        use super::spawn_command;
+
         let command = self.create()?;
         spawn_command(command).await?;
         Ok(())
@@ -67,6 +67,8 @@ impl DialogImpl for MessageConfirm {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> crate::Result<Self::Output> {
+        use super::spawn_command;
+
         let command = self.create()?;
         let output = spawn_command(command).await?;
         Ok(output.is_some())
