@@ -27,8 +27,8 @@ fn view() -> impl Widget<Data = ()> {
     let tree = column![
         EditBox::string(|state: &State| format!("{:?}", state.path))
             .with_multi_line(true)
-            .with_lines(3, 3)
-            .with_width_em(16.0, 16.0),
+            .with_lines(16, 16)
+            .with_width_em(36.0, 36.0),
         Button::label_msg("Pick a File", Pick).map_any(),
     ]
     .margins(Directions::all(), MarginStyle::Em(1.0))

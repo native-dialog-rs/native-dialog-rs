@@ -42,7 +42,7 @@ impl DialogImpl for OpenSingleFile {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use super::spawn_command;
 
         let command = self.create()?;
@@ -92,7 +92,7 @@ impl DialogImpl for OpenMultipleFile {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use super::spawn_command;
 
         let command = self.create()?;
@@ -142,7 +142,7 @@ impl DialogImpl for OpenSingleDir {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use super::spawn_command;
 
         let command = self.create()?;
@@ -229,7 +229,7 @@ impl DialogImpl for SaveSingleFile {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use super::spawn_command;
 
         let extensions = get_extensions(&self.filters);
@@ -287,7 +287,7 @@ struct Params<'a> {
 fn call_kdialog(mut command: Command, params: Params) -> Command {
     if let Some(attach) = params.attach {
         command.arg("--attach");
-        command.arg(attach.to_string());
+        command.arg(format!("0x{:x}", attach));
     }
 
     match (params.dir, params.save) {
@@ -335,7 +335,7 @@ fn call_kdialog(mut command: Command, params: Params) -> Command {
 fn call_zenity(mut command: Command, params: Params) -> Command {
     if let Some(attach) = params.attach {
         command.arg("--attach");
-        command.arg(attach.to_string());
+        command.arg(format!("0x{:x}", attach));
     }
 
     command.arg("--file-selection");

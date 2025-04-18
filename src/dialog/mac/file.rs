@@ -76,7 +76,7 @@ impl DialogImpl for OpenMultipleFile {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use crate::ffi::mac::NSOpenPanelAsyncExt;
 
         let res = run_on_main(|mtm| self.create(mtm).spawn(self.owner));

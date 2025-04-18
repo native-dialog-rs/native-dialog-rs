@@ -30,7 +30,7 @@ impl DialogImpl for MessageAlert {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use super::spawn_command;
 
         let command = self.create()?;
@@ -66,7 +66,7 @@ impl DialogImpl for MessageConfirm {
     }
 
     #[cfg(feature = "async")]
-    async fn spawn(self) -> crate::Result<Self::Output> {
+    async fn spawn(self) -> Result<Self::Output> {
         use super::spawn_command;
 
         let command = self.create()?;
@@ -114,7 +114,7 @@ struct Params<'a> {
 fn call_kdialog(mut command: Command, params: Params) -> Command {
     if let Some(attach) = params.attach {
         command.arg("--attach");
-        command.arg(attach.to_string());
+        command.arg(format!("0x{:x}", attach));
     }
 
     if params.ask {
@@ -140,7 +140,7 @@ fn call_kdialog(mut command: Command, params: Params) -> Command {
 fn call_zenity(mut command: Command, params: Params) -> Command {
     if let Some(attach) = params.attach {
         command.arg("--attach");
-        command.arg(attach.to_string());
+        command.arg(format!("0x{:x}", attach));
     }
 
     command.arg("--width=400");

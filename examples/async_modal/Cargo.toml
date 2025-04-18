@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 kas = "0.15.0"
 lock_api = { version = "0.4.12", features = ["nightly"] }
+winit = { version = "0.30.9", features = ["x11"] }
 wgpu = "23.0.1"
 
 [dependencies.native-dialog]
