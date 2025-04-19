@@ -1,10 +1,8 @@
-use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
-use super::{execute_command, get_zenity_version, should_use, Error, UseCommand};
+use super::backend::{Backend, BackendKind};
 use crate::dialog::{
     DialogImpl, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
@@ -12,7 +10,7 @@ use crate::utils::resolve_tilde;
 use crate::Result;
 
 impl OpenSingleFile {
-    fn create(&self) -> Result<Command> {
+    fn create(&self) -> Result<Backend> {
         let target = get_target(self.location.as_deref(), self.filename.as_deref());
 
         let params = Params {
@@ -22,37 +20,30 @@ impl OpenSingleFile {
             dir: false,
             save: false,
             title: &self.title,
-            attach: unsafe { self.owner.as_x11() },
+            owner: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
-        };
-
-        Ok(command)
+        create_backend(params)
     }
 }
 
 impl DialogImpl for OpenSingleFile {
     fn show(self) -> Result<Self::Output> {
-        let command = self.create()?;
-        let output = execute_command(command)?;
+        let backend = self.create()?;
+        let output = backend.exec()?;
         Ok(output.map(parse_output))
     }
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::spawn_command;
-
-        let command = self.create()?;
-        let output = spawn_command(command).await?;
+        let backend = self.create()?;
+        let output = backend.spawn().await?;
         Ok(output.map(parse_output))
     }
 }
 
 impl OpenMultipleFile {
-    fn create(&self) -> Result<Command> {
+    fn create(&self) -> Result<Backend> {
         let target = get_target(self.location.as_deref(), self.filename.as_deref());
 
         let params = Params {
@@ -62,22 +53,17 @@ impl OpenMultipleFile {
             dir: false,
             save: false,
             title: &self.title,
-            attach: unsafe { self.owner.as_x11() },
+            owner: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
-        };
-
-        Ok(command)
+        create_backend(params)
     }
 }
 
 impl DialogImpl for OpenMultipleFile {
     fn show(self) -> Result<Self::Output> {
-        let command = self.create()?;
-        let output = execute_command(command)?;
+        let backend = self.create()?;
+        let output = backend.exec()?;
 
         let paths = match output {
             Some(output) => output
@@ -93,10 +79,8 @@ impl DialogImpl for OpenMultipleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::spawn_command;
-
-        let command = self.create()?;
-        let output = spawn_command(command).await?;
+        let backend = self.create()?;
+        let output = backend.spawn().await?;
 
         let paths = match output {
             Some(output) => output
@@ -112,7 +96,7 @@ impl DialogImpl for OpenMultipleFile {
 }
 
 impl OpenSingleDir {
-    fn create(&self) -> Result<Command> {
+    fn create(&self) -> Result<Backend> {
         let target = get_target(self.location.as_deref(), self.filename.as_deref());
 
         let params = Params {
@@ -122,37 +106,30 @@ impl OpenSingleDir {
             dir: true,
             save: false,
             title: &self.title,
-            attach: unsafe { self.owner.as_x11() },
+            owner: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
-        };
-
-        Ok(command)
+        create_backend(params)
     }
 }
 
 impl DialogImpl for OpenSingleDir {
     fn show(self) -> Result<Self::Output> {
-        let command = self.create()?;
-        let output = execute_command(command)?;
+        let backend = self.create()?;
+        let output = backend.exec()?;
         Ok(output.map(parse_output))
     }
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::spawn_command;
-
-        let command = self.create()?;
-        let output = spawn_command(command).await?;
+        let backend = self.create()?;
+        let output = backend.spawn().await?;
         Ok(output.map(parse_output))
     }
 }
 
 impl SaveSingleFile {
-    fn create(&self, target: &Option<PathBuf>) -> Result<Command> {
+    fn create(&self, target: &Option<PathBuf>) -> Result<Backend> {
         let params = Params {
             target: target.as_deref(),
             filters: &self.filters,
@@ -160,18 +137,13 @@ impl SaveSingleFile {
             dir: false,
             save: true,
             title: &self.title,
-            attach: unsafe { self.owner.as_x11() },
+            owner: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
-        };
-
-        Ok(command)
+        create_backend(params)
     }
 
-    fn warn(&self, path: &Option<PathBuf>) -> Result<Command> {
+    fn warn(&self, path: &Option<PathBuf>) -> Result<Backend> {
         let message = match path.as_deref().and_then(Path::extension) {
             None => String::from("Unrecognized file type. Please try again."),
             Some(ext) => {
@@ -180,16 +152,34 @@ impl SaveSingleFile {
             }
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog_warn(cmd, &message),
-            UseCommand::Zenity(cmd) => call_zenity_warn(cmd, &message),
+        let mut backend = Backend::new()?;
+        match backend.kind {
+            BackendKind::KDialog => {
+                backend.command.args([
+                    "--msgbox",
+                    &message,
+                    "--title",
+                    "Warning",
+                    "--icon=dialog-warning",
+                ]);
+            }
+            BackendKind::Zenity => {
+                backend.command.args([
+                    "--width=400",
+                    "--warning",
+                    "--title",
+                    "Warning",
+                    "--text",
+                    &message,
+                ]);
+            }
         };
 
-        Ok(command)
+        Ok(backend)
     }
 
-    fn accepts(&self, path: &Option<PathBuf>, extensions: &HashSet<&OsStr>) -> bool {
-        if extensions.is_empty() {
+    fn accepts(&self, path: &Option<PathBuf>) -> bool {
+        if self.filters.is_empty() {
             return true;
         }
 
@@ -198,8 +188,12 @@ impl SaveSingleFile {
         };
 
         if let Some(ext) = path.extension() {
-            if extensions.contains(&ext) {
-                return true;
+            for filter in &self.filters {
+                for accepting in &filter.extensions {
+                    if OsStr::new(accepting) == ext {
+                        return true;
+                    }
+                }
             }
         }
 
@@ -209,20 +203,18 @@ impl SaveSingleFile {
 
 impl DialogImpl for SaveSingleFile {
     fn show(self) -> Result<Self::Output> {
-        let extensions = get_extensions(&self.filters);
-
         let mut target = get_target(self.location.as_deref(), self.filename.as_deref());
+
         loop {
-            let command = self.create(&target)?;
-            let output = execute_command(command)?;
+            let backend = self.create(&target)?;
+            let output = backend.exec()?;
 
             let path = output.map(parse_output);
-            if self.accepts(&path, &extensions) {
+            if self.accepts(&path) {
                 break Ok(path);
             }
 
-            let warn = self.warn(&path)?;
-            execute_command(warn)?;
+            self.warn(&path)?.exec()?;
 
             target = path;
         }
@@ -230,22 +222,18 @@ impl DialogImpl for SaveSingleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::spawn_command;
-
-        let extensions = get_extensions(&self.filters);
-
         let mut target = get_target(self.location.as_deref(), self.filename.as_deref());
+
         loop {
-            let command = self.create(&target)?;
-            let output = spawn_command(command).await?;
+            let backend = self.create(&target)?;
+            let output = backend.spawn().await?;
 
             let path = output.map(parse_output);
-            if self.accepts(&path, &extensions) {
+            if self.accepts(&path) {
                 break Ok(path);
             }
 
-            let warn = self.warn(&path)?;
-            spawn_command(warn).await?;
+            self.warn(&path)?.spawn().await?;
 
             target = path;
         }
@@ -266,14 +254,6 @@ fn get_target(location: Option<&Path>, filename: Option<&str>) -> Option<PathBuf
     }
 }
 
-fn get_extensions(filters: &[Filter]) -> HashSet<&OsStr> {
-    filters
-        .iter()
-        .flat_map(|filter| &filter.extensions)
-        .map(OsStr::new)
-        .collect()
-}
-
 struct Params<'a> {
     target: Option<&'a Path>,
     filters: &'a [Filter],
@@ -281,32 +261,41 @@ struct Params<'a> {
     dir: bool,
     save: bool,
     title: &'a str,
-    attach: Option<u64>,
+    owner: Option<u64>,
 }
 
-fn call_kdialog(mut command: Command, params: Params) -> Command {
-    if let Some(attach) = params.attach {
-        command.arg("--attach");
-        command.arg(format!("0x{:x}", attach));
+fn create_backend(params: Params) -> Result<Backend> {
+    let mut backend = Backend::new()?;
+    match backend.kind {
+        BackendKind::KDialog => init_kdialog(&mut backend, params),
+        BackendKind::Zenity => init_zenity(&mut backend, params),
+    };
+
+    Ok(backend)
+}
+
+fn init_kdialog(backend: &mut Backend, params: Params) {
+    if let Some(owner) = params.owner {
+        backend.command.arg(format!("--attach=0x{:x}", owner));
     }
 
     match (params.dir, params.save) {
-        (false, false) => command.arg("--getopenfilename"),
-        (false, true) => command.arg("--getsavefilename"),
-        (true, false) => command.arg("--getexistingdirectory"),
-        (true, true) => unreachable!("???"),
+        (false, false) => backend.command.arg("--getopenfilename"),
+        (false, true) => backend.command.arg("--getsavefilename"),
+        (true, false) => backend.command.arg("--getexistingdirectory"),
+        (true, true) => unreachable!(),
     };
 
-    command.arg("--title");
-    command.arg(params.title);
+    backend.command.arg("--title");
+    backend.command.arg(params.title);
 
     match params.target {
-        Some(path) => command.arg(path),
-        None => command.arg(""),
+        Some(path) => backend.command.arg(path),
+        None => backend.command.arg(""),
     };
 
     if params.multiple {
-        command.args(["--multiple", "--separate-output"]);
+        backend.command.args(["--multiple", "--separate-output"]);
     }
 
     if !params.filters.is_empty() {
@@ -326,44 +315,37 @@ fn call_kdialog(mut command: Command, params: Params) -> Command {
             })
             .collect();
 
-        command.arg(filters.join("\n"));
+        backend.command.arg(filters.join("\n"));
     }
-
-    command
 }
 
-fn call_zenity(mut command: Command, params: Params) -> Command {
-    if let Some(attach) = params.attach {
-        command.arg("--attach");
-        command.arg(format!("0x{:x}", attach));
-    }
+fn init_zenity(backend: &mut Backend, params: Params) {
+    backend.command.arg("--file-selection");
 
-    command.arg("--file-selection");
-
-    command.arg("--title");
-    command.arg(params.title);
+    backend.command.arg("--title");
+    backend.command.arg(params.title);
 
     if params.dir {
-        command.arg("--directory");
+        backend.command.arg("--directory");
     }
 
     if params.save {
-        command.arg("--save");
+        backend.command.arg("--save");
 
         // `--confirm-overwrite` was removed at zenity 3.91.0
         // https://gitlab.gnome.org/GNOME/zenity/-/issues/55
-        if matches!(get_zenity_version(), Some(v) if v < (3, 91, 0)) {
-            command.arg("--confirm-overwrite");
+        if matches!(backend.version(), Some(v) if v < (3, 91, 0)) {
+            backend.command.arg("--confirm-overwrite");
         }
     };
 
     if params.multiple {
-        command.args(["--multiple", "--separator", "\n"]);
+        backend.command.args(["--multiple", "--separator", "\n"]);
     }
 
     if let Some(path) = params.target {
-        command.arg("--filename");
-        command.arg(path);
+        backend.command.arg("--filename");
+        backend.command.arg(path);
     }
 
     if !params.filters.is_empty() {
@@ -375,41 +357,16 @@ fn call_zenity(mut command: Command, params: Params) -> Command {
             //     .collect();
             // let extensions = extensions.join(" ");
 
-            command.arg("--file-filter");
-            // command.arg(format!(
+            // backend.command.arg("--file-filter");
+            // backend.command.arg(format!(
             //     "{} ({}) | {}",
             //     filter.description, extensions, extensions
             // ));
 
             // TODO: test this
-            command.arg(filter.format("{desc} ({types}) | {types}", "*.{ext}", " "));
+            let formatted = filter.format("{desc} ({types}) | {types}", "*.{ext}", " ");
+            backend.command.arg("--file-filter");
+            backend.command.arg(formatted);
         }
     }
-
-    command
-}
-
-fn call_kdialog_warn(mut command: Command, message: &str) -> Command {
-    command.args([
-        "--msgbox",
-        message,
-        "--title",
-        "Warning",
-        "--icon=dialog-warning",
-    ]);
-
-    command
-}
-
-fn call_zenity_warn(mut command: Command, message: &str) -> Command {
-    command.args([
-        "--width=400",
-        "--warning",
-        "--title",
-        "Warning",
-        "--text",
-        message,
-    ]);
-
-    command
 }

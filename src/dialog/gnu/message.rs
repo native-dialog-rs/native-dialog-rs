@@ -1,76 +1,73 @@
-use super::{execute_command, get_kdialog_version, get_zenity_version, should_use, UseCommand};
+use super::backend::{Backend, BackendKind};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
-use crate::{Error, MessageLevel, Result};
-use std::process::Command;
+use crate::{MessageLevel, Result};
 
 impl MessageAlert {
-    fn create(&self) -> Result<Command> {
+    fn create(&self) -> Result<Backend> {
         let params = Params {
             title: &self.title,
             text: &self.text,
             level: self.level,
             ask: false,
-            attach: unsafe { self.owner.as_x11() },
+            owner: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
+        let mut backend = Backend::new()?;
+        match backend.kind {
+            BackendKind::KDialog => call_kdialog(&mut backend, params),
+            BackendKind::Zenity => call_zenity(&mut backend, params),
         };
 
-        Ok(command)
+        Ok(backend)
     }
 }
 
 impl DialogImpl for MessageAlert {
     fn show(self) -> Result<Self::Output> {
-        let command = self.create()?;
-        execute_command(command)?;
+        let backend = self.create()?;
+        backend.exec()?;
         Ok(())
     }
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::spawn_command;
-
-        let command = self.create()?;
-        spawn_command(command).await?;
+        let backend = self.create()?;
+        backend.spawn().await?;
         Ok(())
     }
 }
 
 impl MessageConfirm {
-    fn create(&self) -> Result<Command> {
+    fn create(&self) -> Result<Backend> {
         let params = Params {
             title: &self.title,
             text: &self.text,
             level: self.level,
             ask: true,
-            attach: unsafe { self.owner.as_x11() },
+            owner: unsafe { self.owner.as_x11() },
         };
 
-        let command = match should_use().ok_or(Error::ImplMissing)? {
-            UseCommand::KDialog(cmd) => call_kdialog(cmd, params),
-            UseCommand::Zenity(cmd) => call_zenity(cmd, params),
+        let mut backend = Backend::new()?;
+        match backend.kind {
+            BackendKind::KDialog => call_kdialog(&mut backend, params),
+            BackendKind::Zenity => call_zenity(&mut backend, params),
         };
 
-        Ok(command)
+        Ok(backend)
     }
 }
 
 impl DialogImpl for MessageConfirm {
     fn show(self) -> Result<Self::Output> {
-        let command = self.create()?;
-        let output = execute_command(command)?;
+        let backend = self.create()?;
+        let output = backend.exec()?;
         Ok(output.is_some())
     }
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        use super::spawn_command;
-
-        let command = self.create()?;
-        let output = spawn_command(command).await?;
+        let backend = self.create()?;
+        let output = backend.spawn().await?;
         Ok(output.is_some())
     }
 }
@@ -87,8 +84,8 @@ fn escape_pango_entities(text: &str) -> String {
 }
 
 /// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
-fn convert_qt_text_document(text: &str) -> String {
-    if matches!(get_kdialog_version(), Some(v) if v < (19, 0, 0)) {
+fn convert_qt_text_document(backend: &Backend, text: &str) -> String {
+    if matches!(backend.version(), Some(v) if v < (19, 0, 0)) {
         text.replace('\n', "<br>")
             .replace('\t', " ")
             .replace('<', "&lt;")
@@ -108,69 +105,61 @@ struct Params<'a> {
     text: &'a str,
     level: MessageLevel,
     ask: bool,
-    attach: Option<u64>,
+    owner: Option<u64>,
 }
 
-fn call_kdialog(mut command: Command, params: Params) -> Command {
-    if let Some(attach) = params.attach {
-        command.arg("--attach");
-        command.arg(format!("0x{:x}", attach));
+fn call_kdialog(backend: &mut Backend, params: Params) {
+    if let Some(owner) = params.owner {
+        backend.command.arg(format!("--attach=0x{:x}", owner));
     }
 
     if params.ask {
-        command.arg("--yesno");
+        backend.command.arg("--yesno");
     } else {
-        command.arg("--msgbox");
+        backend.command.arg("--msgbox");
     }
 
-    command.arg(convert_qt_text_document(params.text));
+    let text = convert_qt_text_document(backend, params.text);
+    backend.command.arg(text);
 
-    command.arg("--title");
-    command.arg(params.title);
+    backend.command.arg("--title");
+    backend.command.arg(params.title);
 
     match params.level {
-        MessageLevel::Info => command.arg("--icon=dialog-information"),
-        MessageLevel::Warning => command.arg("--icon=dialog-warning"),
-        MessageLevel::Error => command.arg("--icon=dialog-error"),
+        MessageLevel::Info => backend.command.arg("--icon=dialog-information"),
+        MessageLevel::Warning => backend.command.arg("--icon=dialog-warning"),
+        MessageLevel::Error => backend.command.arg("--icon=dialog-error"),
     };
-
-    command
 }
 
-fn call_zenity(mut command: Command, params: Params) -> Command {
-    if let Some(attach) = params.attach {
-        command.arg("--attach");
-        command.arg(format!("0x{:x}", attach));
-    }
-
-    command.arg("--width=400");
+fn call_zenity(backend: &mut Backend, params: Params) {
+    backend.command.arg("--width=400");
 
     if params.ask {
-        command.arg("--question");
+        backend.command.arg("--question");
 
         // `--icon-name` was renamed to `--icon` at zenity 3.90.0
-        match get_zenity_version() {
-            Some(v) if v < (3, 90, 0) => command.arg("--icon-name"),
-            _ => command.arg("--icon"),
+        match backend.version() {
+            Some(v) if v < (3, 90, 0) => backend.command.arg("--icon-name"),
+            _ => backend.command.arg("--icon"),
         };
         match params.level {
-            MessageLevel::Info => command.arg("dialog-information"),
-            MessageLevel::Warning => command.arg("dialog-warning"),
-            MessageLevel::Error => command.arg("dialog-error"),
+            MessageLevel::Info => backend.command.arg("dialog-information"),
+            MessageLevel::Warning => backend.command.arg("dialog-warning"),
+            MessageLevel::Error => backend.command.arg("dialog-error"),
         };
     } else {
         match params.level {
-            MessageLevel::Info => command.arg("--info"),
-            MessageLevel::Warning => command.arg("--warning"),
-            MessageLevel::Error => command.arg("--error"),
+            MessageLevel::Info => backend.command.arg("--info"),
+            MessageLevel::Warning => backend.command.arg("--warning"),
+            MessageLevel::Error => backend.command.arg("--error"),
         };
     }
 
-    command.arg("--title");
-    command.arg(params.title);
+    backend.command.arg("--title");
+    backend.command.arg(params.title);
 
-    command.arg("--text");
-    command.arg(escape_pango_entities(params.text));
-
-    command
+    let text = escape_pango_entities(params.text);
+    backend.command.arg("--text");
+    backend.command.arg(text);
 }
