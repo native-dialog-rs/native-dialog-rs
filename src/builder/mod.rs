@@ -6,6 +6,7 @@ pub use message::*;
 pub mod file;
 pub use file::*;
 
+/// Builder for dialogs.
 #[derive(Debug, Clone)]
 pub struct DialogBuilder(PhantomData<()>);
 

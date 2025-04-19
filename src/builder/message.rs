@@ -5,7 +5,7 @@ use crate::utils::UnsafeWindowHandle;
 
 pub use crate::dialog::MessageLevel;
 
-/// Builds and shows message dialogs.
+/// Builder for message dialogs.
 #[derive(Debug, Clone, Default)]
 pub struct MessageDialogBuilder {
     pub title: String,
@@ -27,7 +27,7 @@ impl MessageDialogBuilder {
         self
     }
 
-    /// Set the level of the message. This usually affects the icon shown in the dialog.
+    /// Set the level of the message.
     pub fn set_level(mut self, level: MessageLevel) -> Self {
         self.level = level;
         self
@@ -45,7 +45,7 @@ impl MessageDialogBuilder {
         self
     }
 
-    /// Shows a dialog that alert users with some message.
+    /// Builds a dialog that alert users with some message.
     pub fn alert(self) -> MessageAlert {
         MessageAlert {
             title: self.title,
@@ -55,7 +55,7 @@ impl MessageDialogBuilder {
         }
     }
 
-    /// Shows a dialog that let users to choose Yes/No.
+    /// Builds a dialog that let users to choose Yes/No.
     pub fn confirm(self) -> MessageConfirm {
         MessageConfirm {
             title: self.title,

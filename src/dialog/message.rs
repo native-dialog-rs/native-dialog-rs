@@ -1,7 +1,7 @@
 use super::Dialog;
 use crate::utils::UnsafeWindowHandle;
 
-/// Represents the type of the message in the dialog.
+/// The level of the message in the dialog, which usually affects the color or icon in the dialog.
 #[derive(Debug, Clone, Copy)]
 pub enum MessageLevel {
     Info,

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::dialog::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::utils::UnsafeWindowHandle;
 
-/// Builds and shows file dialogs.
+/// Builder for file dialogs.
 #[derive(Debug, Clone, Default)]
 pub struct FileDialogBuilder {
     pub filename: Option<String>,
@@ -34,24 +34,24 @@ impl FileDialogBuilder {
         self
     }
 
-    /// Sets the default location that the dialog shows at open.
+    /// Sets the default directory that the dialog shows at open.
     pub fn set_location<P: AsRef<Path> + ?Sized>(mut self, path: &P) -> Self {
         self.location = Some(path.as_ref().to_path_buf());
         self
     }
 
-    /// Resets the default location that the dialog shows at open. Without a default location set,
-    /// the dialog will probably use the current working directory as default location.
+    /// Resets the default directory that the dialog shows at open.
+    /// If a location is not set, the dialog will probably go to the current working directory.
     pub fn reset_location(mut self) -> Self {
         self.location = None;
         self
     }
 
     /// Adds a file type filter. The filter must contains at least one extension, otherwise this
-    /// method will panic. For dialogs that open directories, this is a no-op.
+    /// method will be a no-op. For dialogs that open directories, this is also a no-op.
     pub fn add_filter(mut self, description: impl ToString, extensions: &[impl ToString]) -> Self {
         if extensions.is_empty() {
-            panic!("The file extensions of a filter must be specified.")
+            return self;
         }
 
         self.filters.push(Filter {
@@ -80,7 +80,7 @@ impl FileDialogBuilder {
         self
     }
 
-    /// Shows a dialog that let users to open one file.
+    /// Builds a dialog that let users to open one file.
     pub fn open_single_file(self) -> OpenSingleFile {
         OpenSingleFile {
             filename: self.filename,
@@ -91,7 +91,7 @@ impl FileDialogBuilder {
         }
     }
 
-    /// Shows a dialog that let users to open multiple files.
+    /// Builds a dialog that let users to open multiple files.
     pub fn open_multiple_file(self) -> OpenMultipleFile {
         OpenMultipleFile {
             filename: self.filename,
@@ -102,7 +102,7 @@ impl FileDialogBuilder {
         }
     }
 
-    /// Shows a dialog that let users to open one directory.
+    /// Builds a dialog that let users to open one directory.
     pub fn open_single_dir(self) -> OpenSingleDir {
         OpenSingleDir {
             filename: self.filename,
@@ -112,7 +112,7 @@ impl FileDialogBuilder {
         }
     }
 
-    /// Shows a dialog that let users to save one file.
+    /// Builds a dialog that let users to save one file.
     pub fn save_single_file(self) -> SaveSingleFile {
         SaveSingleFile {
             filename: self.filename,

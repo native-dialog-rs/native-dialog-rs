@@ -31,10 +31,10 @@ let path = match path {
 };
 
 // Asyncronous Dialog
-let yes = MessageDialog::new()
+let yes = DialogBuilder::message()
     .set_level(MessageLevel::Info)
     .set_title("Do you want to open the file?")
-    .set_text(&format!("{:#?}", path))
+    .set_text(format!("{:#?}", path))
     .confirm()
     .spawn()
     .await
