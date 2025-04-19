@@ -33,7 +33,7 @@ impl Backend {
             }
         }
 
-        Err(Error::ImplMissing)
+        Err(Error::MissingDep)
     }
 
     fn new_kdialog() -> Option<Backend> {

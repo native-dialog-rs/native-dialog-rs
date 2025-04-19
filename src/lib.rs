@@ -20,7 +20,7 @@ pub enum Error {
     Utf8(#[from] std::string::FromUtf8Error),
 
     #[error("cannot find implementation (kdialog/zenity)")]
-    ImplMissing,
+    MissingDep,
 
     #[error("subprocess killed by signal")]
     Killed(OsString),

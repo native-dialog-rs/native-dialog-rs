@@ -32,7 +32,7 @@ let path = match path {
 
 // Asyncronous Dialog
 let yes = MessageDialog::new()
-    .set_type(MessageType::Info)
+    .set_level(MessageLevel::Info)
     .set_title("Do you want to open the file?")
     .set_text(&format!("{:#?}", path))
     .confirm()
@@ -51,5 +51,5 @@ if yes {
 
 Turn on crate features or embed manifests into the `.exe` to enable visual styling and dpi awareness for your program. Check out [examples/windows_manifest](examples/windows_manifest) and [examples/windows_features](examples/windows_features) for example.
 
-#### Linux dependencies
-The Linux implementation of native-dialog requires either Zenity or Kdialog to be installed. Otherwise you'll get a `No Implementation` error.
+#### Linux/BSD dependencies
+The implementation for Linux and BSD requires either Zenity or Kdialog being installed; otherwise the `MissingDep` error will occur.
