@@ -147,7 +147,7 @@ impl SaveSingleFile {
         let message = match path.as_deref().and_then(Path::extension) {
             None => String::from("Unrecognized file type. Please try again."),
             Some(ext) => {
-                let ext = ext.display();
+                let ext = ext.to_string_lossy();
                 format!("Unrecognized file type: {ext}. Please try again.")
             }
         };
