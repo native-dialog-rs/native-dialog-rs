@@ -1,7 +1,6 @@
 use objc2_core_foundation::{
     kCFUserNotificationCautionAlertLevel, kCFUserNotificationNoteAlertLevel,
-    kCFUserNotificationStopAlertLevel, CFOptionFlags, CFRetained, CFString,
-    CFUserNotificationDisplayAlert,
+    kCFUserNotificationStopAlertLevel, CFOptionFlags, CFRetained, CFString, CFUserNotification,
 };
 
 use crate::dialog::MessageLevel;
@@ -32,8 +31,9 @@ impl Alert {
         let alternate = CFString::from_static_str("No");
 
         let mut response = 0;
+
         unsafe {
-            CFUserNotificationDisplayAlert(
+            CFUserNotification::display_alert(
                 0f64,
                 self.flag,
                 None,

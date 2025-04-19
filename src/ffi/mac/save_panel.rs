@@ -80,7 +80,7 @@ impl NSSavePanelExt for NSSavePanel {
     }
 
     fn set_directory_url(&self, url: &Path) {
-        let url = NSURL::from_path(url);
+        let url = NSURL::new_path(url);
         unsafe { self.setDirectoryURL(Some(&url)) }
     }
 
