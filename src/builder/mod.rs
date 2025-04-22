@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 pub mod message;
 pub use message::*;
 
@@ -8,7 +6,7 @@ pub use file::*;
 
 /// Builder for dialogs.
 #[derive(Debug, Clone)]
-pub struct DialogBuilder(PhantomData<()>);
+pub struct DialogBuilder(());
 
 impl DialogBuilder {
     pub fn file() -> FileDialogBuilder {
