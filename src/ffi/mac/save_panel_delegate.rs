@@ -95,3 +95,6 @@ impl SavePanelDelegate {
             .collect()
     }
 }
+
+#[cfg(feature = "async")]
+impl super::AsyncDelegate for SavePanelDelegate {}

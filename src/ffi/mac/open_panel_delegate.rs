@@ -12,12 +12,6 @@ pub struct OpenPanelDelegateIvars {
     _filters: Vec<Filter>,
 }
 
-impl Drop for OpenPanelDelegateIvars {
-    fn drop(&mut self) {
-        println!("OpenPanelDelegateIvars dropped");
-    }
-}
-
 define_class! {
     #[unsafe(super = NSObject)]
     #[thread_kind = MainThreadOnly]
@@ -28,6 +22,7 @@ define_class! {
 
     unsafe impl NSOpenSavePanelDelegate for OpenPanelDelegate {
         // Not supported yet.
+        // https://github.com/madsmtm/objc2/issues/283
         // #[unsafe(method(panel:validateURL:error:_))]
         // fn panel_validateURL_error(&self, sender: &AnyObject, url: &NSURL) -> Result<(), Id<NSError>> {
         //     Ok(())
@@ -39,11 +34,12 @@ define_class! {
         #[unsafe(method(panel:validateURL:error:))]
         fn validate_url(&self, sender: &NSOpenPanel, url: &NSURL, error: Option<&mut *mut NSError>) {
             // TODO: custom open panel filter
-            println!("TODO: {sender:?} {url:?}");
+            // println!("TODO: {sender:?} {url:?}");
 
             if let Some(out) = error {
-                let msg = format!("TODO: {url:?}");
-                *out = Id::autorelease_ptr(NSError::new(1, &NSString::from_str(&msg)));
+                // let msg = format!("TODO: {url:?}");
+                // *out = Id::autorelease_ptr(NSError::new(1, &NSString::from_str(&msg)));
+                *out = std::ptr::null_mut();
             }
         }
     }
@@ -64,3 +60,6 @@ impl OpenPanelDelegate {
         this
     }
 }
+
+#[cfg(feature = "async")]
+impl super::AsyncDelegate for OpenPanelDelegate {}
