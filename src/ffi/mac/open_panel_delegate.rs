@@ -1,5 +1,5 @@
 use objc2::rc::Retained as Id;
-use objc2::{define_class, msg_send, DefinedClass, MainThreadOnly, Message};
+use objc2::{define_class, msg_send, DefinedClass, MainThreadOnly};
 use objc2_app_kit::{NSOpenPanel, NSOpenSavePanelDelegate};
 use objc2_foundation::{NSObject, NSObjectProtocol, NSURL};
 
@@ -8,7 +8,6 @@ use crate::dialog::FileFiltersBag;
 use super::{NSOpenPanelExt, NSURLExt};
 
 pub struct OpenPanelDelegateIvars {
-    _panel: Id<NSOpenPanel>,
     filters: FileFiltersBag,
 }
 
@@ -31,7 +30,6 @@ define_class! {
 impl OpenPanelDelegate {
     pub fn attach(panel: &NSOpenPanel, filters: &FileFiltersBag) -> Id<Self> {
         let ivars = OpenPanelDelegateIvars {
-            _panel: panel.retain(),
             filters: filters.to_owned(),
         };
 

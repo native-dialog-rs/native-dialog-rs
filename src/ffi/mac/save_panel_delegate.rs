@@ -15,7 +15,6 @@ use super::{NSColorExt, NSPopUpButtonExt, NSSavePanelExt, NSStackViewExt, NSText
 use crate::dialog::{FileFilter, FileFiltersBag};
 
 pub struct SavePanelDelegateIvars {
-    panel: Id<NSSavePanel>,
     accessory: Cell<Option<Id<NSView>>>,
     filters: FileFiltersBag,
     selected: Cell<usize>,
@@ -64,7 +63,6 @@ define_class! {
 impl SavePanelDelegate {
     pub fn attach(panel: &NSSavePanel, filters: &FileFiltersBag) -> Id<Self> {
         let ivars = SavePanelDelegateIvars {
-            panel: panel.retain(),
             accessory: Cell::new(None),
             filters: filters.to_owned(),
             selected: Cell::new(0),
@@ -76,7 +74,7 @@ impl SavePanelDelegate {
         panel.set_delegate(&this);
 
         // If there are filters specified, show a dropdown on the panel
-        if !filters.is_empty() {
+        if !filters.items().is_empty() {
             let accessory = this.create_accessory(filters);
             panel.set_accessory_view(Some(&accessory));
             this.ivars().accessory.set(Some(accessory));
@@ -87,7 +85,7 @@ impl SavePanelDelegate {
 
     fn selected_filter(&self) -> Option<&FileFilter> {
         let ivars = self.ivars();
-        ivars.filters.get(ivars.selected.get())
+        ivars.filters.items().get(ivars.selected.get())
     }
 
     fn create_accessory(&self, filters: &FileFiltersBag) -> Id<NSView> {
@@ -122,6 +120,7 @@ impl SavePanelDelegate {
 
     fn format_titles(&self, filters: &FileFiltersBag) -> Id<NSArray<NSString>> {
         filters
+            .items()
             .iter()
             .map(|filter| filter.format("{desc} ({types})", "*{ext}", " "))
             .map(|title| NSString::from_str(&title))

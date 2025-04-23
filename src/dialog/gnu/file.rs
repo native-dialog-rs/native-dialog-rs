@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use super::backend::{Backend, BackendKind};
 use crate::dialog::{
-    DialogImpl, FileFilter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
+    DialogImpl, FileFiltersBag, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
 use crate::utils::resolve_tilde;
 use crate::Result;
@@ -101,7 +101,7 @@ impl OpenSingleDir {
 
         let params = Params {
             target: target.as_deref(),
-            filters: &[],
+            filters: &FileFiltersBag::default(),
             multiple: false,
             dir: true,
             save: false,
@@ -177,28 +177,6 @@ impl SaveSingleFile {
 
         Ok(backend)
     }
-
-    fn accepts(&self, path: &Option<PathBuf>) -> bool {
-        if self.filters.is_empty() {
-            return true;
-        }
-
-        let Some(path) = path else {
-            return true;
-        };
-
-        if let Some(ext) = path.extension() {
-            for filter in &self.filters {
-                for accepting in &filter.extensions {
-                    if OsStr::new(accepting) == ext {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        false
-    }
 }
 
 impl DialogImpl for SaveSingleFile {
@@ -210,7 +188,7 @@ impl DialogImpl for SaveSingleFile {
             let output = backend.exec()?;
 
             let path = output.map(parse_output);
-            if self.accepts(&path) {
+            if let Some(true) = path.as_deref().map(|x| self.filters.accepts(x)) {
                 break Ok(path);
             }
 
@@ -229,7 +207,7 @@ impl DialogImpl for SaveSingleFile {
             let output = backend.spawn().await?;
 
             let path = output.map(parse_output);
-            if self.accepts(&path) {
+            if let Some(true) = path.as_deref().map(|x| self.filters.accepts(x)) {
                 break Ok(path);
             }
 
@@ -256,7 +234,7 @@ fn get_target(location: Option<&Path>, filename: Option<&str>) -> Option<PathBuf
 
 struct Params<'a> {
     target: Option<&'a Path>,
-    filters: &'a [FileFilter],
+    filters: &'a FileFiltersBag,
     multiple: bool,
     dir: bool,
     save: bool,
@@ -298,9 +276,10 @@ fn init_kdialog(backend: &mut Backend, params: Params) {
         backend.command.args(["--multiple", "--separate-output"]);
     }
 
-    if !params.filters.is_empty() {
+    if !params.filters.items().is_empty() {
         let filters: Vec<String> = params
             .filters
+            .items()
             .iter()
             .map(|filter| filter.format("{desc} ({types})", "*{ext}", " "))
             .collect();
@@ -338,8 +317,8 @@ fn init_zenity(backend: &mut Backend, params: Params) {
         backend.command.arg(path);
     }
 
-    if !params.filters.is_empty() {
-        for filter in params.filters {
+    if !params.filters.items().is_empty() {
+        for filter in params.filters.items() {
             let formatted = filter.format("{desc} ({types}) | {types}", "*{ext}", " ");
             backend.command.arg("--file-filter");
             backend.command.arg(formatted);

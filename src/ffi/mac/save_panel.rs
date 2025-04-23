@@ -4,14 +4,12 @@ use objc2::rc::Retained as Id;
 use objc2::runtime::ProtocolObject;
 use objc2::MainThreadOnly;
 use objc2_app_kit::{
-    NSAppKitVersionNumber, NSAppKitVersionNumber11_0, NSApplication, NSApplicationActivationPolicy,
-    NSModalResponse, NSModalResponseOK, NSSavePanel, NSView, NSWindow,
+    NSApplication, NSApplicationActivationPolicy, NSModalResponse, NSModalResponseOK, NSSavePanel,
+    NSView, NSWindow,
 };
 use objc2_foundation::{MainThreadMarker, NSString, NSURL};
-use objc2_uniform_type_identifiers::UTType;
 
 use super::{NSURLExt, NSWindowExt, SavePanelDelegate};
-use crate::dialog::FileFilter;
 use crate::utils::UnsafeWindowHandle;
 
 pub trait NSSavePanelExt {

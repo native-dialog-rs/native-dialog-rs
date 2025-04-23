@@ -1,46 +1,32 @@
-use std::os::unix::ffi::OsStrExt;
-use std::path::Path;
-
 use formatx::formatx;
 
 #[derive(Debug, Clone, Default)]
 pub struct FileFiltersBag {
-    pub filters: Vec<FileFilter>,
+    pub items: Vec<FileFilter>,
 }
 
 impl FileFiltersBag {
     pub fn add(&mut self, description: impl ToString, extensions: &[impl ToString]) {
         if let Some(filter) = FileFilter::new(description, extensions) {
-            self.filters.push(filter);
+            self.items.push(filter);
         }
     }
 
     pub fn clear(&mut self) {
-        self.filters.clear();
+        self.items.clear();
     }
 
-    pub fn first(&self) -> Option<&FileFilter> {
-        self.filters.first()
+    pub fn items(&self) -> &[FileFilter] {
+        &self.items
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.filters.is_empty()
-    }
-
-    pub fn get(&self, index: usize) -> Option<&FileFilter> {
-        self.filters.get(index)
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &FileFilter> {
-        self.filters.iter()
-    }
-
-    pub fn accepts(&self, path: impl AsRef<Path>) -> bool {
-        if self.filters.is_empty() {
+    #[cfg(unix)]
+    pub fn accepts(&self, path: impl AsRef<std::path::Path>) -> bool {
+        if self.items.is_empty() {
             return true;
         }
 
-        for filter in &self.filters {
+        for filter in &self.items {
             if filter.accepts(&path) {
                 return true;
             }
@@ -79,7 +65,10 @@ impl FileFilter {
         })
     }
 
-    pub fn accepts(&self, path: impl AsRef<Path>) -> bool {
+    #[cfg(unix)]
+    pub fn accepts(&self, path: impl AsRef<std::path::Path>) -> bool {
+        use std::os::unix::ffi::OsStrExt;
+
         if let Some(name) = path.as_ref().file_name() {
             for accepting in &self.extensions {
                 if name.as_bytes().ends_with(accepting.as_bytes()) {
