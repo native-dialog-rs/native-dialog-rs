@@ -18,7 +18,7 @@ impl NSOpenPanelAsyncExt for NSOpenPanel {
 
             (response == NSModalResponseOK)
                 .then(|| unsafe { panel.URLs() })
-                .map(|urls| urls.into_iter().map(|x| x.to_path_buf()).collect())
+                .map(|urls| urls.into_iter().filter_map(|x| x.to_path_buf()).collect())
                 .unwrap_or_default()
         })
     }

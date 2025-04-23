@@ -25,7 +25,7 @@ impl NSSavePanelAsyncExt for NSSavePanel {
             (response == NSModalResponseOK)
                 .then(|| unsafe { panel.URL() })
                 .flatten()
-                .map(|url| url.to_path_buf())
+                .and_then(|url| url.to_path_buf())
         })
     }
 

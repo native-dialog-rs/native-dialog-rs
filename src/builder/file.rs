@@ -1,7 +1,9 @@
 use raw_window_handle::HasWindowHandle;
 use std::path::{Path, PathBuf};
 
-use crate::dialog::{Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
+use crate::dialog::{
+    FileFiltersBag, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
+};
 use crate::utils::UnsafeWindowHandle;
 
 /// Builder for file dialogs.
@@ -9,7 +11,7 @@ use crate::utils::UnsafeWindowHandle;
 pub struct FileDialogBuilder {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,
-    pub filters: Vec<Filter>,
+    pub filters: FileFiltersBag,
     pub owner: UnsafeWindowHandle,
     pub title: Option<String>,
 }
@@ -50,21 +52,13 @@ impl FileDialogBuilder {
     /// Adds a file type filter. The filter must contains at least one extension, otherwise this
     /// method will be a no-op. For dialogs that open directories, this is also a no-op.
     pub fn add_filter(mut self, description: impl ToString, extensions: &[impl ToString]) -> Self {
-        if extensions.is_empty() {
-            return self;
-        }
-
-        self.filters.push(Filter {
-            description: description.to_string(),
-            extensions: extensions.iter().map(ToString::to_string).collect(),
-        });
-
+        self.filters.add(description, extensions);
         self
     }
 
     /// Removes all file type filters.
     pub fn reset_filters(mut self) -> Self {
-        self.filters = vec![];
+        self.filters.clear();
         self
     }
 

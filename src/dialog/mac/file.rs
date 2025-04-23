@@ -25,8 +25,6 @@ impl OpenSingleFile {
             panel.set_directory_url(location);
         }
 
-        panel.set_filters(&self.filters);
-
         panel
     }
 }
@@ -35,7 +33,7 @@ impl DialogImpl for OpenSingleFile {
     fn show(self) -> Result<Self::Output> {
         let res = run_on_main(|mtm| {
             let panel = self.create(mtm);
-            let _ = OpenPanelDelegate::attach(&panel, &self.filters);
+            let _delegate = OpenPanelDelegate::attach(&panel, &self.filters);
             panel.show(self.owner)
         });
 
@@ -61,7 +59,6 @@ impl OpenMultipleFile {
         let panel = NSOpenPanel::open_panel(mtm);
 
         panel.set_title(&self.title);
-        panel.set_filters(&self.filters);
 
         panel.set_can_choose_files(true);
         panel.set_can_choose_directories(false);
@@ -83,7 +80,7 @@ impl DialogImpl for OpenMultipleFile {
     fn show(self) -> Result<Self::Output> {
         let res = run_on_main(|mtm| {
             let panel = self.create(mtm);
-            let _ = OpenPanelDelegate::attach(&panel, &self.filters);
+            let _delegate = OpenPanelDelegate::attach(&panel, &self.filters);
             panel.show(self.owner)
         });
 
@@ -172,7 +169,7 @@ impl DialogImpl for SaveSingleFile {
     fn show(self) -> Result<Self::Output> {
         let res = run_on_main(|mtm| {
             let panel = self.create(mtm);
-            let _ = SavePanelDelegate::attach(&panel, &self.filters);
+            let _delegate = SavePanelDelegate::attach(&panel, &self.filters);
             panel.show(self.owner)
         });
 

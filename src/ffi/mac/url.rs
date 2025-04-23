@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 pub trait NSURLExt {
     fn new_path(s: &Path) -> Id<Self>;
-    fn to_path_buf(&self) -> PathBuf;
+    fn to_path_buf(&self) -> Option<PathBuf>;
 }
 
 impl NSURLExt for NSURL {
@@ -13,14 +13,11 @@ impl NSURLExt for NSURL {
         unsafe { NSURL::fileURLWithPath(&s) }
     }
 
-    fn to_path_buf(&self) -> PathBuf {
+    fn to_path_buf(&self) -> Option<PathBuf> {
         unsafe {
             self.absoluteURL()
-                .unwrap()
-                .path()
-                .unwrap()
-                .to_string()
-                .into()
+                .and_then(|x| x.path())
+                .map(|x| x.to_string().into())
         }
     }
 }

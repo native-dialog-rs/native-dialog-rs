@@ -6,7 +6,7 @@ use wfd::{
 };
 
 use crate::dialog::{
-    DialogImpl, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
+    DialogImpl, FileFilter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
 use crate::utils::{resolve_tilde, UnsafeWindowHandle};
 use crate::{Error, Result};
@@ -127,7 +127,7 @@ pub struct OpenDialogParams<'a> {
     title: &'a str,
     filename: Option<&'a str>,
     location: Option<&'a Path>,
-    filters: &'a [Filter],
+    filters: &'a [FileFilter],
     owner: UnsafeWindowHandle,
     multiple: bool,
     dir: bool,
@@ -171,7 +171,7 @@ pub struct SaveDialogParams<'a> {
     title: &'a str,
     filename: Option<&'a str>,
     location: Option<&'a Path>,
-    filters: &'a [Filter],
+    filters: &'a [FileFilter],
     owner: UnsafeWindowHandle,
 }
 
@@ -210,12 +210,12 @@ fn save_dialog(params: SaveDialogParams) -> Result<Option<SaveDialogResult>> {
     convert_result(result)
 }
 
-fn get_dialog_file_types(filters: &[Filter]) -> Vec<(&str, String)> {
+fn get_dialog_file_types(filters: &[FileFilter]) -> Vec<(&str, String)> {
     filters
         .iter()
         .map(|filter| {
             let desc = &*filter.description;
-            let types = filter.format("{types}", "*.{ext}", ";");
+            let types = filter.format("{types}", "*{ext}", ";");
             (desc, types)
         })
         .collect()

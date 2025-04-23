@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use super::backend::{Backend, BackendKind};
 use crate::dialog::{
-    DialogImpl, Filter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
+    DialogImpl, FileFilter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
 use crate::utils::resolve_tilde;
 use crate::Result;
@@ -256,7 +256,7 @@ fn get_target(location: Option<&Path>, filename: Option<&str>) -> Option<PathBuf
 
 struct Params<'a> {
     target: Option<&'a Path>,
-    filters: &'a [Filter],
+    filters: &'a [FileFilter],
     multiple: bool,
     dir: bool,
     save: bool,
@@ -302,17 +302,7 @@ fn init_kdialog(backend: &mut Backend, params: Params) {
         let filters: Vec<String> = params
             .filters
             .iter()
-            .map(|filter| {
-                // let extensions: Vec<String> = filter
-                //     .extensions
-                //     .iter()
-                //     .map(|s| format!("*.{}", s))
-                //     .collect();
-                // format!("{} ({})", filter.description, extensions.join(" "))
-
-                // TODO: test this
-                filter.format("{desc} ({types})", "*.{ext}", " ")
-            })
+            .map(|filter| filter.format("{desc} ({types})", "*{ext}", " "))
             .collect();
 
         backend.command.arg(filters.join("\n"));
@@ -350,21 +340,7 @@ fn init_zenity(backend: &mut Backend, params: Params) {
 
     if !params.filters.is_empty() {
         for filter in params.filters {
-            // let extensions: Vec<String> = filter
-            //     .extensions
-            //     .iter()
-            //     .map(|s| format!("*.{}", s))
-            //     .collect();
-            // let extensions = extensions.join(" ");
-
-            // backend.command.arg("--file-filter");
-            // backend.command.arg(format!(
-            //     "{} ({}) | {}",
-            //     filter.description, extensions, extensions
-            // ));
-
-            // TODO: test this
-            let formatted = filter.format("{desc} ({types}) | {types}", "*.{ext}", " ");
+            let formatted = filter.format("{desc} ({types}) | {types}", "*{ext}", " ");
             backend.command.arg("--file-filter");
             backend.command.arg(formatted);
         }

@@ -1,6 +1,9 @@
 mod file;
 pub use file::*;
 
+mod filter;
+pub use filter::*;
+
 mod message;
 pub use message::*;
 

@@ -1,15 +1,15 @@
 use objc2::rc::Retained as Id;
-use objc2::{define_class, msg_send, MainThreadOnly, Message};
+use objc2::{define_class, msg_send, DefinedClass, MainThreadOnly, Message};
 use objc2_app_kit::{NSOpenPanel, NSOpenSavePanelDelegate};
-use objc2_foundation::{NSError, NSObject, NSObjectProtocol, NSString, NSURL};
+use objc2_foundation::{NSObject, NSObjectProtocol, NSURL};
 
-use crate::dialog::Filter;
+use crate::dialog::FileFiltersBag;
 
-use super::NSOpenPanelExt;
+use super::{NSOpenPanelExt, NSURLExt};
 
 pub struct OpenPanelDelegateIvars {
     _panel: Id<NSOpenPanel>,
-    _filters: Vec<Filter>,
+    filters: FileFiltersBag,
 }
 
 define_class! {
@@ -21,35 +21,18 @@ define_class! {
     unsafe impl NSObjectProtocol for OpenPanelDelegate {}
 
     unsafe impl NSOpenSavePanelDelegate for OpenPanelDelegate {
-        // Not supported yet.
-        // https://github.com/madsmtm/objc2/issues/283
-        // #[unsafe(method(panel:validateURL:error:_))]
-        // fn panel_validateURL_error(&self, sender: &AnyObject, url: &NSURL) -> Result<(), Id<NSError>> {
-        //     Ok(())
-        // }
-    }
-
-    // Workaround for the above
-    impl OpenPanelDelegate {
-        #[unsafe(method(panel:validateURL:error:))]
-        fn validate_url(&self, sender: &NSOpenPanel, url: &NSURL, error: Option<&mut *mut NSError>) {
-            // TODO: custom open panel filter
-            // println!("TODO: {sender:?} {url:?}");
-
-            if let Some(out) = error {
-                // let msg = format!("TODO: {url:?}");
-                // *out = Id::autorelease_ptr(NSError::new(1, &NSString::from_str(&msg)));
-                *out = std::ptr::null_mut();
-            }
+        #[unsafe(method(panel:shouldEnableURL:))]
+        unsafe fn should_enable_url(&self, _sender: &NSOpenPanel, url: &NSURL) -> bool {
+            matches!(url.to_path_buf().map(|x| self.ivars().filters.accepts(&x)), Some(true))
         }
     }
 }
 
 impl OpenPanelDelegate {
-    pub fn attach(panel: &NSOpenPanel, filters: &[Filter]) -> Id<Self> {
+    pub fn attach(panel: &NSOpenPanel, filters: &FileFiltersBag) -> Id<Self> {
         let ivars = OpenPanelDelegateIvars {
             _panel: panel.retain(),
-            _filters: filters.to_owned(),
+            filters: filters.to_owned(),
         };
 
         let this = Self::alloc(panel.mtm()).set_ivars(ivars);
