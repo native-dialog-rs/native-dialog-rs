@@ -4,9 +4,8 @@ use block2::RcBlock;
 use objc2::Message;
 use objc2_app_kit::{NSAlert, NSModalResponse, NSWindow};
 
-use crate::utils::UnsafeWindowHandle;
-
 use super::DispatchResponse;
+use crate::utils::UnsafeWindowHandle;
 
 pub trait NSAlertAsyncExt {
     fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<NSModalResponse>;

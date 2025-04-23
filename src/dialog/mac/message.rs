@@ -21,7 +21,7 @@ impl DialogImpl for MessageAlert {
 
             alert.set_informative_text(&self.text);
             alert.set_message_text(&self.title);
-            alert.set_level(self.level);
+            alert.set_level_icon(self.level);
 
             alert.spawn(self.owner)
         });
@@ -48,7 +48,7 @@ impl DialogImpl for MessageConfirm {
 
             alert.set_informative_text(&self.text);
             alert.set_message_text(&self.title);
-            alert.set_level(self.level);
+            alert.set_level_icon(self.level);
 
             alert.add_button("Yes");
             alert.add_button("No");

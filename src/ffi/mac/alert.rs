@@ -1,12 +1,11 @@
 use objc2_app_kit::NSAlert;
 use objc2_foundation::{NSBundle, NSString};
 
+use super::NSBundleExt;
 use crate::MessageLevel;
 
-use super::NSBundleExt;
-
 pub trait NSAlertExt {
-    fn set_level(&self, level: MessageLevel) -> bool;
+    fn set_level_icon(&self, level: MessageLevel) -> bool;
 
     fn set_informative_text(&self, text: &str);
     fn set_message_text(&self, text: &str);
@@ -14,25 +13,18 @@ pub trait NSAlertExt {
 }
 
 impl NSAlertExt for NSAlert {
-    fn set_level(&self, level: MessageLevel) -> bool {
-        let path = "/System/Library/CoreServices/CoreTypes.bundle";
-        let Some(bundle) = NSBundle::of_path(path) else {
-            return false;
-        };
-
+    fn set_level_icon(&self, level: MessageLevel) -> bool {
+        let bundle = "/System/Library/CoreServices/CoreTypes.bundle";
         let name = match level {
             MessageLevel::Info => "AlertNoteIcon",
             MessageLevel::Warning => "AlertCautionIcon",
             MessageLevel::Error => "AlertStopIcon",
         };
 
-        let Some(image) = bundle.image_named(name) else {
-            return false;
-        };
+        let icon = NSBundle::from_path(bundle).and_then(|x| x.image(name));
+        unsafe { self.setIcon(icon.as_deref()) };
 
-        unsafe { self.setIcon(Some(&image)) };
-
-        true
+        icon.is_some()
     }
 
     fn set_informative_text(&self, text: &str) {

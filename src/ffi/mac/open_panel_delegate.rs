@@ -3,9 +3,8 @@ use objc2::{define_class, msg_send, DefinedClass, MainThreadOnly};
 use objc2_app_kit::{NSOpenPanel, NSOpenSavePanelDelegate};
 use objc2_foundation::{NSObject, NSObjectProtocol, NSURL};
 
-use crate::dialog::FileFiltersBag;
-
 use super::{NSOpenPanelExt, NSURLExt};
+use crate::dialog::FileFiltersBag;
 
 pub struct OpenPanelDelegateIvars {
     filters: FileFiltersBag,
