@@ -2,15 +2,15 @@ use std::path::PathBuf;
 
 use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
 
-use super::{AppKitFuture, NSSavePanelAsyncExt, NSURLExt};
+use super::{DispatchResponse, NSSavePanelAsyncExt, NSURLExt};
 use crate::utils::UnsafeWindowHandle;
 
 pub trait NSOpenPanelAsyncExt {
-    fn spawn(&self, owner: UnsafeWindowHandle) -> AppKitFuture<Vec<PathBuf>>;
+    fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<Vec<PathBuf>>;
 }
 
 impl NSOpenPanelAsyncExt for NSOpenPanel {
-    fn spawn(&self, owner: UnsafeWindowHandle) -> AppKitFuture<Vec<PathBuf>> {
+    fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<Vec<PathBuf>> {
         let owner = unsafe { owner.as_appkit() };
 
         self.begin(owner.as_deref(), move |panel, response| {

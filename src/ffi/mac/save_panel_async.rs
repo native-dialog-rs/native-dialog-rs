@@ -5,20 +5,20 @@ use block2::RcBlock;
 use objc2::Message;
 use objc2_app_kit::{NSModalResponse, NSModalResponseOK, NSSavePanel, NSWindow};
 
-use super::{AppKitFuture, NSURLExt};
+use super::{DispatchResponse, NSURLExt};
 use crate::utils::UnsafeWindowHandle;
 
 pub trait NSSavePanelAsyncExt {
-    fn spawn(&self, owner: UnsafeWindowHandle) -> AppKitFuture<Option<PathBuf>>;
+    fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<Option<PathBuf>>;
 
-    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> AppKitFuture<T>
+    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> DispatchResponse<T>
     where
         T: Default + Send + 'static,
         F: Fn(&NSSavePanel, NSModalResponse) -> T + Send + 'static;
 }
 
 impl NSSavePanelAsyncExt for NSSavePanel {
-    fn spawn(&self, owner: UnsafeWindowHandle) -> AppKitFuture<Option<PathBuf>> {
+    fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<Option<PathBuf>> {
         let owner = unsafe { owner.as_appkit() };
 
         self.begin(owner.as_deref(), move |panel, response| {
@@ -29,7 +29,7 @@ impl NSSavePanelAsyncExt for NSSavePanel {
         })
     }
 
-    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> AppKitFuture<T>
+    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> DispatchResponse<T>
     where
         T: Default + Send + 'static,
         F: Fn(&NSSavePanel, NSModalResponse) -> T + Send + 'static,
@@ -51,6 +51,6 @@ impl NSSavePanelAsyncExt for NSSavePanel {
             }
         }
 
-        AppKitFuture::from_oneshot(recv)
+        DispatchResponse::new(recv)
     }
 }

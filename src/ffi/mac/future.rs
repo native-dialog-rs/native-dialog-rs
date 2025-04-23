@@ -5,41 +5,37 @@ use std::task::{Context, Poll};
 use futures_channel::oneshot::Receiver;
 use futures_lite::FutureExt;
 use objc2::rc::Retained as Id;
-use objc2::ClassType;
-use objc2_foundation::NSObject;
+use objc2::runtime::AnyObject;
 
-pub struct AppKitFuture<T: Default> {
-    recv: Receiver<T>,
-    retained: Vec<Id<NSObject>>,
+pub struct DispatchResponse<T> {
+    receiver: Receiver<T>,
+    retained: Vec<Id<AnyObject>>,
 }
 
-unsafe impl<T: Default> Send for AppKitFuture<T> {}
-unsafe impl<T: Default> Sync for AppKitFuture<T> {}
+unsafe impl<T: Send> Send for DispatchResponse<T> {}
+unsafe impl<T: Sync> Sync for DispatchResponse<T> {}
 
-impl<T: Default> Future for AppKitFuture<T> {
+impl<T: Default> Future for DispatchResponse<T> {
     type Output = T;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        match self.recv.poll(cx) {
+        match self.receiver.poll(cx) {
             Poll::Pending => Poll::Pending,
             Poll::Ready(x) => Poll::Ready(x.unwrap_or_default()),
         }
     }
 }
 
-impl<T: Default> AppKitFuture<T> {
-    pub fn from_oneshot(recv: Receiver<T>) -> Self {
+impl<T: Default> DispatchResponse<T> {
+    pub fn new(receiver: Receiver<T>) -> Self {
         Self {
-            recv,
+            receiver,
             retained: vec![],
         }
     }
 
-    pub fn retain<U>(mut self, object: Id<U>) -> Self
-    where
-        U: ClassType<Super = NSObject> + 'static,
-    {
-        self.retained.push(object.into_super());
+    pub fn retain(mut self, object: impl Into<Id<AnyObject>>) -> Self {
+        self.retained.push(object.into());
         self
     }
 }
