@@ -4,6 +4,9 @@ pub use user_notification::*;
 mod bundle;
 pub use bundle::*;
 
+mod image;
+pub use image::*;
+
 mod url;
 pub use url::*;
 

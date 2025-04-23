@@ -1,11 +1,11 @@
-use objc2_app_kit::NSAlert;
+use objc2_app_kit::{NSAlert, NSImage};
 use objc2_foundation::{NSBundle, NSString};
 
-use super::NSBundleExt;
+use super::{NSBundleExt, NSImageExt};
 use crate::MessageLevel;
 
 pub trait NSAlertExt {
-    fn set_level_icon(&self, level: MessageLevel) -> bool;
+    fn set_level_icon(&self, level: MessageLevel);
 
     fn set_informative_text(&self, text: &str);
     fn set_message_text(&self, text: &str);
@@ -13,7 +13,7 @@ pub trait NSAlertExt {
 }
 
 impl NSAlertExt for NSAlert {
-    fn set_level_icon(&self, level: MessageLevel) -> bool {
+    fn set_level_icon(&self, level: MessageLevel) {
         let bundle = "/System/Library/CoreServices/CoreTypes.bundle";
         let name = match level {
             MessageLevel::Info => "AlertNoteIcon",
@@ -21,10 +21,17 @@ impl NSAlertExt for NSAlert {
             MessageLevel::Error => "AlertStopIcon",
         };
 
-        let icon = NSBundle::from_path(bundle).and_then(|x| x.image(name));
-        unsafe { self.setIcon(icon.as_deref()) };
+        if let Some(icon) = NSBundle::from_path(bundle).and_then(|x| x.image(name)) {
+            return unsafe { self.setIcon(Some(&icon)) };
+        };
 
-        icon.is_some()
+        let icon = NSImage::emoji(match level {
+            MessageLevel::Info => "💡",
+            MessageLevel::Warning => "⚠️",
+            MessageLevel::Error => "🛑",
+        });
+
+        unsafe { self.setIcon(Some(&icon)) };
     }
 
     fn set_informative_text(&self, text: &str) {
