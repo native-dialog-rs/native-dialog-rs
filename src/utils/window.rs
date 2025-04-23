@@ -162,7 +162,7 @@ mod x11 {
     impl Handle {
         pub fn new(handle: RawWindowHandle) -> Self {
             let inner = match handle {
-                RawWindowHandle::Xlib(handle) => Some(handle.window),
+                RawWindowHandle::Xlib(handle) => Some(handle.window as _),
                 RawWindowHandle::Xcb(handle) => Some(handle.window.get() as _),
                 _ => None,
             };
