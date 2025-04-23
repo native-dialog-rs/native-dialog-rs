@@ -98,6 +98,7 @@ impl NSSavePanelExt for NSSavePanel {
         if unsafe { NSAppKitVersionNumber > NSAppKitVersionNumber11_0 } {
             let types = extensions
                 .map(|x| NSString::from_str(x))
+                // TODO: will panic here if extension contains period
                 .map(|x| unsafe { UTType::typeWithFilenameExtension(&x) }.unwrap())
                 .collect::<Id<_>>();
 

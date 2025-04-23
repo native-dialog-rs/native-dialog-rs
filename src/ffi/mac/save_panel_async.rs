@@ -2,24 +2,23 @@ use std::cell::Cell;
 use std::path::PathBuf;
 
 use block2::RcBlock;
-use futures_channel::oneshot::Receiver;
 use objc2::Message;
 use objc2_app_kit::{NSModalResponse, NSModalResponseOK, NSSavePanel, NSWindow};
 
-use super::NSURLExt;
+use super::{AppKitFuture, NSURLExt};
 use crate::utils::UnsafeWindowHandle;
 
 pub trait NSSavePanelAsyncExt {
-    fn spawn(&self, owner: UnsafeWindowHandle) -> Receiver<Option<PathBuf>>;
+    fn spawn(&self, owner: UnsafeWindowHandle) -> AppKitFuture<Option<PathBuf>>;
 
-    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> Receiver<T>
+    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> AppKitFuture<T>
     where
-        T: Send + 'static,
+        T: Default + Send + 'static,
         F: Fn(&NSSavePanel, NSModalResponse) -> T + Send + 'static;
 }
 
 impl NSSavePanelAsyncExt for NSSavePanel {
-    fn spawn(&self, owner: UnsafeWindowHandle) -> Receiver<Option<PathBuf>> {
+    fn spawn(&self, owner: UnsafeWindowHandle) -> AppKitFuture<Option<PathBuf>> {
         let owner = unsafe { owner.as_appkit() };
 
         self.begin(owner.as_deref(), move |panel, response| {
@@ -30,9 +29,9 @@ impl NSSavePanelAsyncExt for NSSavePanel {
         })
     }
 
-    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> Receiver<T>
+    fn begin<T, F>(&self, owner: Option<&NSWindow>, callback: F) -> AppKitFuture<T>
     where
-        T: Send + 'static,
+        T: Default + Send + 'static,
         F: Fn(&NSSavePanel, NSModalResponse) -> T + Send + 'static,
     {
         let (send, recv) = futures_channel::oneshot::channel();
@@ -52,6 +51,6 @@ impl NSSavePanelAsyncExt for NSSavePanel {
             }
         }
 
-        recv
+        AppKitFuture::from_oneshot(recv)
     }
 }

@@ -1,8 +1,7 @@
 use std::cell::Cell;
-use std::marker::PhantomData;
 
 use objc2::rc::Retained as Id;
-use objc2::{define_class, msg_send, sel, ClassType, DefinedClass, MainThreadOnly, Message};
+use objc2::{define_class, msg_send, sel, DefinedClass, MainThreadOnly, Message};
 use objc2_app_kit::{
     NSColor, NSLayoutConstraintOrientation, NSPopUpButton, NSSavePanel, NSStackView,
     NSStackViewGravity, NSTextField, NSView,
@@ -12,56 +11,50 @@ use objc2_foundation::{NSArray, NSEdgeInsets, NSObject, NSPoint, NSRect, NSSize,
 use super::{NSColorExt, NSPopUpButtonExt, NSSavePanelExt, NSStackViewExt, NSTextFieldExt};
 use crate::dialog::Filter;
 
-pub struct SavePanelFiltersIvars {
+pub struct SavePanelDelegateIvars {
     panel: Id<NSSavePanel>,
     accessory: Cell<Option<Id<NSView>>>,
-    filters: Cell<*const Vec<Filter>>,
+    filters: Vec<Filter>,
 }
 
 define_class! {
     #[unsafe(super = NSObject)]
     #[thread_kind = MainThreadOnly]
-    #[name = "__RustNativeDialogSavePanelFilters"]
-    #[ivars = SavePanelFiltersIvars]
-    pub struct SavePanelFilters;
+    #[ivars = SavePanelDelegateIvars]
+    pub struct SavePanelDelegate;
 
-    impl SavePanelFilters {
+    impl SavePanelDelegate {
         #[unsafe(method(onItemSelected:))]
         fn on_item_selected(&self, sender: &NSPopUpButton) {
             let ivars = self.ivars();
-            if let Some(filters) = unsafe { ivars.filters.get().as_ref() } {
-                let index = unsafe { sender.indexOfSelectedItem() };
-                if let Some(filter) = filters.get(index as usize) {
-                    ivars.panel.set_filters(&[filter.clone()]);
-                }
+            let index = unsafe { sender.indexOfSelectedItem() };
+            if let Some(filter) = ivars.filters.get(index as usize) {
+                ivars.panel.set_filters(&[filter.clone()]);
             }
         }
     }
 }
 
-impl SavePanelFilters {
-    pub fn attach<'a>(panel: &NSSavePanel, filters: &'a Vec<Filter>) -> Guard<'a> {
-        let ivars = SavePanelFiltersIvars {
+impl SavePanelDelegate {
+    pub fn attach(panel: &NSSavePanel, filters: &[Filter]) -> Id<Self> {
+        let ivars = SavePanelDelegateIvars {
             panel: panel.retain(),
             accessory: Cell::new(None),
-            filters: Cell::new(filters as *const Vec<Filter> as *const _),
+            filters: filters.to_owned(),
         };
 
-        let target = Self::alloc(panel.mtm()).set_ivars(ivars);
-        let target: Id<Self> = unsafe { msg_send![super(target), init] };
+        let this = Self::alloc(panel.mtm()).set_ivars(ivars);
+        let this: Id<Self> = unsafe { msg_send![super(this), init] };
 
         // If there are filters specified, show a dropdown on the panel
         if let Some(first) = filters.first() {
-            let accessory = target.create_accessory(filters);
+            let accessory = this.create_accessory(filters);
             panel.set_accessory_view(Some(&accessory));
             panel.set_filters(&[first.clone()]);
-            target.ivars().accessory.set(Some(accessory));
+            this.ivars().accessory.set(Some(accessory));
         }
 
-        Guard {
-            target,
-            _marker: PhantomData,
-        }
+        this
     }
 
     fn create_accessory(&self, filters: &[Filter]) -> Id<NSView> {
@@ -91,7 +84,7 @@ impl SavePanelFilters {
         stack.add_view_in_gravity(&label, NSStackViewGravity::Center);
         stack.add_view_in_gravity(&dropdown, NSStackViewGravity::Center);
 
-        stack.as_super().retain()
+        stack.into_super()
     }
 
     fn format_titles(&self, filters: &[Filter]) -> Id<NSArray<NSString>> {
@@ -100,16 +93,5 @@ impl SavePanelFilters {
             .map(|filter| filter.format("{desc} ({types})", "*.{ext}", " "))
             .map(|title| NSString::from_str(&title))
             .collect()
-    }
-}
-
-pub struct Guard<'a> {
-    target: Id<SavePanelFilters>,
-    _marker: PhantomData<&'a Vec<Filter>>,
-}
-
-impl Drop for Guard<'_> {
-    fn drop(&mut self) {
-        self.target.ivars().filters.set(std::ptr::null());
     }
 }

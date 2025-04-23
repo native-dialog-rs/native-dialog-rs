@@ -41,7 +41,11 @@ fn view() -> impl Widget<Data = ()> {
         .on_message(|_ctx, state, Update(path)| state.path = path)
         .on_message(|ctx, state, Pick| {
             let owner = ctx.winit_window().unwrap();
-            let dialog = DialogBuilder::file().set_owner(owner).open_single_file();
+            let dialog = DialogBuilder::file()
+                .set_owner(owner)
+                .add_filter("PNG", &["png"])
+                .add_filter("JPEG", &["jpg", "jpeg"])
+                .save_single_file();
 
             ctx.push_async(state.id.clone(), async {
                 Update(dialog.spawn().await.unwrap())
