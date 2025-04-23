@@ -1,0 +1,22 @@
+use objc2::rc::Retained as Id;
+use objc2_app_kit::{NSBundleImageExtension, NSImage};
+use objc2_foundation::{NSBundle, NSString};
+
+pub trait NSBundleExt {
+    fn of_path(path: &str) -> Option<Id<Self>>;
+    fn image_named(&self, name: &str) -> Option<Id<NSImage>>;
+}
+
+impl NSBundleExt for NSBundle {
+    fn of_path(path: &str) -> Option<Id<Self>> {
+        let path = NSString::from_str(path);
+        unsafe { NSBundle::bundleWithPath(&path) }
+    }
+
+    fn image_named(&self, name: &str) -> Option<Id<NSImage>> {
+        unsafe {
+            let name = NSString::from_str(name);
+            self.imageForResource(&name)
+        }
+    }
+}

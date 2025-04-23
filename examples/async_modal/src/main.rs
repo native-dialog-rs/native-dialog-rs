@@ -37,12 +37,23 @@ fn view() -> impl Widget<Data = ()> {
     });
 
     Adapt::new(tree, State::default())
-        .on_message(|_ctx, state, Configure(id)| state.id = id)
-        .on_message(|_ctx, state, Update(path)| state.path = path)
+        .on_message(|_, state, Configure(id)| state.id = id)
+        .on_message(|ctx, state, Update(path)| {
+            state.path = path.clone();
+
+            let dialog = DialogBuilder::message()
+                .set_owner(ctx.winit_window().unwrap())
+                .set_title("Update")
+                .set_text(format!("{:?}", path))
+                .alert();
+
+            ctx.push_async(state.id.clone(), async {
+                dialog.spawn().await.unwrap();
+            })
+        })
         .on_message(|ctx, state, Pick| {
-            let owner = ctx.winit_window().unwrap();
             let dialog = DialogBuilder::file()
-                .set_owner(owner)
+                .set_owner(ctx.winit_window().unwrap())
                 .add_filter("PNG", &["png"])
                 .add_filter("JPEG", &["jpg", "jpeg"])
                 .save_single_file();
