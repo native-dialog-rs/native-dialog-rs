@@ -1,4 +1,5 @@
 use std::cell::Cell;
+use std::path::PathBuf;
 
 use objc2::rc::Retained as Id;
 use objc2::{define_class, msg_send, sel, DefinedClass, MainThreadOnly, Message};
@@ -35,17 +36,25 @@ define_class! {
                 return Id::into_raw(filename.retain());
             };
 
-            if filter.accepts(filename.to_string()) {
+            let path = PathBuf::from(filename.to_string());
+            if filter.accepts(&path) {
                 return Id::into_raw(filename.retain());
             }
 
-            let explain = format!("File \"{}\" is not of type {}.", filename, filter.description);
+            if path.extension().is_none() {
+                let filename = format!("{}{}", filename, filter.extensions.first().unwrap());
+                return Id::into_raw(NSString::from_str(&filename));
+            }
+
+            let explain = format!("Filename \"{}\" is not of type {}.", filename, filter.description);
 
             let alert = NSAlert::new(self.mtm());
             alert.setMessageText(&NSString::from_str("Unrecognized File Type"));
             alert.setInformativeText(&NSString::from_str(&explain));
             alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref());
             alert.beginSheetModalForWindow_completionHandler(sender, None);
+
+            // TODO: ask if continue anyway
 
             std::ptr::null_mut()
         }
