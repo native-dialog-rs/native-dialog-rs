@@ -1,19 +1,20 @@
 use std::cell::Cell;
 use std::path::PathBuf;
 
-use block2::RcBlock;
 use objc2::rc::Retained as Id;
 use objc2::{define_class, msg_send, sel, DefinedClass, MainThreadOnly, Message};
 use objc2_app_kit::{
-    NSAlert, NSAlertFirstButtonReturn, NSAlertSecondButtonReturn, NSApp, NSColor, NSImage,
-    NSImageNameCaution, NSLayoutConstraintOrientation, NSOpenSavePanelDelegate, NSPopUpButton,
-    NSSavePanel, NSStackView, NSStackViewGravity, NSTextField, NSView,
+    NSAlert, NSAlertFirstButtonReturn, NSColor, NSImage, NSImageNameCaution,
+    NSLayoutConstraintOrientation, NSOpenSavePanelDelegate, NSPopUpButton, NSSavePanel,
+    NSStackView, NSStackViewGravity, NSTextField, NSView,
 };
 use objc2_foundation::{
     NSArray, NSEdgeInsets, NSObject, NSObjectProtocol, NSPoint, NSRect, NSSize, NSString,
 };
 
-use super::{NSColorExt, NSPopUpButtonExt, NSSavePanelExt, NSStackViewExt, NSTextFieldExt};
+use super::{
+    NSAlertExt, NSColorExt, NSPopUpButtonExt, NSSavePanelExt, NSStackViewExt, NSTextFieldExt,
+};
 use crate::dialog::{FileFilter, FileFiltersBag};
 
 pub struct SavePanelDelegateIvars {
@@ -141,24 +142,16 @@ impl SavePanelDelegate {
 
         let mtm = self.mtm();
         let alert = NSAlert::new(mtm);
-        alert.setMessageText(&NSString::from_str("Unrecognized File Type"));
-        alert.setInformativeText(&NSString::from_str(&explain));
+        alert.set_message_text("Unrecognized File Type");
+        alert.set_informative_text(&explain);
         alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref());
 
-        let confirm = alert.addButtonWithTitle(&NSString::from_str("Continue Anyway"));
-        let cancel = alert.addButtonWithTitle(&NSString::from_str("Cancel"));
+        let confirm = alert.add_button("Continue Anyway");
+        let cancel = alert.add_button("Cancel");
         confirm.setKeyEquivalent(&NSString::from_str(""));
         cancel.setKeyEquivalent(&NSString::from_str("\r"));
 
-        alert.beginSheetModalForWindow_completionHandler(
-            panel,
-            Some(&RcBlock::new(move |response| {
-                // This is like... using NSApp as a sync oneshot channel. Magical!
-                NSApp(mtm).stopModalWithCode(response)
-            })),
-        );
-
-        let response = NSApp(mtm).runModalForWindow(&alert.window());
+        let response = alert.run(Some(panel));
         if response == NSAlertFirstButtonReturn {
             return Some(filename.retain());
         }

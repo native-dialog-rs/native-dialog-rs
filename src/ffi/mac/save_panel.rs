@@ -3,13 +3,10 @@ use std::path::{Path, PathBuf};
 use objc2::rc::Retained as Id;
 use objc2::runtime::ProtocolObject;
 use objc2::MainThreadOnly;
-use objc2_app_kit::{
-    NSApplication, NSApplicationActivationPolicy, NSModalResponse, NSModalResponseOK, NSSavePanel,
-    NSView, NSWindow,
-};
+use objc2_app_kit::{NSApp, NSModalResponse, NSModalResponseOK, NSSavePanel, NSView, NSWindow};
 use objc2_foundation::{MainThreadMarker, NSString, NSURL};
 
-use super::{NSURLExt, NSWindowExt, SavePanelDelegate};
+use super::{NSApplicationExt, NSURLExt, SavePanelDelegate};
 use crate::utils::UnsafeWindowHandle;
 
 pub trait NSSavePanelExt {
@@ -43,24 +40,10 @@ impl NSSavePanelExt for NSSavePanel {
     }
 
     fn run(&self, owner: Option<&NSWindow>) -> NSModalResponse {
+        let app = NSApp(self.mtm());
         match owner {
-            Some(window) => {
-                window.begin_sheet(self);
-                let response = unsafe { self.runModal() };
-                window.end_sheet(self, response);
-
-                response
-            }
-            None => {
-                let app = NSApplication::sharedApplication(self.mtm());
-                let policy = unsafe { app.activationPolicy() };
-
-                app.setActivationPolicy(NSApplicationActivationPolicy::Accessory);
-                let response = unsafe { self.runModal() };
-                app.setActivationPolicy(policy);
-
-                response
-            }
+            Some(window) => app.run_sheet(window, &***self),
+            None => app.run_modal(&***self),
         }
     }
 

@@ -1,18 +1,36 @@
-use objc2_app_kit::{NSAlert, NSImage};
+use objc2::rc::Retained as Id;
+use objc2::MainThreadOnly;
+use objc2_app_kit::{NSAlert, NSApp, NSButton, NSImage, NSModalResponse, NSWindow};
 use objc2_foundation::{NSBundle, NSString};
 
-use super::{NSBundleExt, NSImageExt};
+use super::{NSApplicationExt, NSBundleExt, NSImageExt};
+use crate::utils::UnsafeWindowHandle;
 use crate::MessageLevel;
 
 pub trait NSAlertExt {
-    fn set_level_icon(&self, level: MessageLevel);
+    fn show(&self, owner: UnsafeWindowHandle) -> NSModalResponse;
+    fn run(&self, owner: Option<&NSWindow>) -> NSModalResponse;
 
+    fn set_level_icon(&self, level: MessageLevel);
     fn set_informative_text(&self, text: &str);
     fn set_message_text(&self, text: &str);
-    fn add_button(&self, title: &str);
+    fn add_button(&self, title: &str) -> Id<NSButton>;
 }
 
 impl NSAlertExt for NSAlert {
+    fn show(&self, owner: UnsafeWindowHandle) -> NSModalResponse {
+        let owner = unsafe { owner.as_appkit() };
+        self.run(owner.as_deref())
+    }
+
+    fn run(&self, owner: Option<&NSWindow>) -> NSModalResponse {
+        let app = NSApp(self.mtm());
+        match owner {
+            Some(window) => app.run_sheet(window, self),
+            None => app.run_modal(self),
+        }
+    }
+
     fn set_level_icon(&self, level: MessageLevel) {
         let bundle = "/System/Library/CoreServices/CoreTypes.bundle";
         let icon = NSBundle::from_path(bundle)
@@ -50,8 +68,8 @@ impl NSAlertExt for NSAlert {
         unsafe { self.setMessageText(&text) };
     }
 
-    fn add_button(&self, title: &str) {
+    fn add_button(&self, title: &str) -> Id<NSButton> {
         let title = NSString::from_str(title);
-        unsafe { self.addButtonWithTitle(&title) };
+        unsafe { self.addButtonWithTitle(&title) }
     }
 }
