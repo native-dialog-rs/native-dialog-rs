@@ -8,7 +8,7 @@ use objc2_app_kit::{
 };
 use objc2_core_foundation::{CGFloat, CGPoint, CGRect, CGSize};
 use objc2_core_graphics::{kCGColorBlack, CGBlendMode, CGColor, CGContext, CGImage};
-use objc2_foundation::{NSMutableDictionary, NSRect, NSString};
+use objc2_foundation::{NSMutableDictionary, NSString};
 
 pub trait NSImageExt {
     fn draw<F>(size: CGSize, draw: F) -> Id<Self>
@@ -17,7 +17,7 @@ pub trait NSImageExt {
 
     fn text(text: &str, scale: CGFloat, shadow: bool) -> Id<Self>;
     fn stack(back: &Self, front: &Self, stagger: (CGFloat, CGFloat)) -> Id<Self>;
-    fn rect(&self) -> NSRect;
+    fn rect(&self) -> CGRect;
     fn etched(&self) -> Id<Self>;
 }
 
@@ -67,7 +67,6 @@ impl NSImageExt for NSImage {
         let back = back.retain();
         let front = front.retain();
         let size = unsafe { back.size() };
-
         Self::draw(size, move |rect| unsafe {
             back.drawInRect(rect);
 
@@ -83,27 +82,25 @@ impl NSImageExt for NSImage {
         })
     }
 
-    fn rect(&self) -> NSRect {
-        unsafe { NSRect::new(CGPoint::ZERO, self.size()) }
+    fn rect(&self) -> CGRect {
+        unsafe { CGRect::new(CGPoint::ZERO, self.size()) }
     }
 
     // Greatly inspired by https://stackoverflow.com/a/7138497
     fn etched(&self) -> Id<Self> {
         let this = self.retain();
         let size = unsafe { self.size() };
-        Self::draw(size, move |rect: CGRect| unsafe {
+        Self::draw(size, move |rect| unsafe {
             let mask = CGImage::from_ns_image(&this)?;
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
 
-            let physical = CGContext::convert_rect_to_device_space(Some(&ctx), rect);
-
-            // Draw white drop shadow (by moving the original image)
-            let moved = mask.make_moved_mask(rect, CGPoint::new(0.0, -2.0))?;
-            CGContext::clip_to_mask(Some(&ctx), rect, Some(&moved));
+            // Draw white drop shadow with shifted mask
+            let shifted = mask.shift(rect, CGPoint::new(0.0, -2.0))?;
+            CGContext::clip_to_mask(Some(&ctx), rect, Some(&shifted));
             CGContext::set_rgb_fill_color(Some(&ctx), 1.0, 1.0, 1.0, 1.0);
             CGContext::fill_rect(Some(&ctx), rect);
 
-            // Draw gradient that is clipped to mask
+            // Draw gradient
             CGContext::clip_to_mask(Some(&ctx), rect, Some(&mask));
             let gradient = NSGradient::initWithStartingColor_endingColor(
                 NSGradient::alloc(),
@@ -113,10 +110,11 @@ impl NSImageExt for NSImage {
             gradient.drawInRect_angle(rect, 90.0);
 
             // Draw inner shadow with inverted mask
+            let physical = CGContext::convert_rect_to_device_space(Some(&ctx), rect);
             let offset = CGSize::new(0.0, physical.size.height / 1024.0);
             let blur = physical.size.height / 128.0;
             let color = CGColor::constant_color(Some(kCGColorBlack))?;
-            let inverted = mask.make_inverted_mask(rect)?;
+            let inverted = mask.invert(rect)?;
             CGContext::set_shadow_with_color(Some(&ctx), offset, blur, Some(&color));
             CGContext::draw_image(Some(&ctx), rect, Some(&inverted));
 
@@ -127,8 +125,8 @@ impl NSImageExt for NSImage {
 
 trait CGImageExt {
     fn from_ns_image(image: &NSImage) -> Option<Id<Self>>;
-    fn make_inverted_mask(&self, rect: NSRect) -> Option<Id<Self>>;
-    fn make_moved_mask(&self, rect: NSRect, delta: CGPoint) -> Option<Id<Self>>;
+    fn invert(&self, rect: CGRect) -> Option<Id<Self>>;
+    fn shift(&self, rect: CGRect, delta: CGPoint) -> Option<Id<Self>>;
 }
 
 impl CGImageExt for CGImage {
@@ -136,9 +134,9 @@ impl CGImageExt for CGImage {
         unsafe { image.CGImageForProposedRect_context_hints(&mut image.rect(), None, None) }
     }
 
-    fn make_inverted_mask(&self, rect: NSRect) -> Option<Id<Self>> {
+    fn invert(&self, rect: CGRect) -> Option<Id<Self>> {
         let this = self.retain();
-        let image = NSImage::draw(rect.size, move |rect: CGRect| unsafe {
+        let image = NSImage::draw(rect.size, move |rect| unsafe {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
 
             CGContext::set_blend_mode(Some(&ctx), CGBlendMode::XOR);
@@ -152,9 +150,9 @@ impl CGImageExt for CGImage {
         Self::from_ns_image(&image)
     }
 
-    fn make_moved_mask(&self, rect: NSRect, delta: CGPoint) -> Option<Id<Self>> {
+    fn shift(&self, rect: CGRect, delta: CGPoint) -> Option<Id<Self>> {
         let this = self.retain();
-        let image = NSImage::draw(rect.size, move |rect: CGRect| unsafe {
+        let image = NSImage::draw(rect.size, move |rect| unsafe {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
             let rect = CGRect::new(delta, rect.size);
             CGContext::draw_image(Some(&ctx), rect, Some(&this));
