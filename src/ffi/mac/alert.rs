@@ -15,21 +15,27 @@ pub trait NSAlertExt {
 impl NSAlertExt for NSAlert {
     fn set_level_icon(&self, level: MessageLevel) {
         let bundle = "/System/Library/CoreServices/CoreTypes.bundle";
-        let name = match level {
-            MessageLevel::Info => "AlertNoteIcon",
-            MessageLevel::Warning => "AlertCautionIcon",
-            MessageLevel::Error => "AlertStopIcon",
-        };
-
-        if let Some(icon) = NSBundle::from_path(bundle).and_then(|x| x.image(name)) {
-            return unsafe { self.setIcon(Some(&icon)) };
-        };
-
-        let icon = NSImage::emoji(match level {
-            MessageLevel::Info => "💡",
-            MessageLevel::Warning => "⚠️",
-            MessageLevel::Error => "🛑",
-        });
+        let icon = NSBundle::from_path(bundle)
+            .and_then(|bundle| {
+                bundle.image(match level {
+                    MessageLevel::Info => "AlertNoteIcon",
+                    MessageLevel::Warning => "AlertCautionIcon",
+                    MessageLevel::Error => "AlertStopIcon",
+                })
+            })
+            .unwrap_or_else(|| match level {
+                MessageLevel::Info => NSImage::stack(
+                    &NSImage::text("⚪", 1.0, true),
+                    &NSImage::text("𝒊", 0.667, false).etched(),
+                    (0.0, 0.667),
+                ),
+                MessageLevel::Warning => NSImage::text("⚠️", 1.0, true),
+                MessageLevel::Error => NSImage::stack(
+                    &NSImage::text("🛑", 1.0, true),
+                    &NSImage::text("❕", 0.6, true),
+                    (1.0, -0.5),
+                ),
+            });
 
         unsafe { self.setIcon(Some(&icon)) };
     }
