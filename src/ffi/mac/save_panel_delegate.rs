@@ -1,12 +1,13 @@
 use std::cell::Cell;
 use std::path::PathBuf;
 
+use block2::RcBlock;
 use objc2::rc::Retained as Id;
 use objc2::{define_class, msg_send, sel, DefinedClass, MainThreadOnly, Message};
 use objc2_app_kit::{
-    NSAlert, NSColor, NSImage, NSImageNameCaution, NSLayoutConstraintOrientation,
-    NSOpenSavePanelDelegate, NSPopUpButton, NSSavePanel, NSStackView, NSStackViewGravity,
-    NSTextField, NSView,
+    NSAlert, NSAlertFirstButtonReturn, NSAlertSecondButtonReturn, NSApp, NSColor, NSImage,
+    NSImageNameCaution, NSLayoutConstraintOrientation, NSOpenSavePanelDelegate, NSPopUpButton,
+    NSSavePanel, NSStackView, NSStackViewGravity, NSTextField, NSView,
 };
 use objc2_foundation::{
     NSArray, NSEdgeInsets, NSObject, NSObjectProtocol, NSPoint, NSRect, NSSize, NSString,
@@ -30,39 +31,21 @@ define_class! {
     unsafe impl NSObjectProtocol for SavePanelDelegate {}
 
     unsafe impl NSOpenSavePanelDelegate for SavePanelDelegate {
-        #[unsafe(method(panel:userEnteredFilename:confirmed:))]
-        unsafe fn check_type(&self, sender: &NSSavePanel, filename: &NSString, _: bool) -> *mut NSString {
-            let Some(filter) = self.selected_filter() else {
-                return Id::into_raw(filename.retain());
-            };
-
-            let path = PathBuf::from(filename.to_string());
-            if filter.accepts(&path) {
-                return Id::into_raw(filename.retain());
-            }
-
-            if path.extension().is_none() {
-                let filename = format!("{}{}", filename, filter.extensions.first().unwrap());
-                return Id::into_raw(NSString::from_str(&filename));
-            }
-
-            let explain = format!("Filename \"{}\" is not of type {}.", filename, filter.description);
-
-            let alert = NSAlert::new(self.mtm());
-            alert.setMessageText(&NSString::from_str("Unrecognized File Type"));
-            alert.setInformativeText(&NSString::from_str(&explain));
-            alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref());
-            alert.beginSheetModalForWindow_completionHandler(sender, None);
-
-            // TODO: ask if continue anyway
-
-            std::ptr::null_mut()
+        #[allow(non_snake_case)]
+        #[unsafe(method_id(panel:userEnteredFilename:confirmed:))]
+        unsafe fn user_entered_filename(
+            &self,
+            sender: &NSSavePanel,
+            filename: &NSString,
+            _ok_flag: bool,
+        ) -> Option<Id<NSString>> {
+            self.validate(sender, filename)
         }
     }
 
     impl SavePanelDelegate {
         #[unsafe(method(onItemSelected:))]
-        fn on_item_selected(&self, sender: &NSPopUpButton) {
+        unsafe fn on_item_selected(&self, sender: &NSPopUpButton) {
             let index = unsafe { sender.indexOfSelectedItem() };
             self.ivars().selected.set(index as usize);
         }
@@ -134,6 +117,53 @@ impl SavePanelDelegate {
             .map(|filter| filter.format("{desc} ({types})", "*{ext}", " "))
             .map(|title| NSString::from_str(&title))
             .collect()
+    }
+
+    unsafe fn validate(&self, panel: &NSSavePanel, filename: &NSString) -> Option<Id<NSString>> {
+        let Some(filter) = self.selected_filter() else {
+            return Some(filename.retain());
+        };
+
+        let path = PathBuf::from(filename.to_string());
+        if filter.accepts(&path) {
+            return Some(filename.retain());
+        }
+
+        if path.extension().is_none() {
+            let ext = filter.extensions.first().unwrap();
+            return Some(NSString::from_str(&format!("{filename}{ext}")));
+        }
+
+        let explain = format!(
+            "Filename \"{}\" is not of type {}.",
+            filename, filter.description
+        );
+
+        let mtm = self.mtm();
+        let alert = NSAlert::new(mtm);
+        alert.setMessageText(&NSString::from_str("Unrecognized File Type"));
+        alert.setInformativeText(&NSString::from_str(&explain));
+        alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref());
+
+        let confirm = alert.addButtonWithTitle(&NSString::from_str("Continue Anyway"));
+        let cancel = alert.addButtonWithTitle(&NSString::from_str("Cancel"));
+        confirm.setKeyEquivalent(&NSString::from_str(""));
+        cancel.setKeyEquivalent(&NSString::from_str("\r"));
+
+        alert.beginSheetModalForWindow_completionHandler(
+            panel,
+            Some(&RcBlock::new(move |response| {
+                // This is like... using NSApp as a sync oneshot channel. Magical!
+                NSApp(mtm).stopModalWithCode(response)
+            })),
+        );
+
+        let response = NSApp(mtm).runModalForWindow(&alert.window());
+        if response == NSAlertFirstButtonReturn {
+            return Some(filename.retain());
+        }
+
+        None
     }
 }
 
