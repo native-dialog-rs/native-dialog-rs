@@ -40,6 +40,3 @@ impl OpenPanelDelegate {
         this
     }
 }
-
-#[cfg(feature = "async")]
-impl super::AsyncDelegate for OpenPanelDelegate {}

@@ -1,7 +1,7 @@
 use block2::RcBlock;
 use objc2::rc::Retained as Id;
 use objc2::Message;
-use objc2_app_kit::{NSAlert, NSApplication};
+use objc2_app_kit::{NSAlert, NSApplication, NSSavePanel};
 use objc2_app_kit::{NSApplicationActivationPolicy, NSModalResponse, NSWindow};
 
 pub trait NSApplicationExt {
@@ -24,7 +24,6 @@ impl NSApplicationExt for NSApplication {
         let this = self.retain();
         let handler = RcBlock::new(move |response| unsafe {
             // This is like... using NSApp as sync oneshot channels. Magical!
-            // FIXME: this seems to be incorrect
             this.stopModalWithCode(response)
         });
 
@@ -54,10 +53,10 @@ impl SheetModal for NSAlert {
     }
 }
 
-impl SheetModal for NSWindow {
+impl SheetModal for NSSavePanel {
     fn sheet(&self, window: &NSWindow, handler: SheetHandler) -> Id<NSWindow> {
-        unsafe { window.beginSheet_completionHandler(self, Some(&handler)) };
-        self.retain()
+        unsafe { self.beginSheetModalForWindow_completionHandler(window, &handler) };
+        (***self).retain()
     }
 
     fn modal(&self, app: &NSApplication) -> NSModalResponse {

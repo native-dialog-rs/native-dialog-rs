@@ -32,7 +32,6 @@ define_class! {
     unsafe impl NSObjectProtocol for SavePanelDelegate {}
 
     unsafe impl NSOpenSavePanelDelegate for SavePanelDelegate {
-        #[allow(non_snake_case)]
         #[unsafe(method_id(panel:userEnteredFilename:confirmed:))]
         unsafe fn user_entered_filename(
             &self,
@@ -156,6 +155,3 @@ impl SavePanelDelegate {
         None
     }
 }
-
-#[cfg(feature = "async")]
-impl super::AsyncDelegate for SavePanelDelegate {}

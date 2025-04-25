@@ -42,8 +42,8 @@ impl NSSavePanelExt for NSSavePanel {
     fn run(&self, owner: Option<&NSWindow>) -> NSModalResponse {
         let app = NSApp(self.mtm());
         match owner {
-            Some(window) => app.run_sheet(window, &***self),
-            None => app.run_modal(&***self),
+            Some(window) => app.run_sheet(window, self),
+            None => app.run_modal(self),
         }
     }
 

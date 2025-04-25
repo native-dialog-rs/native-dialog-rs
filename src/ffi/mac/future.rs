@@ -8,6 +8,8 @@ use objc2::rc::Retained as Id;
 use objc2::runtime::AnyObject;
 use objc2::ClassType;
 
+use super::{OpenPanelDelegate, SavePanelDelegate};
+
 pub struct DispatchResponse<T> {
     receiver: Receiver<T>,
     delegates: Vec<Id<AnyObject>>,
@@ -42,3 +44,6 @@ impl<T: Default> DispatchResponse<T> {
 }
 
 pub trait AsyncDelegate: ClassType + 'static {}
+
+impl AsyncDelegate for OpenPanelDelegate {}
+impl AsyncDelegate for SavePanelDelegate {}
