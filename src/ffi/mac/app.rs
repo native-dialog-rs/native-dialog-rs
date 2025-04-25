@@ -58,7 +58,7 @@ impl SheetModal for NSAlert {
 impl SheetModal for NSSavePanel {
     fn sheet(&self, window: &NSWindow, handler: SheetHandler) -> Id<NSWindow> {
         unsafe { self.beginSheetModalForWindow_completionHandler(window, &handler) };
-        (***self).retain()
+        NSWindow::retain(self)
     }
 
     fn modal(&self, app: &NSApplication) -> NSModalResponse {

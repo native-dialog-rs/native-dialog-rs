@@ -1,6 +1,3 @@
-// mod user_notification;
-// pub use user_notification::*;
-
 mod app;
 pub use app::*;
 
