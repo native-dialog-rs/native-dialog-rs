@@ -5,6 +5,7 @@ use crate::dialog::{
     FileFiltersBag, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
 use crate::utils::UnsafeWindowHandle;
+use crate::FileFilter;
 
 /// Builder for file dialogs.
 #[derive(Debug, Clone, Default)]
@@ -51,8 +52,14 @@ impl FileDialogBuilder {
 
     /// Adds a file type filter. The filter must contains at least one extension, otherwise this
     /// method will be a no-op. For dialogs that open directories, this is also a no-op.
-    pub fn add_filter(mut self, description: impl ToString, extensions: &[impl ToString]) -> Self {
-        self.filters.add(description, extensions);
+    pub fn add_filter(mut self, name: impl ToString, extensions: &[impl ToString]) -> Self {
+        self.filters.add(name, extensions);
+        self
+    }
+
+    /// Adds a bunch of file type filters.
+    pub fn add_filters(mut self, filters: impl IntoIterator<Item = FileFilter>) -> Self {
+        self.filters.items.extend(filters);
         self
     }
 

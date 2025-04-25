@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use super::{Dialog, FileFiltersBag};
 use crate::utils::UnsafeWindowHandle;
 
+#[derive(Debug)]
 pub struct OpenSingleFile {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,
@@ -19,6 +20,7 @@ impl OpenSingleFile {
     super::dialog_delegate!();
 }
 
+#[derive(Debug)]
 pub struct OpenMultipleFile {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,
@@ -35,6 +37,7 @@ impl OpenMultipleFile {
     super::dialog_delegate!();
 }
 
+#[derive(Debug)]
 pub struct OpenSingleDir {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,
@@ -50,6 +53,7 @@ impl OpenSingleDir {
     super::dialog_delegate!();
 }
 
+#[derive(Debug)]
 pub struct SaveSingleFile {
     pub filename: Option<String>,
     pub location: Option<PathBuf>,

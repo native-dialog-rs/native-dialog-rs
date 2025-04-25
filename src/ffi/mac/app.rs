@@ -24,6 +24,7 @@ impl NSApplicationExt for NSApplication {
         let this = self.retain();
         let handler = RcBlock::new(move |response| unsafe {
             // This is like... using NSApp as sync oneshot channels. Magical!
+            // FIXME: this seems to be incorrect
             this.stopModalWithCode(response)
         });
 

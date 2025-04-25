@@ -2,14 +2,15 @@ use iced::highlighter::Theme;
 use iced::widget::text::Wrapping;
 use iced::widget::text_editor::{Action, Content};
 use iced::widget::{button, column, row, text_editor};
-use iced::window::{get_oldest, run_with_handle};
 use iced::Length::Fill;
 use iced::{Element, Font, Task};
-use native_dialog::{DialogBuilder, MessageConfirm};
+
+use crate::settings::MsgSettings;
+use crate::utils::build_msg_dialog;
 
 #[derive(Debug, Default)]
 pub struct State {
-    content: Content,
+    output: Content,
 }
 
 #[derive(Debug, Clone)]
@@ -20,17 +21,17 @@ pub enum Message {
     Editor(Action),
 }
 
-pub fn update(state: &mut State, message: Message) -> Task<Message> {
+pub fn update(state: &mut State, settings: &MsgSettings, message: Message) -> Task<Message> {
     match message {
-        Message::Show => show_dialog(),
-        Message::Spawn => spawn_dialog(),
+        Message::Show => show_dialog(settings),
+        Message::Spawn => spawn_dialog(settings),
         Message::Update(output) => {
-            state.content = Content::with_text(&format!("{:?}", output));
+            state.output = Content::with_text(&format!("{:?}", output));
             Task::none()
         }
         Message::Editor(action) => {
             if !action.is_edit() {
-                state.content.perform(action);
+                state.output.perform(action);
             }
             Task::none()
         }
@@ -40,10 +41,10 @@ pub fn update(state: &mut State, message: Message) -> Task<Message> {
 pub fn view(state: &State) -> Element<Message> {
     column![
         "Message Confirm",
-        text_editor(&state.content)
+        text_editor(&state.output)
             .font(Font::MONOSPACE)
             .wrapping(Wrapping::WordOrGlyph)
-            .highlight("rs", Theme::InspiredGitHub)
+            .highlight("rust", Theme::InspiredGitHub)
             .on_action(Message::Editor)
             .height(Fill),
         row![
@@ -56,22 +57,16 @@ pub fn view(state: &State) -> Element<Message> {
     .into()
 }
 
-fn create_dialog() -> Task<MessageConfirm> {
-    get_oldest().and_then(|id| {
-        run_with_handle(id, |handle| {
-            DialogBuilder::message().set_owner(&handle).confirm()
-        })
-    })
-}
-
-fn show_dialog() -> Task<Message> {
-    create_dialog()
+fn show_dialog(settings: &MsgSettings) -> Task<Message> {
+    build_msg_dialog(settings)
+        .map(|builder| builder.confirm())
         .map(|dialog| dialog.show().unwrap())
         .map(Message::Update)
 }
 
-fn spawn_dialog() -> Task<Message> {
-    create_dialog()
+fn spawn_dialog(settings: &MsgSettings) -> Task<Message> {
+    build_msg_dialog(settings)
+        .map(|builder| builder.confirm())
         .then(|dialog| Task::future(dialog.spawn()))
         .map(Result::unwrap)
         .map(Message::Update)

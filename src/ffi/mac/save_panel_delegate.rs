@@ -135,10 +135,7 @@ impl SavePanelDelegate {
             return Some(NSString::from_str(&format!("{filename}{ext}")));
         }
 
-        let explain = format!(
-            "Filename \"{}\" is not of type {}.",
-            filename, filter.description
-        );
+        let explain = format!("Filename \"{}\" is not of type {}.", filename, filter.name);
 
         let mtm = self.mtm();
         let alert = NSAlert::new(mtm);

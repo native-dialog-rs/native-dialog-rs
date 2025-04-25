@@ -1,0 +1,8 @@
+Tarball:
+- .tar
+- .tar.gz
+- .tar.xz
+
+Disk Image:
+- .img
+- .qcow2

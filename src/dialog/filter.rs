@@ -6,8 +6,8 @@ pub struct FileFiltersBag {
 }
 
 impl FileFiltersBag {
-    pub fn add(&mut self, description: impl ToString, extensions: &[impl ToString]) {
-        if let Some(filter) = FileFilter::new(description, extensions) {
+    pub fn add(&mut self, name: impl ToString, extensions: &[impl ToString]) {
+        if let Some(filter) = FileFilter::new(name, extensions) {
             self.items.push(filter);
         }
     }
@@ -39,18 +39,18 @@ impl FileFiltersBag {
 /// Represents a set of file extensions and their description.
 #[derive(Debug, Clone)]
 pub struct FileFilter {
-    pub description: String,
+    pub name: String,
     pub extensions: Vec<String>,
 }
 
 impl FileFilter {
-    pub fn new(description: impl ToString, extensions: &[impl ToString]) -> Option<Self> {
+    pub fn new(name: impl ToString, extensions: &[impl ToString]) -> Option<Self> {
         if extensions.is_empty() {
             return None;
         }
 
         Some(FileFilter {
-            description: description.to_string(),
+            name: name.to_string(),
             extensions: extensions
                 .iter()
                 .map(ToString::to_string)
@@ -87,11 +87,6 @@ impl FileFilter {
             .map(|ext| formatx!(fmt_type, ext = ext).unwrap())
             .collect();
 
-        formatx!(
-            fmt_line,
-            desc = &self.description,
-            types = types.join(delimeter)
-        )
-        .unwrap()
+        formatx!(fmt_line, desc = &self.name, types = types.join(delimeter)).unwrap()
     }
 }

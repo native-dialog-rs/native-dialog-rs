@@ -2,7 +2,7 @@ use super::Dialog;
 use crate::utils::UnsafeWindowHandle;
 
 /// The level of the message in the dialog, which usually affects the color or icon in the dialog.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MessageLevel {
     Info,
     Warning,
@@ -15,6 +15,7 @@ impl Default for MessageLevel {
     }
 }
 
+#[derive(Debug)]
 pub struct MessageAlert {
     pub title: String,
     pub text: String,
@@ -30,6 +31,7 @@ impl MessageAlert {
     super::dialog_delegate!();
 }
 
+#[derive(Debug)]
 pub struct MessageConfirm {
     pub title: String,
     pub text: String,

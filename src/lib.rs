@@ -8,6 +8,7 @@ pub(crate) mod utils;
 
 pub use builder::*;
 pub use dialog::file::*;
+pub use dialog::filter::*;
 pub use dialog::message::*;
 pub use dialog::Dialog;
 pub use errors::*;
