@@ -81,7 +81,7 @@ impl FileDialogBuilder {
             location: self.location,
             filters: self.filters,
             owner: self.owner,
-            title: self.title.unwrap_or("Open File".to_string()),
+            title: self.title.unwrap_or("Open a File".to_string()),
         }
     }
 
@@ -92,7 +92,7 @@ impl FileDialogBuilder {
             location: self.location,
             filters: self.filters,
             owner: self.owner,
-            title: self.title.unwrap_or("Open File".to_string()),
+            title: self.title.unwrap_or("Open Files".to_string()),
         }
     }
 
@@ -102,7 +102,7 @@ impl FileDialogBuilder {
             filename: self.filename,
             location: self.location,
             owner: self.owner,
-            title: self.title.unwrap_or("Open Folder".to_string()),
+            title: self.title.unwrap_or("Open a Folder".to_string()),
         }
     }
 

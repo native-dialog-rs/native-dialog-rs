@@ -51,5 +51,6 @@ windows_visual_styles = [
 members = [
     "examples/windows_manifest",
     "examples/windows_features",
+    "examples/gallery",
     "examples/async_modal",
 ]

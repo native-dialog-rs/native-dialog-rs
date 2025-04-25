@@ -1,0 +1,14 @@
+[package]
+name = "gallery"
+version = "0.1.0"
+authors = ["Balthild <ibalthild@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+# lock_api = { version = "0.4.12", features = ["nightly"] }
+# winit = { version = "0.30.9", features = ["x11"] }
+iced = { version = "0.13.1", features = ["highlighter"] }
+
+[dependencies.native-dialog]
+path = "../.."
+features = ["async"]
