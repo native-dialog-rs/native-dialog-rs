@@ -4,7 +4,7 @@ use objc2::runtime::AnyObject;
 use objc2::{AnyThread, Message};
 use objc2_app_kit::{
     NSAttributedStringNSStringDrawing, NSColor, NSFont, NSFontAttributeName, NSGradient,
-    NSGraphicsContext, NSImage, NSShadow, NSShadowAttributeName, NSStringDrawing,
+    NSGraphicsContext, NSImage, NSShadow, NSShadowAttributeName,
 };
 use objc2_core_foundation::{CGFloat, CGPoint, CGRect, CGSize};
 use objc2_core_graphics::{kCGColorBlack, CGBlendMode, CGColor, CGContext, CGImage};
@@ -45,8 +45,8 @@ impl NSImageExt for NSImage {
             if shadow {
                 let shadow = NSShadow::new();
                 shadow.setShadowColor(Some(&NSColor::blackColor().colorWithAlphaComponent(0.4)));
-                shadow.setShadowBlurRadius(base / 24.0);
-                shadow.setShadowOffset(CGSize::new(0.0, -base / 48.0));
+                shadow.setShadowBlurRadius(base / 24.0 * scale);
+                shadow.setShadowOffset(CGSize::new(0.0, -base / 48.0 * scale));
                 attrs.insert(NSShadowAttributeName, &shadow);
             }
 
@@ -63,7 +63,7 @@ impl NSImageExt for NSImage {
         });
 
         // Redraw the image with CGContext API to deal with the weird shadow behavior
-        Self::draw(size, move |rect| unsafe {
+        Self::draw(outer, move |rect| unsafe {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
             let image = CGImage::from_ns_image(&image)?;
             CGContext::draw_image(Some(&ctx), rect, Some(&image));
@@ -107,7 +107,7 @@ impl NSImageExt for NSImage {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
 
             // Draw white drop shadow with shifted mask
-            let shifted = mask.shift(rect, CGPoint::new(0.0, -2.0))?;
+            let shifted = mask.shift(rect, CGPoint::new(0.0, -3.0))?;
             CGContext::clip_to_mask(Some(&ctx), rect, Some(&shifted));
             CGContext::set_rgb_fill_color(Some(&ctx), 1.0, 1.0, 1.0, 1.0);
             CGContext::fill_rect(Some(&ctx), rect);
@@ -122,9 +122,8 @@ impl NSImageExt for NSImage {
             gradient.drawInRect_angle(rect, 90.0);
 
             // Draw inner shadow with inverted mask
-            let physical = CGContext::convert_size_to_device_space(Some(&ctx), size);
-            let offset = CGSize::new(0.0, physical.height / 1024.0);
-            let blur = physical.height / 128.0;
+            let offset = CGSize::new(0.0, size.height / 256.0);
+            let blur = size.height / 128.0;
             let color = CGColor::constant_color(Some(kCGColorBlack))?;
             let inverted = mask.invert(rect)?;
             CGContext::set_shadow_with_color(Some(&ctx), offset, blur, Some(&color));
