@@ -1,5 +1,6 @@
 use formatx::formatx;
 
+/// A list of file filters.
 #[derive(Debug, Clone, Default)]
 pub struct FileFiltersBag {
     pub items: Vec<FileFilter>,
@@ -36,7 +37,7 @@ impl FileFiltersBag {
     }
 }
 
-/// Represents a set of file extensions and their description.
+/// A file type filter, consisting of its name and a set of file extensions.
 #[derive(Debug, Clone)]
 pub struct FileFilter {
     pub name: String,
@@ -87,6 +88,6 @@ impl FileFilter {
             .map(|ext| formatx!(fmt_type, ext = ext).unwrap())
             .collect();
 
-        formatx!(fmt_line, desc = &self.name, types = types.join(delimeter)).unwrap()
+        formatx!(fmt_line, name = &self.name, types = types.join(delimeter)).unwrap()
     }
 }

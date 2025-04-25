@@ -214,9 +214,9 @@ fn get_dialog_file_types(filters: &[FileFilter]) -> Vec<(&str, String)> {
     filters
         .iter()
         .map(|filter| {
-            let desc = &*filter.description;
+            let name = &*filter.name;
             let types = filter.format("{types}", "*{ext}", ";");
-            (desc, types)
+            (name, types)
         })
         .collect()
 }

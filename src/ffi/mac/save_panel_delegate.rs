@@ -115,7 +115,7 @@ impl SavePanelDelegate {
         filters
             .items()
             .iter()
-            .map(|filter| filter.format("{desc} ({types})", "*{ext}", " "))
+            .map(|filter| filter.format("{name} ({types})", "*{ext}", " "))
             .map(|title| NSString::from_str(&title))
             .collect()
     }
