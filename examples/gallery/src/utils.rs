@@ -90,7 +90,11 @@ pub fn build_file_dialog(settings: &FileSettings) -> Task<FileDialogBuilder> {
         .set_location(&settings.location)
         .add_filters(filters);
 
-    with_main_window(builder, |builder, window| builder.set_owner(&window))
+    if settings.modal {
+        with_main_window(builder, |builder, window| builder.set_owner(&window))
+    } else {
+        Task::done(builder)
+    }
 }
 
 pub fn build_msg_dialog(settings: &MsgSettings) -> Task<MessageDialogBuilder> {
@@ -99,7 +103,11 @@ pub fn build_msg_dialog(settings: &MsgSettings) -> Task<MessageDialogBuilder> {
         .set_title(&settings.title)
         .set_text(settings.text.text());
 
-    with_main_window(builder, |builder, window| builder.set_owner(&window))
+    if settings.modal {
+        with_main_window(builder, |builder, window| builder.set_owner(&window))
+    } else {
+        Task::done(builder)
+    }
 }
 
 pub fn cell<T>(element: Element<T>) -> Container<T> {

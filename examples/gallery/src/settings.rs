@@ -29,6 +29,7 @@ impl Default for FileSettings {
 
 #[derive(Debug)]
 pub struct MsgSettings {
+    pub modal: bool,
     pub level: MessageLevel,
     pub title: String,
     pub text: Content,
@@ -37,6 +38,7 @@ pub struct MsgSettings {
 impl Default for MsgSettings {
     fn default() -> Self {
         Self {
+            modal: true,
             level: MessageLevel::Info,
             title: "Example Message Dialog".to_string(),
             text: Content::with_text("Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit..."),
@@ -56,6 +58,7 @@ pub enum Message {
     FileLocation(String),
     FileFilters(Action),
     FileModal(bool),
+    MsgModal(bool),
     MsgTitle(String),
     MsgText(Action),
     MsgLevel(MessageLevel),
@@ -67,6 +70,7 @@ pub fn update(state: &mut State, message: Message) -> Task<Message> {
         Message::FileLocation(location) => state.file.location = location,
         Message::FileFilters(action) => state.file.filters.perform(action),
         Message::FileModal(modal) => state.file.modal = modal,
+        Message::MsgModal(modal) => state.msg.modal = modal,
         Message::MsgTitle(title) => state.msg.title = title,
         Message::MsgText(action) => state.msg.text.perform(action),
         Message::MsgLevel(level) => state.msg.level = level,
@@ -85,12 +89,12 @@ pub fn view(state: &State) -> Element<Message> {
                     label("Title"),
                     text_input("", &state.file.title).on_input(Message::FileTitle),
                 ]
-                .spacing(2),
+                .spacing(1),
                 column![
                     label("Location"),
                     text_input("", &state.file.location).on_input(Message::FileLocation),
                 ]
-                .spacing(2),
+                .spacing(1),
                 column![
                     label("Filters"),
                     text_editor(&state.file.filters)
@@ -101,7 +105,7 @@ pub fn view(state: &State) -> Element<Message> {
                         .on_action(Message::FileFilters)
                         .height(Fill),
                 ]
-                .spacing(2),
+                .spacing(1),
             ]
             .spacing(8)
             .into()
@@ -110,6 +114,7 @@ pub fn view(state: &State) -> Element<Message> {
         cell(
             column![
                 "Message Dialog Settings",
+                checkbox("Modal", state.msg.modal).on_toggle(Message::MsgModal),
                 row![
                     radio(
                         "Info",
@@ -135,7 +140,7 @@ pub fn view(state: &State) -> Element<Message> {
                     label("Title"),
                     text_input("", &state.msg.title).on_input(Message::MsgTitle),
                 ]
-                .spacing(2),
+                .spacing(1),
                 column![
                     label("Text"),
                     text_editor(&state.msg.text)
@@ -143,7 +148,7 @@ pub fn view(state: &State) -> Element<Message> {
                         .on_action(Message::MsgText)
                         .height(Fill),
                 ]
-                .spacing(2),
+                .spacing(1),
             ]
             .spacing(8)
             .into()

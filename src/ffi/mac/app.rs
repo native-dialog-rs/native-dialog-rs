@@ -23,7 +23,9 @@ impl NSApplicationExt for NSApplication {
     fn run_sheet<T: SheetModal>(&self, window: &NSWindow, sheet: &T) -> NSModalResponse {
         let this = self.retain();
         let handler = RcBlock::new(move |response| unsafe {
-            // This is like... using NSApp as sync oneshot channels. Magical!
+            // This is like... using NSApp as a channel that is synchronous
+            // but doesn't block the main dispatcher (event loop). Magical!
+            // Really I don't have a clue how it works.
             this.stopModalWithCode(response)
         });
 
