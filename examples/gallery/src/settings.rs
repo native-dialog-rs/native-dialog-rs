@@ -12,6 +12,7 @@ use crate::utils::{cell, label};
 pub struct FileSettings {
     pub modal: bool,
     pub title: String,
+    pub filename: String,
     pub location: String,
     pub filters: Content,
 }
@@ -20,6 +21,7 @@ impl Default for FileSettings {
     fn default() -> Self {
         Self {
             modal: true,
+            filename: "Cargo.toml".to_string(),
             title: "Example File Dialog".to_string(),
             location: "~".to_string(),
             filters: Content::with_text(include_str!("filters.yml")),
@@ -55,6 +57,7 @@ pub struct State {
 #[derive(Debug, Clone)]
 pub enum Message {
     FileTitle(String),
+    FileFilename(String),
     FileLocation(String),
     FileFilters(Action),
     FileModal(bool),
@@ -67,6 +70,7 @@ pub enum Message {
 pub fn update(state: &mut State, message: Message) -> Task<Message> {
     match message {
         Message::FileTitle(title) => state.file.title = title,
+        Message::FileFilename(filename) => state.file.filename = filename,
         Message::FileLocation(location) => state.file.location = location,
         Message::FileFilters(action) => state.file.filters.perform(action),
         Message::FileModal(modal) => state.file.modal = modal,
@@ -88,6 +92,11 @@ pub fn view(state: &State) -> Element<Message> {
                 column![
                     label("Title"),
                     text_input("", &state.file.title).on_input(Message::FileTitle),
+                ]
+                .spacing(1),
+                column![
+                    label("Filename"),
+                    text_input("", &state.file.filename).on_input(Message::FileFilename),
                 ]
                 .spacing(1),
                 column![

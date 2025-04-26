@@ -11,7 +11,7 @@ use crate::Result;
 
 impl OpenSingleFile {
     fn create(&self) -> Result<Backend> {
-        let target = get_target(self.location.as_deref(), self.filename.as_deref());
+        let target = get_target(&self.location, &self.filename);
 
         let params = Params {
             target: target.as_deref(),
@@ -44,7 +44,7 @@ impl DialogImpl for OpenSingleFile {
 
 impl OpenMultipleFile {
     fn create(&self) -> Result<Backend> {
-        let target = get_target(self.location.as_deref(), self.filename.as_deref());
+        let target = get_target(&self.location, &self.filename);
 
         let params = Params {
             target: target.as_deref(),
@@ -97,7 +97,7 @@ impl DialogImpl for OpenMultipleFile {
 
 impl OpenSingleDir {
     fn create(&self) -> Result<Backend> {
-        let target = get_target(self.location.as_deref(), self.filename.as_deref());
+        let target = get_target(&self.location, &self.filename);
 
         let params = Params {
             target: target.as_deref(),
@@ -181,7 +181,7 @@ impl SaveSingleFile {
 
 impl DialogImpl for SaveSingleFile {
     fn show(self) -> Result<Self::Output> {
-        let mut target = get_target(self.location.as_deref(), self.filename.as_deref());
+        let mut target = get_target(&self.location, &self.filename);
 
         loop {
             let backend = self.create(&target)?;
@@ -203,7 +203,7 @@ impl DialogImpl for SaveSingleFile {
 
     #[cfg(feature = "async")]
     async fn spawn(self) -> Result<Self::Output> {
-        let mut target = get_target(self.location.as_deref(), self.filename.as_deref());
+        let mut target = get_target(&self.location, &self.filename);
 
         loop {
             let backend = self.create(&target)?;
@@ -229,12 +229,13 @@ fn parse_output(buf: impl AsRef<[u8]>) -> PathBuf {
     PathBuf::from(OsStr::from_bytes(bytes))
 }
 
-fn get_target(location: Option<&Path>, filename: Option<&str>) -> Option<PathBuf> {
-    match (location.and_then(resolve_tilde), filename) {
-        (Some(location), Some(filename)) => Some(location.join(filename)),
-        (Some(location), None) => Some(location.join("Untitled")),
-        (None, Some(filename)) => Some(PathBuf::from(filename)),
-        (None, None) => None,
+fn get_target(location: &Option<PathBuf>, filename: &Option<String>) -> Option<PathBuf> {
+    let location = location.as_deref().and_then(resolve_tilde);
+    let filename = filename.as_deref();
+
+    match location {
+        Some(location) => Some(location.join(filename.unwrap_or(""))),
+        None => filename.map(PathBuf::from),
     }
 }
 
