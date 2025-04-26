@@ -143,8 +143,8 @@ impl SaveSingleFile {
         create_backend(params)
     }
 
-    fn warn(&self, path: &Option<PathBuf>) -> Result<Backend> {
-        let message = match path.as_deref().and_then(Path::extension) {
+    fn warn(&self, path: &Path) -> Result<Backend> {
+        let message = match path.extension() {
             None => String::from("Unrecognized file type. Please try again."),
             Some(ext) => {
                 let ext = ext.to_string_lossy();
@@ -187,14 +187,17 @@ impl DialogImpl for SaveSingleFile {
             let backend = self.create(&target)?;
             let output = backend.exec()?;
 
-            let path = output.map(parse_output);
-            if let Some(true) = path.as_deref().map(|x| self.filters.accepts(x)) {
-                break Ok(path);
+            let Some(path) = output.map(parse_output) else {
+                break Ok(None);
+            };
+
+            if self.filters.accepts(&path) {
+                break Ok(Some(path));
             }
 
             self.warn(&path)?.exec()?;
 
-            target = path;
+            target = Some(path);
         }
     }
 
@@ -206,14 +209,17 @@ impl DialogImpl for SaveSingleFile {
             let backend = self.create(&target)?;
             let output = backend.spawn().await?;
 
-            let path = output.map(parse_output);
-            if let Some(true) = path.as_deref().map(|x| self.filters.accepts(x)) {
-                break Ok(path);
+            let Some(path) = output.map(parse_output) else {
+                break Ok(None);
+            };
+
+            if self.filters.accepts(&path) {
+                break Ok(Some(path));
             }
 
             self.warn(&path)?.spawn().await?;
 
-            target = path;
+            target = Some(path);
         }
     }
 }
