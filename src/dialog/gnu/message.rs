@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use lddtree::DependencyAnalyzer;
@@ -77,15 +78,35 @@ impl DialogImpl for MessageConfirm {
     }
 }
 
+/// Modified version of `str::replace`.
+fn replace_many(text: &str, replacements: HashMap<char, &str>) -> String {
+    let pattern = replacements.keys().copied().collect::<Vec<_>>();
+
+    let mut result = String::with_capacity(text.len());
+    let mut last_end = 0;
+    for (start, part) in text.match_indices(pattern.as_slice()) {
+        let ch = unsafe { *part.as_bytes().get_unchecked(0) as char };
+        result.push_str(unsafe { text.get_unchecked(last_end..start) });
+        result.push_str(unsafe { replacements.get(&ch).unwrap_unchecked() });
+        last_end = start + part.len();
+    }
+    result.push_str(unsafe { text.get_unchecked(last_end..text.len()) });
+    result
+}
+
 /// GMarkup flavoured XML has defined only 5 entities and doesn't support user-defined entities.
 /// Should we reimplement the complete `g_markup_escape_text` function?
 /// See https://gitlab.gnome.org/GNOME/glib/-/blob/353942c6/glib/gmarkup.c#L2296
 fn escape_pango_entities(text: &str) -> String {
-    text.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&apos;")
+    let replacements = HashMap::from([
+        ('&', "&amp;"),
+        ('<', "&lt;"),
+        ('>', "&gt;"),
+        ('"', "&quot;"),
+        ('\'', "&apos;"),
+    ]);
+
+    replace_many(text, replacements)
 }
 
 /// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
@@ -115,18 +136,21 @@ fn convert_qt_text_document<'a>(backend: &Backend, text: &'a str) -> Cow<'a, str
         return Cow::Borrowed(text);
     };
 
+    let replacements = HashMap::from([
+        ('\n', "<br>"),
+        ('\t', " "),
+        ('<', "&lt;"),
+        ('>', "&gt;"),
+        ('&', "&amp;"),
+        ('"', "&quot;"),
+    ]);
+
+    let text = replace_many(text, replacements);
     if deps.libraries.keys().any(|x| x.starts_with("libQt6")) {
-        return Cow::Borrowed(text);
+        return Cow::Owned(format!("<html><body>{}</body></html>", text));
     }
 
-    Cow::Owned(
-        text.replace('\n', "<br>")
-            .replace('\t', " ")
-            .replace('<', "&lt;")
-            .replace('>', "&gt;")
-            .replace('&', "&amp;")
-            .replace('"', "&quot;"),
-    )
+    Cow::Owned(text)
 }
 
 struct Params<'a> {
