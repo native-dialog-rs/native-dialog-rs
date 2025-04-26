@@ -87,7 +87,7 @@ pub fn build_file_dialog(settings: &FileSettings) -> Task<FileDialogBuilder> {
 
     let builder = DialogBuilder::file()
         .set_title(&settings.title)
-        // .set_filename(&settings.filename)
+        .set_filename(&settings.filename)
         .set_location(&settings.location)
         .add_filters(filters);
 

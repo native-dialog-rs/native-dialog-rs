@@ -1,3 +1,8 @@
+use std::borrow::Cow;
+use std::path::PathBuf;
+
+use lddtree::DependencyAnalyzer;
+
 use super::backend::{Backend, BackendKind};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::{MessageLevel, Result};
@@ -84,20 +89,44 @@ fn escape_pango_entities(text: &str) -> String {
 }
 
 /// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
-fn convert_qt_text_document(backend: &Backend, text: &str) -> String {
-    if matches!(backend.version(), Some(v) if v < (19, 0, 0)) {
+fn convert_qt_text_document<'a>(backend: &Backend, text: &'a str) -> Cow<'a, str> {
+    /*
+    match backend.version() {
+        Some(v) if v < (19, 0, 0) => Cow::Owned(
+            text.replace('\n', "<br>")
+                .replace('\t', " ")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;")
+                .replace('&', "&amp;")
+                .replace('"', "&quot;"),
+        ),
+        Some(v) if v < (20, 0, 0) => Cow::Owned(
+            text.replace('\n', "<br>")
+                .replace('\t', " ")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;"),
+        ),
+        _ => Cow::Borrowed(text),
+    }
+    */
+
+    let program = PathBuf::from(backend.command.get_program());
+    let Ok(deps) = DependencyAnalyzer::new("/".into()).analyze(program) else {
+        return Cow::Borrowed(text);
+    };
+
+    if deps.libraries.keys().any(|x| x.starts_with("libQt6")) {
+        return Cow::Borrowed(text);
+    }
+
+    Cow::Owned(
         text.replace('\n', "<br>")
             .replace('\t', " ")
             .replace('<', "&lt;")
             .replace('>', "&gt;")
             .replace('&', "&amp;")
-            .replace('"', "&quot;")
-    } else {
-        text.replace('\n', "<br>")
-            .replace('\t', " ")
-            .replace('<', "&lt;")
-            .replace('>', "&gt;")
-    }
+            .replace('"', "&quot;"),
+    )
 }
 
 struct Params<'a> {
@@ -120,7 +149,7 @@ fn call_kdialog(backend: &mut Backend, params: Params) {
     }
 
     let text = convert_qt_text_document(backend, params.text);
-    backend.command.arg(text);
+    backend.command.arg(&*text);
 
     backend.command.arg("--title");
     backend.command.arg(params.title);
