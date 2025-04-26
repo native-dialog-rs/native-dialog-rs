@@ -22,7 +22,6 @@ winapi = { version = "0.3.9", features = ["winuser"] }
 
 [target.'cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))'.dependencies]
 ascii = "1.1.0"
-lddtree = "0.3.7"
 versions = "7.0.0"
 which = "7.0.3"
 

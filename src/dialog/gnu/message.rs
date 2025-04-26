@@ -1,8 +1,4 @@
-use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::PathBuf;
-
-use lddtree::DependencyAnalyzer;
 
 use super::backend::{Backend, BackendKind};
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
@@ -85,7 +81,7 @@ fn replace_many(text: &str, replacements: HashMap<char, &str>) -> String {
     let mut result = String::with_capacity(text.len());
     let mut last_end = 0;
     for (start, part) in text.match_indices(pattern.as_slice()) {
-        let ch = unsafe { *part.as_bytes().get_unchecked(0) as char };
+        let ch = unsafe { part.chars().next().unwrap_unchecked() };
         result.push_str(unsafe { text.get_unchecked(last_end..start) });
         result.push_str(unsafe { replacements.get(&ch).unwrap_unchecked() });
         last_end = start + part.len();
@@ -95,8 +91,7 @@ fn replace_many(text: &str, replacements: HashMap<char, &str>) -> String {
 }
 
 /// GMarkup flavoured XML has defined only 5 entities and doesn't support user-defined entities.
-/// Should we reimplement the complete `g_markup_escape_text` function?
-/// See https://gitlab.gnome.org/GNOME/glib/-/blob/353942c6/glib/gmarkup.c#L2296
+/// See https://gitlab.gnome.org/GNOME/glib/-/blob/353942c6/glib/gmarkup.c#L2189
 fn escape_pango_entities(text: &str) -> String {
     let replacements = HashMap::from([
         ('&', "&amp;"),
@@ -110,47 +105,18 @@ fn escape_pango_entities(text: &str) -> String {
 }
 
 /// See https://github.com/qt/qtbase/blob/2e2f1e2/src/gui/text/qtextdocument.cpp#L166
-fn convert_qt_text_document<'a>(backend: &Backend, text: &'a str) -> Cow<'a, str> {
-    /*
-    match backend.version() {
-        Some(v) if v < (19, 0, 0) => Cow::Owned(
-            text.replace('\n', "<br>")
-                .replace('\t', " ")
-                .replace('<', "&lt;")
-                .replace('>', "&gt;")
-                .replace('&', "&amp;")
-                .replace('"', "&quot;"),
-        ),
-        Some(v) if v < (20, 0, 0) => Cow::Owned(
-            text.replace('\n', "<br>")
-                .replace('\t', " ")
-                .replace('<', "&lt;")
-                .replace('>', "&gt;"),
-        ),
-        _ => Cow::Borrowed(text),
-    }
-    */
-
-    let program = PathBuf::from(backend.command.get_program());
-    let Ok(deps) = DependencyAnalyzer::new("/".into()).analyze(program) else {
-        return Cow::Borrowed(text);
-    };
-
+fn escape_qt_text_document(text: &str) -> String {
     let replacements = HashMap::from([
         ('\n', "<br>"),
         ('\t', " "),
         ('<', "&lt;"),
         ('>', "&gt;"),
         ('&', "&amp;"),
-        ('"', "&quot;"),
     ]);
 
-    let text = replace_many(text, replacements);
-    if deps.libraries.keys().any(|x| x.starts_with("libQt6")) {
-        return Cow::Owned(format!("<html><body>{}</body></html>", text));
-    }
+    let escaped = replace_many(text, replacements);
 
-    Cow::Owned(text)
+    format!("<html><body>{}</body></html>", escaped)
 }
 
 struct Params<'a> {
@@ -172,8 +138,8 @@ fn call_kdialog(backend: &mut Backend, params: Params) {
         backend.command.arg("--msgbox");
     }
 
-    let text = convert_qt_text_document(backend, params.text);
-    backend.command.arg(&*text);
+    let text = escape_qt_text_document(params.text);
+    backend.command.arg(text);
 
     backend.command.arg("--title");
     backend.command.arg(params.title);
