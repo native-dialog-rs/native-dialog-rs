@@ -1,3 +1,4 @@
+use iced::futures::stream::unfold;
 use iced::widget::{container, text, Container, Text};
 use iced::window::raw_window_handle::WindowHandle;
 use iced::window::{get_oldest, run_with_handle};
@@ -18,27 +19,26 @@ where
     let (send_left, recv_left) = async_channel::bounded(1);
     let (send_right, recv_right) = async_channel::bounded(1);
 
-    Task::chain(
+    Task::batch([
         left.then(move |value| {
             let send = send_left.clone();
-            Task::future(async move { send.try_send(value).ok() })
+            Task::future(async move { send.send(value).await }).discard()
         }),
         right.then(move |value| {
             let send = send_right.clone();
-            Task::future(async move { send.try_send(value).ok() })
+            Task::future(async move { send.send(value).await }).discard()
         }),
-    )
-    .collect()
-    .then(move |_| {
-        let recv_left = recv_left.clone();
-        let recv_right = recv_right.clone();
+        Task::stream(unfold((), move |_| {
+            let recv_left = recv_left.clone();
+            let recv_right = recv_right.clone();
 
-        Task::future(async move {
-            let left = recv_left.recv().await.unwrap();
-            let right = recv_right.recv().await.unwrap();
-            (left, right)
-        })
-    })
+            async move {
+                let left = recv_left.recv().await.unwrap();
+                let right = recv_right.recv().await.unwrap();
+                Some(((left, right), ()))
+            }
+        })),
+    ])
 }
 
 pub fn with_main_window<T, U, F>(value: T, f: F) -> Task<U>

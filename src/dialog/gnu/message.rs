@@ -6,7 +6,7 @@ use crate::{MessageLevel, Result};
 
 impl MessageAlert {
     fn create(&self) -> Result<Backend> {
-        let params = Params {
+        let params = BackendParams {
             title: &self.title,
             text: &self.text,
             level: self.level,
@@ -14,13 +14,7 @@ impl MessageAlert {
             owner: unsafe { self.owner.as_x11() },
         };
 
-        let mut backend = Backend::new()?;
-        match backend.kind {
-            BackendKind::KDialog => call_kdialog(&mut backend, params),
-            BackendKind::Zenity => call_zenity(&mut backend, params),
-        };
-
-        Ok(backend)
+        init_backend(params)
     }
 }
 
@@ -41,7 +35,7 @@ impl DialogImpl for MessageAlert {
 
 impl MessageConfirm {
     fn create(&self) -> Result<Backend> {
-        let params = Params {
+        let params = BackendParams {
             title: &self.title,
             text: &self.text,
             level: self.level,
@@ -49,13 +43,7 @@ impl MessageConfirm {
             owner: unsafe { self.owner.as_x11() },
         };
 
-        let mut backend = Backend::new()?;
-        match backend.kind {
-            BackendKind::KDialog => call_kdialog(&mut backend, params),
-            BackendKind::Zenity => call_zenity(&mut backend, params),
-        };
-
-        Ok(backend)
+        init_backend(params)
     }
 }
 
@@ -119,7 +107,7 @@ fn escape_qt_text_document(text: &str) -> String {
     format!("<html><body>{}</body></html>", escaped)
 }
 
-struct Params<'a> {
+struct BackendParams<'a> {
     title: &'a str,
     text: &'a str,
     level: MessageLevel,
@@ -127,7 +115,17 @@ struct Params<'a> {
     owner: Option<u64>,
 }
 
-fn call_kdialog(backend: &mut Backend, params: Params) {
+fn init_backend(params: BackendParams) -> Result<Backend> {
+    let mut backend = Backend::new()?;
+    match backend.kind {
+        BackendKind::KDialog => init_kdialog(&mut backend, params),
+        BackendKind::Zenity => init_zenity(&mut backend, params),
+    };
+
+    Ok(backend)
+}
+
+fn init_kdialog(backend: &mut Backend, params: BackendParams) {
     if let Some(owner) = params.owner {
         backend.command.arg(format!("--attach=0x{:x}", owner));
     }
@@ -151,7 +149,7 @@ fn call_kdialog(backend: &mut Backend, params: Params) {
     };
 }
 
-fn call_zenity(backend: &mut Backend, params: Params) {
+fn init_zenity(backend: &mut Backend, params: BackendParams) {
     backend.command.arg("--width=400");
 
     if params.ask {

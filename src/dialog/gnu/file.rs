@@ -13,7 +13,7 @@ impl OpenSingleFile {
     fn create(&self) -> Result<Backend> {
         let target = get_target(&self.location, &self.filename);
 
-        let params = Params {
+        let params = BackendParams {
             target: target.as_deref(),
             filters: &self.filters,
             multiple: false,
@@ -23,7 +23,7 @@ impl OpenSingleFile {
             owner: unsafe { self.owner.as_x11() },
         };
 
-        create_backend(params)
+        init_backend(params)
     }
 }
 
@@ -46,7 +46,7 @@ impl OpenMultipleFile {
     fn create(&self) -> Result<Backend> {
         let target = get_target(&self.location, &self.filename);
 
-        let params = Params {
+        let params = BackendParams {
             target: target.as_deref(),
             filters: &self.filters,
             multiple: true,
@@ -56,7 +56,7 @@ impl OpenMultipleFile {
             owner: unsafe { self.owner.as_x11() },
         };
 
-        create_backend(params)
+        init_backend(params)
     }
 }
 
@@ -99,7 +99,7 @@ impl OpenSingleDir {
     fn create(&self) -> Result<Backend> {
         let target = get_target(&self.location, &self.filename);
 
-        let params = Params {
+        let params = BackendParams {
             target: target.as_deref(),
             filters: &FileFiltersBag::default(),
             multiple: false,
@@ -109,7 +109,7 @@ impl OpenSingleDir {
             owner: unsafe { self.owner.as_x11() },
         };
 
-        create_backend(params)
+        init_backend(params)
     }
 }
 
@@ -130,7 +130,7 @@ impl DialogImpl for OpenSingleDir {
 
 impl SaveSingleFile {
     fn create(&self, target: &Option<PathBuf>) -> Result<Backend> {
-        let params = Params {
+        let params = BackendParams {
             target: target.as_deref(),
             filters: &self.filters,
             multiple: false,
@@ -140,7 +140,7 @@ impl SaveSingleFile {
             owner: unsafe { self.owner.as_x11() },
         };
 
-        create_backend(params)
+        init_backend(params)
     }
 
     fn warn(&self, path: &Path) -> Result<Backend> {
@@ -239,7 +239,7 @@ fn get_target(location: &Option<PathBuf>, filename: &Option<String>) -> Option<P
     }
 }
 
-struct Params<'a> {
+struct BackendParams<'a> {
     target: Option<&'a Path>,
     filters: &'a FileFiltersBag,
     multiple: bool,
@@ -249,7 +249,7 @@ struct Params<'a> {
     owner: Option<u64>,
 }
 
-fn create_backend(params: Params) -> Result<Backend> {
+fn init_backend(params: BackendParams) -> Result<Backend> {
     let mut backend = Backend::new()?;
     match backend.kind {
         BackendKind::KDialog => init_kdialog(&mut backend, params),
@@ -259,7 +259,7 @@ fn create_backend(params: Params) -> Result<Backend> {
     Ok(backend)
 }
 
-fn init_kdialog(backend: &mut Backend, params: Params) {
+fn init_kdialog(backend: &mut Backend, params: BackendParams) {
     if let Some(owner) = params.owner {
         backend.command.arg(format!("--attach=0x{:x}", owner));
     }
@@ -295,7 +295,7 @@ fn init_kdialog(backend: &mut Backend, params: Params) {
     }
 }
 
-fn init_zenity(backend: &mut Backend, params: Params) {
+fn init_zenity(backend: &mut Backend, params: BackendParams) {
     backend.command.arg("--file-selection");
 
     backend.command.arg("--title");
