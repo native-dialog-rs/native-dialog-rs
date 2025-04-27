@@ -1,5 +1,4 @@
 use block2::RcBlock;
-use objc2::rc::Retained as Id;
 use objc2::Message;
 use objc2_app_kit::{NSAlert, NSApplication, NSSavePanel};
 use objc2_app_kit::{NSApplicationActivationPolicy, NSModalResponse, NSWindow};
@@ -14,54 +13,54 @@ impl NSApplicationExt for NSApplication {
         let policy = unsafe { self.activationPolicy() };
 
         self.setActivationPolicy(NSApplicationActivationPolicy::Accessory);
-        let response = modal.modal(self);
+        let response = modal.run_modal_event_loop(self);
         self.setActivationPolicy(policy);
 
         response
     }
 
     fn run_sheet<T: SheetModal>(&self, window: &NSWindow, sheet: &T) -> NSModalResponse {
-        let this = self.retain();
-        let handler = RcBlock::new(move |response| unsafe {
-            // This is like... using NSApp as a channel that is synchronous
-            // but doesn't block the main dispatcher (event loop). Magical!
-            // Really I don't have a clue how it works.
-            this.stopModalWithCode(response)
-        });
-
-        let sheet = sheet.sheet(window, handler);
-
-        unsafe { self.runModalForWindow(&sheet) }
+        sheet.present_sheet(self, window);
+        sheet.run_modal_event_loop(self)
     }
 }
 
-type SheetHandler = RcBlock<dyn Fn(NSModalResponse)>;
-
+/// By default, the sheets are run asynchronously on the main event loop, so we cannot
+/// get the responses synchronously. If we use something like channels, it will block
+/// the event loop and make the entire app unresponsive (basically a deadlock). However,
+/// AppKit provides an way to run "modal event loops", which is another event loop that
+/// runs in the main event loop. It still blocks the main event loop, but it takes the
+/// control of the sheet UI, doing all the jobs necessary to react to the UI events from
+/// the sheet. Therefore, we can utilize it to wait for responses of sheets synchronously
+/// but still allow users to operate on the UI.
 pub trait SheetModal {
-    fn sheet(&self, window: &NSWindow, handler: SheetHandler) -> Id<NSWindow>;
-    fn modal(&self, app: &NSApplication) -> NSModalResponse;
+    fn present_sheet(&self, app: &NSApplication, window: &NSWindow);
+    fn run_modal_event_loop(&self, app: &NSApplication) -> NSModalResponse;
 }
 
 impl SheetModal for NSAlert {
-    fn sheet(&self, window: &NSWindow, handler: SheetHandler) -> Id<NSWindow> {
-        unsafe {
-            self.beginSheetModalForWindow_completionHandler(window, Some(&handler));
-            self.window()
-        }
+    fn present_sheet(&self, app: &NSApplication, window: &NSWindow) {
+        let handler = modal_completion(app);
+        unsafe { self.beginSheetModalForWindow_completionHandler(window, Some(&handler)) }
     }
 
-    fn modal(&self, _: &NSApplication) -> NSModalResponse {
+    fn run_modal_event_loop(&self, _: &NSApplication) -> NSModalResponse {
         unsafe { self.runModal() }
     }
 }
 
 impl SheetModal for NSSavePanel {
-    fn sheet(&self, window: &NSWindow, handler: SheetHandler) -> Id<NSWindow> {
+    fn present_sheet(&self, app: &NSApplication, window: &NSWindow) {
+        let handler = modal_completion(app);
         unsafe { self.beginSheetModalForWindow_completionHandler(window, &handler) };
-        NSWindow::retain(self)
     }
 
-    fn modal(&self, app: &NSApplication) -> NSModalResponse {
-        unsafe { app.runModalForWindow(self) }
+    fn run_modal_event_loop(&self, _: &NSApplication) -> NSModalResponse {
+        unsafe { self.runModal() }
     }
+}
+
+fn modal_completion(app: &NSApplication) -> RcBlock<dyn Fn(NSModalResponse)> {
+    let app = app.retain();
+    RcBlock::new(move |response| unsafe { app.stopModalWithCode(response) })
 }
