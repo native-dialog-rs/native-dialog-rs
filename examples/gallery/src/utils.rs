@@ -33,9 +33,9 @@ where
             let recv_right = recv_right.clone();
 
             async move {
-                let left = recv_left.recv().await.unwrap();
-                let right = recv_right.recv().await.unwrap();
-                Some(((left, right), ()))
+                let left = recv_left.recv().await.ok();
+                let right = recv_right.recv().await.ok();
+                Option::zip(left, right).map(|pair| (pair, ()))
             }
         })),
     ])
