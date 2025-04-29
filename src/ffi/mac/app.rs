@@ -25,9 +25,9 @@ impl NSApplicationExt for NSApplication {
     }
 }
 
-/// By default, the sheets are run asynchronously on the main event loop, so we cannot
-/// get the responses synchronously. If we use something like channels, it will block
-/// the event loop and make the entire app unresponsive (basically a deadlock). However,
+/// By default, sheets run asynchronously on the main event loop, so we cannot get their
+/// responses synchronously. If we use something like channels to wait for it, they will
+/// block the event loop and make the entire UI frozen (effectively a deadlock). However,
 /// AppKit provides an way to run "modal event loops", which is another event loop that
 /// runs in the main event loop. It still blocks the main event loop, but it takes the
 /// control of the sheet UI, doing all the jobs necessary to react to the UI events from

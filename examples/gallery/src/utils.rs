@@ -4,9 +4,7 @@ use iced::window::raw_window_handle::WindowHandle;
 use iced::window::{get_oldest, run_with_handle};
 use iced::Length::Fill;
 use iced::{color, Border, Element, Task};
-use native_dialog::{
-    DialogBuilder, FileDialogBuilder, FileFilter, MessageDialogBuilder, MessageLevel,
-};
+use native_dialog::{DialogBuilder, FileDialogBuilder, MessageDialogBuilder, MessageLevel};
 use saphyr::{LoadableYamlNode, Yaml};
 
 use crate::settings::{FileSettings, MsgSettings};
@@ -53,20 +51,20 @@ where
     })
 }
 
-pub fn parse_filters(text: &str) -> Option<Vec<FileFilter>> {
+pub fn parse_filters(text: &str) -> Option<Vec<(String, Vec<String>)>> {
     let yaml = Yaml::load_from_str(text).ok()?;
     let dict = yaml.first()?.as_mapping()?;
 
     dict.into_iter()
         .map(|(key, value)| {
-            let name = key.as_str()?;
+            let name = key.as_str()?.to_string();
             let extensions = value
                 .as_sequence()?
                 .iter()
-                .map(|value| value.as_str())
+                .map(|value| value.as_str().map(String::from))
                 .collect::<Option<Vec<_>>>()?;
 
-            FileFilter::new(name, &extensions)
+            Some((name, extensions))
         })
         .collect()
 }

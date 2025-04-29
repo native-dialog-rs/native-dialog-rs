@@ -7,7 +7,12 @@ pub struct FileFiltersBag {
 }
 
 impl FileFiltersBag {
-    pub fn add(&mut self, name: impl ToString, extensions: &[impl ToString]) {
+    pub fn add<T, U, V>(&mut self, name: T, extensions: V)
+    where
+        T: ToString,
+        U: ToString,
+        V: AsRef<[U]>,
+    {
         if let Some(filter) = FileFilter::new(name, extensions) {
             self.items.push(filter);
         }
@@ -45,7 +50,13 @@ pub struct FileFilter {
 }
 
 impl FileFilter {
-    pub fn new(name: impl ToString, extensions: &[impl ToString]) -> Option<Self> {
+    pub fn new<T, U, V>(name: T, extensions: V) -> Option<Self>
+    where
+        T: ToString,
+        U: ToString,
+        V: AsRef<[U]>,
+    {
+        let extensions = extensions.as_ref();
         if extensions.is_empty() {
             return None;
         }
