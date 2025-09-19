@@ -12,7 +12,7 @@ pub enum Error {
     #[error("invalid utf-8 string")]
     Utf8(#[from] std::string::FromUtf8Error),
 
-    #[error("cannot find implementation (kdialog/zenity)")]
+    #[error("cannot find implementation (kdialog/zenity/yad)")]
     MissingDep,
 
     #[error("subprocess killed by signal")]

@@ -120,6 +120,7 @@ fn init_backend(params: BackendParams) -> Result<Backend> {
     match backend.kind {
         BackendKind::KDialog => init_kdialog(&mut backend, params),
         BackendKind::Zenity => init_zenity(&mut backend, params),
+        BackendKind::Yad => init_yad(&mut backend, params),
     };
 
     Ok(backend)
@@ -172,6 +173,32 @@ fn init_zenity(backend: &mut Backend, params: BackendParams) {
             MessageLevel::Error => backend.command.arg("--error"),
         };
     }
+
+    backend.command.arg("--title");
+    backend.command.arg(params.title);
+
+    let text = escape_pango_entities(params.text);
+    backend.command.arg("--text");
+    backend.command.arg(text);
+}
+
+fn init_yad(backend: &mut Backend, params: BackendParams) {
+    if params.ask {
+        backend.command.arg("--button");
+        backend.command.arg("Yes:0");
+        backend.command.arg("--button");
+        backend.command.arg("No:1");
+    } else {
+        backend.command.arg("--button");
+        backend.command.arg("Ok:0");
+    }
+
+    backend.command.arg("--image");
+    match params.level {
+        MessageLevel::Info => backend.command.arg("dialog-information"),
+        MessageLevel::Warning => backend.command.arg("dialog-warning"),
+        MessageLevel::Error => backend.command.arg("dialog-error"),
+    };
 
     backend.command.arg("--title");
     backend.command.arg(params.title);

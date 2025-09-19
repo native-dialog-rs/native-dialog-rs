@@ -173,6 +173,18 @@ impl SaveSingleFile {
                     &message,
                 ]);
             }
+            BackendKind::Yad => {
+                backend.command.args([
+                    "--button",
+                    "Ok:0",
+                    "--image",
+                    "dialog-warning",
+                    "--title",
+                    "Warning",
+                    "--text",
+                    &message,
+                ]);
+            }
         };
 
         Ok(backend)
@@ -254,6 +266,7 @@ fn init_backend(params: BackendParams) -> Result<Backend> {
     match backend.kind {
         BackendKind::KDialog => init_kdialog(&mut backend, params),
         BackendKind::Zenity => init_zenity(&mut backend, params),
+        BackendKind::Yad => init_yad(&mut backend, params),
     };
 
     Ok(backend)
@@ -313,6 +326,42 @@ fn init_zenity(backend: &mut Backend, params: BackendParams) {
         if matches!(backend.version(), Some(v) if v < (3, 91, 0)) {
             backend.command.arg("--confirm-overwrite");
         }
+    };
+
+    if params.multiple {
+        backend.command.args(["--multiple", "--separator", "\n"]);
+    }
+
+    if let Some(path) = params.target {
+        backend.command.arg("--filename");
+        backend.command.arg(path);
+    }
+
+    if !params.filters.items().is_empty() {
+        for filter in params.filters.items() {
+            let formatted = filter.format("{name} ({types}) | {types}", "*{ext}", " ");
+            backend.command.arg("--file-filter");
+            backend.command.arg(formatted);
+        }
+    }
+}
+
+fn init_yad(backend: &mut Backend, params: BackendParams) {
+    backend.command.arg("--file");
+
+    backend.command.arg("--width");
+    backend.command.arg("700");
+
+    backend.command.arg("--title");
+    backend.command.arg(params.title);
+
+    if params.dir {
+        backend.command.arg("--directory");
+    }
+
+    if params.save {
+        backend.command.arg("--save");
+        backend.command.arg("--confirm-overwrite");
     };
 
     if params.multiple {
