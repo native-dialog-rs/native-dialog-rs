@@ -66,7 +66,7 @@ impl SavePanelDelegate {
         panel.set_delegate(&this);
 
         // If there are filters specified, show a dropdown on the panel
-        if !filters.items().is_empty() {
+        if !filters.items.is_empty() {
             let accessory = this.create_accessory(filters);
             panel.set_accessory_view(Some(&accessory));
             this.ivars().accessory.set(Some(accessory));
@@ -77,7 +77,7 @@ impl SavePanelDelegate {
 
     fn selected_filter(&self) -> Option<&FileFilter> {
         let ivars = self.ivars();
-        ivars.filters.items().get(ivars.selected.get())
+        ivars.filters.items.get(ivars.selected.get())
     }
 
     fn create_accessory(&self, filters: &FileFiltersBag) -> Id<NSView> {
@@ -112,7 +112,7 @@ impl SavePanelDelegate {
 
     fn format_titles(&self, filters: &FileFiltersBag) -> Id<NSArray<NSString>> {
         filters
-            .items()
+            .items
             .iter()
             .map(|filter| filter.format("{name} ({types})", "*{ext}", " "))
             .map(|title| NSString::from_str(&title))

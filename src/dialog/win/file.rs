@@ -17,7 +17,7 @@ impl OpenSingleFile {
             title: &self.title,
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
-            filters: self.filters.items(),
+            filters: &self.filters.items,
             owner: self.owner.clone(),
             multiple: false,
             dir: false,
@@ -44,7 +44,7 @@ impl OpenMultipleFile {
             title: &self.title,
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
-            filters: self.filters.items(),
+            filters: &self.filters.items,
             owner: self.owner.clone(),
             multiple: true,
             dir: false,
@@ -103,7 +103,7 @@ impl SaveSingleFile {
             title: &self.title,
             filename: self.filename.as_deref(),
             location: self.location.as_deref(),
-            filters: self.filters.items(),
+            filters: &self.filters.items,
             owner: self.owner.clone(),
         }
     }

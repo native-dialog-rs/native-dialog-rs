@@ -73,7 +73,7 @@ impl FileDialogBuilder {
 
     /// Removes all file type filters.
     pub fn reset_filters(mut self) -> Self {
-        self.filters.clear();
+        self.filters.items.clear();
         self
     }
 

@@ -18,14 +18,6 @@ impl FileFiltersBag {
         }
     }
 
-    pub fn clear(&mut self) {
-        self.items.clear();
-    }
-
-    pub fn items(&self) -> &[FileFilter] {
-        &self.items
-    }
-
     #[cfg(unix)]
     pub fn accepts(&self, path: impl AsRef<std::path::Path>) -> bool {
         if self.items.is_empty() {

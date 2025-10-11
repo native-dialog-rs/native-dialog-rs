@@ -283,10 +283,10 @@ fn init_kdialog(backend: &mut Backend, params: BackendParams) {
         backend.command.args(["--multiple", "--separate-output"]);
     }
 
-    if !params.filters.items().is_empty() {
+    if !params.filters.items.is_empty() {
         let filters: Vec<String> = params
             .filters
-            .items()
+            .items
             .iter()
             .map(|filter| filter.format("{name} ({types})", "*{ext}", " "))
             .collect();
@@ -324,8 +324,8 @@ fn init_zenity(backend: &mut Backend, params: BackendParams) {
         backend.command.arg(path);
     }
 
-    if !params.filters.items().is_empty() {
-        for filter in params.filters.items() {
+    if !params.filters.items.is_empty() {
+        for filter in &params.filters.items {
             let formatted = filter.format("{name} ({types}) | {types}", "*{ext}", " ");
             backend.command.arg("--file-filter");
             backend.command.arg(formatted);
