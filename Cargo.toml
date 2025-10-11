@@ -26,13 +26,64 @@ versions = "7.0.0"
 which = "7.0.3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-block2 = "0.6.0"
+block2 = "0.6.2"
 dispatch2 = "0.3.0"
-objc2 = "0.6.0"
-objc2-app-kit = "0.3.0"
-objc2-core-foundation = "0.3.0"
-objc2-core-graphics = "0.3.0"
-objc2-foundation = "0.3.0"
+objc2 = "0.6.3"
+# Disable default features to keep compile-times low.
+# `objc2-app-kit` in particular is very large.
+# When iterating, you can temporarily add `default` to
+# the features here to make the entire crates available.
+objc2-foundation = { version = "0.3.0", default-features = false, features = [
+    "std",
+    "objc2-core-foundation",
+    "NSArray",
+    "NSEnumerator",
+    "NSGeometry",
+    "NSObjCRuntime",
+    "NSString",
+    "NSThread",
+    "NSURL",
+] }
+objc2-app-kit = { version = "0.3.0", default-features = false, features = [
+    "std",
+    "block2",
+    "objc2-core-foundation",
+    "objc2-core-graphics",
+    "NSAlert",
+    "NSApplication",
+    "NSAttributedString",
+    "NSButton",
+    "NSColor",
+    "NSControl",
+    "NSFont",
+    "NSGradient",
+    "NSGraphicsContext",
+    "NSImage",
+    "NSImageRep",
+    "NSLayoutConstraint",
+    "NSOpenPanel",
+    "NSPanel",
+    "NSPopUpButton",
+    "NSResponder",
+    "NSRunningApplication",
+    "NSSavePanel",
+    "NSShadow",
+    "NSStackView",
+    "NSStringDrawing",
+    "NSTextField",
+    "NSView",
+    "NSWindow",
+] }
+objc2-core-foundation = { version = "0.3.0", default-features = false, features = [
+    "std",
+    "CFCGTypes",
+] }
+objc2-core-graphics = { version = "0.3.0", default-features = false, features = [
+    "std",
+    "CGContext",
+    "CGColor",
+    "CGImage",
+] }
 
 [features]
 async = ["dep:futures-lite", "dep:futures-channel"]
