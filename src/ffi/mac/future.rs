@@ -4,9 +4,9 @@ use std::task::{Context, Poll};
 
 use futures_channel::oneshot::Receiver;
 use futures_lite::FutureExt;
+use objc2::ClassType;
 use objc2::rc::Retained as Id;
 use objc2::runtime::AnyObject;
-use objc2::ClassType;
 
 use super::{OpenPanelDelegate, SavePanelDelegate};
 

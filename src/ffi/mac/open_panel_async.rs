@@ -17,7 +17,7 @@ impl NSOpenPanelAsyncExt for NSOpenPanel {
             let panel = panel.downcast_ref::<NSOpenPanel>().unwrap();
 
             (response == NSModalResponseOK)
-                .then(|| unsafe { panel.URLs() })
+                .then(|| panel.URLs())
                 .map(|urls| urls.into_iter().filter_map(|x| x.to_path_buf()).collect())
                 .unwrap_or_default()
         })

@@ -1,5 +1,5 @@
 use objc2::rc::Retained as Id;
-use objc2::{define_class, msg_send, DefinedClass, MainThreadOnly};
+use objc2::{DefinedClass, MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{NSOpenPanel, NSOpenSavePanelDelegate};
 use objc2_foundation::{NSObject, NSObjectProtocol, NSURL};
 

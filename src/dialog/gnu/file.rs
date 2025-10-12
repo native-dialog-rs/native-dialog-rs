@@ -3,11 +3,11 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
 use super::backend::{Backend, BackendKind};
+use crate::Result;
 use crate::dialog::{
     DialogImpl, FileFiltersBag, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
 use crate::utils::resolve_tilde;
-use crate::Result;
 
 impl OpenSingleFile {
     fn create(&self) -> Result<Backend> {

@@ -2,7 +2,7 @@
 name = "native-dialog"
 version = "0.9.0"
 authors = ["balthild <ibalthild@gmail.com>"]
-edition = "2021"
+edition = "2024"
 description = "A library to display dialogs. Supports GNU/Linux, BSD Unix, macOS and Windows."
 license = "MIT"
 documentation = "https://docs.rs/native-dialog"

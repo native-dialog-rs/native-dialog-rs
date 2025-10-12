@@ -83,7 +83,7 @@ pub fn update(state: &mut State, message: Message) -> Task<Message> {
     Task::none()
 }
 
-pub fn view(state: &State) -> Element<Message> {
+pub fn view(state: &State) -> Element<'_, Message> {
     column![
         cell(
             column![

@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::path::PathBuf;
 
 use objc2::rc::Retained as Id;
-use objc2::{define_class, msg_send, sel, DefinedClass, MainThreadOnly, Message};
+use objc2::{DefinedClass, MainThreadOnly, Message, define_class, msg_send, sel};
 use objc2_app_kit::{
     NSAlert, NSAlertFirstButtonReturn, NSColor, NSImage, NSImageNameCaution,
     NSLayoutConstraintOrientation, NSOpenSavePanelDelegate, NSPopUpButton, NSSavePanel,
@@ -12,9 +12,7 @@ use objc2_foundation::{
     NSArray, NSEdgeInsets, NSObject, NSObjectProtocol, NSPoint, NSRect, NSSize, NSString,
 };
 
-use super::{
-    NSAlertExt, NSColorExt, NSPopUpButtonExt, NSSavePanelExt, NSStackViewExt, NSTextFieldExt,
-};
+use super::{NSAlertExt, NSPopUpButtonExt, NSSavePanelExt, NSTextFieldExt};
 use crate::dialog::{FileFilter, FileFiltersBag};
 
 pub struct SavePanelDelegateIvars {
@@ -39,14 +37,14 @@ define_class! {
             filename: &NSString,
             _ok_flag: bool,
         ) -> Option<Id<NSString>> {
-            self.validate(sender, filename)
+            unsafe { self.validate(sender, filename) }
         }
     }
 
     impl SavePanelDelegate {
         #[unsafe(method(onItemSelected:))]
         unsafe fn on_item_selected(&self, sender: &NSPopUpButton) {
-            let index = unsafe { sender.indexOfSelectedItem() };
+            let index = sender.indexOfSelectedItem();
             self.ivars().selected.set(index as usize);
         }
     }
@@ -68,7 +66,7 @@ impl SavePanelDelegate {
         // If there are filters specified, show a dropdown on the panel
         if !filters.items.is_empty() {
             let accessory = this.create_accessory(filters);
-            panel.set_accessory_view(Some(&accessory));
+            panel.setAccessoryView(Some(&accessory));
             this.ivars().accessory.set(Some(accessory));
         }
 
@@ -85,27 +83,27 @@ impl SavePanelDelegate {
 
         let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(480.0, 0.0));
         let dropdown = NSPopUpButton::new_with_frame(self.mtm(), frame);
-        dropdown.add_items_with_titles(&titles);
-        dropdown.select_item_at(0);
+        dropdown.addItemsWithTitles(&titles);
+        dropdown.selectItemAtIndex(0);
         dropdown.set_action(sel!(onItemSelected:));
         dropdown.set_target(self);
 
         let label = NSTextField::label_with_string(self.mtm(), "File Type: ");
-        label.set_text_color(&NSColor::secondary_label_color());
+        label.set_text_color(&NSColor::secondaryLabelColor());
 
-        let stack = NSStackView::new_empty(self.mtm());
+        let stack = NSStackView::new(self.mtm());
         // Edge insets in specific axis are only enforced when hugging priority >= 500
         // See https://stackoverflow.com/questions/54533509/nsstackview-edgeinsets-gets-ignored
-        stack.set_hugging_priority(500.0, NSLayoutConstraintOrientation::Vertical);
-        stack.set_hugging_priority(500.0, NSLayoutConstraintOrientation::Horizontal);
-        stack.set_edge_insets(NSEdgeInsets {
+        stack.setHuggingPriority_forOrientation(500.0, NSLayoutConstraintOrientation::Vertical);
+        stack.setHuggingPriority_forOrientation(500.0, NSLayoutConstraintOrientation::Horizontal);
+        stack.setEdgeInsets(NSEdgeInsets {
             top: 16.0,
             left: 20.0,
             bottom: 16.0,
             right: 20.0,
         });
-        stack.add_view_in_gravity(&label, NSStackViewGravity::Center);
-        stack.add_view_in_gravity(&dropdown, NSStackViewGravity::Center);
+        stack.addView_inGravity(&label, NSStackViewGravity::Center);
+        stack.addView_inGravity(&dropdown, NSStackViewGravity::Center);
 
         stack.into_super()
     }
@@ -140,7 +138,7 @@ impl SavePanelDelegate {
         let alert = NSAlert::new(mtm);
         alert.set_message_text("Unrecognized File Type");
         alert.set_informative_text(&explain);
-        alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref());
+        unsafe { alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref()) };
 
         let confirm = alert.add_button("Continue Anyway");
         let cancel = alert.add_button("Cancel");

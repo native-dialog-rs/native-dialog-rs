@@ -67,8 +67,8 @@ impl UnsafeWindowHandle {
 
 #[cfg(target_os = "macos")]
 mod appkit {
-    use objc2::rc::Retained;
     use objc2::Message;
+    use objc2::rc::Retained;
     use objc2_app_kit::NSWindow;
     use raw_window_handle::RawWindowHandle;
 

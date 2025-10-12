@@ -12,7 +12,7 @@
         "aarch64-darwin"
       ];
 
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
+      perSystem = { pkgs, ... }: {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [ libiconv ];
         };

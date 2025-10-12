@@ -5,7 +5,7 @@ use std::sync::LazyLock;
 use winapi::shared::minwindef::{DWORD, ULONG};
 use winapi::um::handleapi::INVALID_HANDLE_VALUE;
 use winapi::um::libloaderapi::GetModuleHandleW;
-use winapi::um::winbase::{ActivateActCtx, CreateActCtxW, DeactivateActCtx, ACTCTXW};
+use winapi::um::winbase::{ACTCTXW, ActivateActCtx, CreateActCtxW, DeactivateActCtx};
 use winapi::um::winnt::HANDLE;
 use winapi::um::winuser::MAKEINTRESOURCEW;
 

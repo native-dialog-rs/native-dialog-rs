@@ -54,8 +54,8 @@ fn view() -> impl Widget<Data = ()> {
         .on_message(|ctx, state, Pick| {
             let dialog = DialogBuilder::file()
                 .set_owner(ctx.winit_window().unwrap())
-                .add_filter("PNG", &["png"])
-                .add_filter("JPEG", &["jpg", "jpeg"])
+                .add_filter("PNG", ["png"])
+                .add_filter("JPEG", ["jpg", "jpeg"])
                 .save_single_file();
 
             ctx.push_async(state.id.clone(), async {

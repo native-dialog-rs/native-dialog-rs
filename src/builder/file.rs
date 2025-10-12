@@ -1,5 +1,6 @@
-use raw_window_handle::HasWindowHandle;
 use std::path::{Path, PathBuf};
+
+use raw_window_handle::HasWindowHandle;
 
 use crate::dialog::{
     FileFilter, FileFiltersBag, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,

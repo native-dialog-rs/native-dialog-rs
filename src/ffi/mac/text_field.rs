@@ -10,10 +10,10 @@ pub trait NSTextFieldExt {
 impl NSTextFieldExt for NSTextField {
     fn label_with_string(mtm: MainThreadMarker, string: &str) -> Id<Self> {
         let string = NSString::from_str(string);
-        unsafe { NSTextField::labelWithString(&string, mtm) }
+        NSTextField::labelWithString(&string, mtm)
     }
 
     fn set_text_color(&self, color: &NSColor) {
-        unsafe { self.setTextColor(Some(color)) }
+        self.setTextColor(Some(color))
     }
 }

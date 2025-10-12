@@ -7,7 +7,7 @@ use objc2_app_kit::{
     NSGraphicsContext, NSImage, NSShadow, NSShadowAttributeName,
 };
 use objc2_core_foundation::{CGFloat, CGPoint, CGRect, CGSize};
-use objc2_core_graphics::{kCGColorBlack, CGBlendMode, CGColor, CGContext, CGImage};
+use objc2_core_graphics::{CGBlendMode, CGColor, CGContext, CGImage, kCGColorBlack};
 use objc2_foundation::{NSAttributedString, NSMutableDictionary, NSString};
 
 pub trait NSImageExt {
@@ -26,10 +26,8 @@ impl NSImageExt for NSImage {
     where
         F: Fn(CGRect) -> Option<()> + 'static,
     {
-        unsafe {
-            let block = RcBlock::new(move |rect| draw(rect).is_some().into());
-            NSImage::imageWithSize_flipped_drawingHandler(size, false, &block)
-        }
+        let block = RcBlock::new(move |rect| draw(rect).is_some().into());
+        NSImage::imageWithSize_flipped_drawingHandler(size, false, &block)
     }
 
     fn text(text: &str, scale: CGFloat, shadow: bool) -> Id<Self> {
@@ -53,9 +51,9 @@ impl NSImageExt for NSImage {
             NSAttributedString::new_with_attributes(&NSString::from_str(text), &attrs)
         };
 
-        let size = unsafe { text.size() };
+        let size = text.size();
         let outer = CGSize::new(size.width + margin * 2.0, size.height + margin * 2.0);
-        let image = Self::draw(outer, move |rect| unsafe {
+        let image = Self::draw(outer, move |rect| {
             let origin = CGPoint::new(margin, margin);
             let inner = CGRect::new(origin, rect.size);
             text.drawInRect(inner);
@@ -63,7 +61,7 @@ impl NSImageExt for NSImage {
         });
 
         // Redraw the image with CGContext API to deal with the weird shadow behavior
-        Self::draw(outer, move |rect| unsafe {
+        Self::draw(outer, move |rect| {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
             let image = CGImage::from_ns_image(&image)?;
             CGContext::draw_image(Some(&ctx), rect, Some(&image));
@@ -75,8 +73,8 @@ impl NSImageExt for NSImage {
         let back = back.retain();
         let front = front.retain();
 
-        let size = unsafe { back.size() };
-        Self::draw(size, move |rect| unsafe {
+        let size = back.size();
+        Self::draw(size, move |rect| {
             back.drawInRect(rect);
 
             let outer = rect.size;
@@ -92,13 +90,13 @@ impl NSImageExt for NSImage {
     }
 
     fn rect(&self) -> CGRect {
-        unsafe { CGRect::new(CGPoint::ZERO, self.size()) }
+        CGRect::new(CGPoint::ZERO, self.size())
     }
 
     // Greatly inspired by https://stackoverflow.com/a/7138497
     fn etched(&self) -> Id<Self> {
         let this = self.retain();
-        let size = unsafe { self.size() };
+        let size = self.size();
         Self::draw(size, move |rect| unsafe {
             // Note: assuming that the image is already a mask since it's drawn from text
             // in the only use case of this method
@@ -147,7 +145,7 @@ impl CGImageExt for CGImage {
 
     fn invert(&self, rect: CGRect) -> Option<Id<Self>> {
         let this = self.retain();
-        let image = NSImage::draw(rect.size, move |rect| unsafe {
+        let image = NSImage::draw(rect.size, move |rect| {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
 
             CGContext::set_blend_mode(Some(&ctx), CGBlendMode::XOR);
@@ -163,7 +161,7 @@ impl CGImageExt for CGImage {
 
     fn shift(&self, rect: CGRect, delta: CGPoint) -> Option<Id<Self>> {
         let this = self.retain();
-        let image = NSImage::draw(rect.size, move |rect| unsafe {
+        let image = NSImage::draw(rect.size, move |rect| {
             let ctx = NSGraphicsContext::currentContext().unwrap().CGContext();
             let rect = CGRect::new(delta, rect.size);
             CGContext::draw_image(Some(&ctx), rect, Some(&this));

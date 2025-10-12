@@ -10,13 +10,11 @@ pub trait NSBundleExt {
 impl NSBundleExt for NSBundle {
     fn from_path(path: &str) -> Option<Id<Self>> {
         let path = NSString::from_str(path);
-        unsafe { NSBundle::bundleWithPath(&path) }
+        NSBundle::bundleWithPath(&path)
     }
 
     fn image(&self, name: &str) -> Option<Id<NSImage>> {
-        unsafe {
-            let name = NSString::from_str(name);
-            self.imageForResource(&name)
-        }
+        let name = NSString::from_str(name);
+        self.imageForResource(&name)
     }
 }

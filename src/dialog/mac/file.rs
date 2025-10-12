@@ -1,21 +1,21 @@
 use dispatch2::run_on_main;
-use objc2::rc::Retained as Id;
 use objc2::MainThreadMarker;
+use objc2::rc::Retained as Id;
 use objc2_app_kit::{NSOpenPanel, NSSavePanel};
 
+use crate::Result;
 use crate::dialog::{DialogImpl, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile};
 use crate::ffi::mac::{NSOpenPanelExt, NSSavePanelExt, OpenPanelDelegate, SavePanelDelegate};
-use crate::Result;
 
 impl OpenSingleFile {
     fn create(&self, mtm: MainThreadMarker) -> Id<NSOpenPanel> {
-        let panel = NSOpenPanel::open_panel(mtm);
+        let panel = NSOpenPanel::openPanel(mtm);
 
         panel.set_title(&self.title);
 
-        panel.set_can_choose_files(true);
-        panel.set_can_choose_directories(false);
-        panel.set_allows_multiple_selection(false);
+        panel.setCanChooseFiles(true);
+        panel.setCanChooseDirectories(false);
+        panel.setAllowsMultipleSelection(false);
 
         if let Some(filename) = &self.filename {
             panel.set_name_field_string_value(filename);
@@ -56,13 +56,13 @@ impl DialogImpl for OpenSingleFile {
 
 impl OpenMultipleFile {
     fn create(&self, mtm: MainThreadMarker) -> Id<NSOpenPanel> {
-        let panel = NSOpenPanel::open_panel(mtm);
+        let panel = NSOpenPanel::openPanel(mtm);
 
         panel.set_title(&self.title);
 
-        panel.set_can_choose_files(true);
-        panel.set_can_choose_directories(false);
-        panel.set_allows_multiple_selection(true);
+        panel.setCanChooseFiles(true);
+        panel.setCanChooseDirectories(false);
+        panel.setAllowsMultipleSelection(true);
 
         if let Some(filename) = &self.filename {
             panel.set_name_field_string_value(filename);
@@ -103,12 +103,12 @@ impl DialogImpl for OpenMultipleFile {
 
 impl OpenSingleDir {
     fn create(&self, mtm: MainThreadMarker) -> Id<NSOpenPanel> {
-        let panel = NSOpenPanel::open_panel(mtm);
+        let panel = NSOpenPanel::openPanel(mtm);
 
         panel.set_title(&self.title);
-        panel.set_can_choose_files(false);
-        panel.set_can_choose_directories(true);
-        panel.set_allows_multiple_selection(false);
+        panel.setCanChooseFiles(false);
+        panel.setCanChooseDirectories(true);
+        panel.setAllowsMultipleSelection(false);
 
         if let Some(filename) = &self.filename {
             panel.set_name_field_string_value(filename);
@@ -147,11 +147,11 @@ impl DialogImpl for OpenSingleDir {
 
 impl SaveSingleFile {
     fn create(&self, mtm: MainThreadMarker) -> Id<NSSavePanel> {
-        let panel = NSSavePanel::save_panel(mtm);
+        let panel = NSSavePanel::savePanel(mtm);
 
         panel.set_title(&self.title);
-        panel.set_can_create_directories(false);
-        panel.set_extension_hidden(false);
+        panel.setCanCreateDirectories(false);
+        panel.setExtensionHidden(false);
 
         if let Some(filename) = &self.filename {
             panel.set_name_field_string_value(filename);

@@ -40,9 +40,9 @@ impl NSAlertAsyncExt for NSAlert {
         match owner {
             Some(window) => {
                 let block = RcBlock::new(handler);
-                unsafe { self.beginSheetModalForWindow_completionHandler(window, Some(&block)) }
+                self.beginSheetModalForWindow_completionHandler(window, Some(&block))
             }
-            None => handler(unsafe { self.runModal() }),
+            None => handler(self.runModal()),
         }
 
         DispatchResponse::new(recv)

@@ -1,7 +1,8 @@
 use block2::RcBlock;
 use objc2::Message;
-use objc2_app_kit::{NSAlert, NSApplication, NSSavePanel};
-use objc2_app_kit::{NSApplicationActivationPolicy, NSModalResponse, NSWindow};
+use objc2_app_kit::{
+    NSAlert, NSApplication, NSApplicationActivationPolicy, NSModalResponse, NSSavePanel, NSWindow,
+};
 
 pub trait NSApplicationExt {
     fn run_modal<T: SheetModal>(&self, modal: &T) -> NSModalResponse;
@@ -10,7 +11,7 @@ pub trait NSApplicationExt {
 
 impl NSApplicationExt for NSApplication {
     fn run_modal<T: SheetModal>(&self, modal: &T) -> NSModalResponse {
-        let policy = unsafe { self.activationPolicy() };
+        let policy = self.activationPolicy();
 
         self.setActivationPolicy(NSApplicationActivationPolicy::Accessory);
         let response = modal.run_modal_event_loop(self);
@@ -41,26 +42,26 @@ pub trait SheetModal {
 impl SheetModal for NSAlert {
     fn present_sheet(&self, app: &NSApplication, window: &NSWindow) {
         let handler = modal_completion(app);
-        unsafe { self.beginSheetModalForWindow_completionHandler(window, Some(&handler)) }
+        self.beginSheetModalForWindow_completionHandler(window, Some(&handler))
     }
 
     fn run_modal_event_loop(&self, _: &NSApplication) -> NSModalResponse {
-        unsafe { self.runModal() }
+        self.runModal()
     }
 }
 
 impl SheetModal for NSSavePanel {
     fn present_sheet(&self, app: &NSApplication, window: &NSWindow) {
         let handler = modal_completion(app);
-        unsafe { self.beginSheetModalForWindow_completionHandler(window, &handler) };
+        self.beginSheetModalForWindow_completionHandler(window, &handler);
     }
 
     fn run_modal_event_loop(&self, _: &NSApplication) -> NSModalResponse {
-        unsafe { self.runModal() }
+        self.runModal()
     }
 }
 
 fn modal_completion(app: &NSApplication) -> RcBlock<dyn Fn(NSModalResponse)> {
     let app = app.retain();
-    RcBlock::new(move |response| unsafe { app.stopModalWithCode(response) })
+    RcBlock::new(move |response| app.stopModalWithCode(response))
 }

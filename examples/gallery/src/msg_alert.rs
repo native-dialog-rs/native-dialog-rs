@@ -38,7 +38,7 @@ pub fn update(state: &mut State, settings: &MsgSettings, message: Message) -> Ta
     }
 }
 
-pub fn view(state: &State) -> Element<Message> {
+pub fn view(state: &State) -> Element<'_, Message> {
     column![
         "Message Alert",
         text_editor(&state.output)

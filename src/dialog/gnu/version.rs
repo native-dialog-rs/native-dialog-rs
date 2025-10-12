@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+
 use versions::SemVer;
 
 #[derive(Debug)]

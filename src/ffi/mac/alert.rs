@@ -1,11 +1,11 @@
-use objc2::rc::Retained as Id;
 use objc2::MainThreadOnly;
+use objc2::rc::Retained as Id;
 use objc2_app_kit::{NSAlert, NSApp, NSButton, NSImage, NSModalResponse, NSWindow};
 use objc2_foundation::{NSBundle, NSString};
 
 use super::{NSApplicationExt, NSBundleExt, NSImageExt};
-use crate::utils::UnsafeWindowHandle;
 use crate::MessageLevel;
+use crate::utils::UnsafeWindowHandle;
 
 pub trait NSAlertExt {
     fn show(&self, owner: UnsafeWindowHandle) -> NSModalResponse;
@@ -60,16 +60,16 @@ impl NSAlertExt for NSAlert {
 
     fn set_informative_text(&self, text: &str) {
         let text = NSString::from_str(text);
-        unsafe { self.setInformativeText(&text) };
+        self.setInformativeText(&text);
     }
 
     fn set_message_text(&self, text: &str) {
         let text = NSString::from_str(text);
-        unsafe { self.setMessageText(&text) };
+        self.setMessageText(&text);
     }
 
     fn add_button(&self, title: &str) -> Id<NSButton> {
         let title = NSString::from_str(title);
-        unsafe { self.addButtonWithTitle(&title) }
+        self.addButtonWithTitle(&title)
     }
 }

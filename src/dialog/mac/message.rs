@@ -1,15 +1,15 @@
 use dispatch2::run_on_main;
-use objc2::rc::Retained as Id;
 use objc2::MainThreadMarker;
+use objc2::rc::Retained as Id;
 use objc2_app_kit::{NSAlert, NSAlertFirstButtonReturn};
 
+use crate::Result;
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
 use crate::ffi::mac::NSAlertExt;
-use crate::Result;
 
 impl MessageAlert {
     fn create(&self, mtm: MainThreadMarker) -> Id<NSAlert> {
-        let alert = unsafe { NSAlert::new(mtm) };
+        let alert = NSAlert::new(mtm);
 
         alert.set_informative_text(&self.text);
         alert.set_message_text(&self.title);
@@ -45,7 +45,7 @@ impl DialogImpl for MessageAlert {
 
 impl MessageConfirm {
     fn create(&self, mtm: MainThreadMarker) -> Id<NSAlert> {
-        let alert = unsafe { NSAlert::new(mtm) };
+        let alert = NSAlert::new(mtm);
 
         alert.set_informative_text(&self.text);
         alert.set_message_text(&self.title);

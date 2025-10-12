@@ -10,12 +10,6 @@ pub use image::*;
 mod url;
 pub use url::*;
 
-mod color;
-pub use color::*;
-
-mod stack_view;
-pub use stack_view::*;
-
 mod text_field;
 pub use text_field::*;
 

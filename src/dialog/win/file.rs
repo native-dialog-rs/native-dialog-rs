@@ -1,18 +1,19 @@
 use std::path::Path;
+
 use wfd::{
-    DialogError, DialogParams, OpenDialogResult, SaveDialogResult, FOS_ALLOWMULTISELECT,
-    FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN, FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST,
-    FOS_PICKFOLDERS, FOS_STRICTFILETYPES,
+    DialogError, DialogParams, FOS_ALLOWMULTISELECT, FOS_FILEMUSTEXIST, FOS_NOREADONLYRETURN,
+    FOS_OVERWRITEPROMPT, FOS_PATHMUSTEXIST, FOS_PICKFOLDERS, FOS_STRICTFILETYPES, OpenDialogResult,
+    SaveDialogResult,
 };
 
 use crate::dialog::{
     DialogImpl, FileFilter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
-use crate::utils::{resolve_tilde, UnsafeWindowHandle};
+use crate::utils::{UnsafeWindowHandle, resolve_tilde};
 use crate::{Error, Result};
 
 impl OpenSingleFile {
-    fn create(&self) -> OpenDialogParams {
+    fn create(&self) -> OpenDialogParams<'_> {
         OpenDialogParams {
             title: &self.title,
             filename: self.filename.as_deref(),
@@ -39,7 +40,7 @@ impl DialogImpl for OpenSingleFile {
 }
 
 impl OpenMultipleFile {
-    fn create(&self) -> OpenDialogParams {
+    fn create(&self) -> OpenDialogParams<'_> {
         OpenDialogParams {
             title: &self.title,
             filename: self.filename.as_deref(),
@@ -70,7 +71,7 @@ impl DialogImpl for OpenMultipleFile {
 }
 
 impl OpenSingleDir {
-    fn create(&self) -> OpenDialogParams {
+    fn create(&self) -> OpenDialogParams<'_> {
         OpenDialogParams {
             title: &self.title,
             filename: self.filename.as_deref(),
@@ -98,7 +99,7 @@ impl DialogImpl for OpenSingleDir {
 }
 
 impl SaveSingleFile {
-    fn create(&self) -> SaveDialogParams {
+    fn create(&self) -> SaveDialogParams<'_> {
         SaveDialogParams {
             title: &self.title,
             filename: self.filename.as_deref(),

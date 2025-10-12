@@ -3,7 +3,7 @@ use crate::utils::UnsafeWindowHandle;
 use crate::{MessageLevel, Result};
 
 impl MessageAlert {
-    fn create(&self) -> MessageBoxParams {
+    fn create(&self) -> MessageBoxParams<'_> {
         MessageBoxParams {
             title: &self.title,
             text: &self.text,
@@ -28,7 +28,7 @@ impl DialogImpl for MessageAlert {
 }
 
 impl MessageConfirm {
-    fn create(&self) -> MessageBoxParams {
+    fn create(&self) -> MessageBoxParams<'_> {
         MessageBoxParams {
             title: &self.title,
             text: &self.text,
@@ -64,8 +64,9 @@ fn message_box(params: MessageBoxParams) -> Result<bool> {
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
     use std::ptr::null_mut;
+
     use winapi::um::winuser::{
-        MessageBoxW, IDYES, MB_ICONERROR, MB_ICONINFORMATION, MB_ICONWARNING, MB_OK, MB_YESNO,
+        IDYES, MB_ICONERROR, MB_ICONINFORMATION, MB_ICONWARNING, MB_OK, MB_YESNO, MessageBoxW,
     };
 
     let owner = unsafe { params.owner.as_win32().unwrap_or(null_mut()) };

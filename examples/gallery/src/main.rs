@@ -67,7 +67,7 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
     }
 }
 
-fn view(state: &State) -> Element<Message> {
+fn view(state: &State) -> Element<'_, Message> {
     row![
         container(settings::view(&state.settings).map(Message::Settings)).width(FillPortion(1)),
         column![

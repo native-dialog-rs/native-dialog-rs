@@ -7,7 +7,7 @@ pub(crate) mod ffi;
 pub(crate) mod utils;
 
 pub use builder::*;
+pub use dialog::Dialog;
 pub use dialog::file::*;
 pub use dialog::message::*;
-pub use dialog::Dialog;
 pub use errors::*;

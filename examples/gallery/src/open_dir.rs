@@ -40,7 +40,7 @@ pub fn update(state: &mut State, settings: &FileSettings, message: Message) -> T
     }
 }
 
-pub fn view(state: &State) -> Element<Message> {
+pub fn view(state: &State) -> Element<'_, Message> {
     column![
         "Open Single Dir",
         text_editor(&state.output)

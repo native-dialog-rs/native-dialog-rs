@@ -23,7 +23,7 @@ impl NSSavePanelAsyncExt for NSSavePanel {
 
         self.begin(owner.as_deref(), move |panel, response| {
             (response == NSModalResponseOK)
-                .then(|| unsafe { panel.URL() })
+                .then(|| panel.URL())
                 .flatten()
                 .and_then(|url| url.to_path_buf())
         })
@@ -44,11 +44,9 @@ impl NSSavePanelAsyncExt for NSSavePanel {
             }
         });
 
-        unsafe {
-            match owner {
-                Some(window) => self.beginSheetModalForWindow_completionHandler(window, &handler),
-                None => self.beginWithCompletionHandler(&handler),
-            }
+        match owner {
+            Some(window) => self.beginSheetModalForWindow_completionHandler(window, &handler),
+            None => self.beginWithCompletionHandler(&handler),
         }
 
         DispatchResponse::new(recv)

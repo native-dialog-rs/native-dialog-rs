@@ -126,6 +126,6 @@ pub fn cell<T>(element: Element<T>) -> Container<T> {
         })
 }
 
-pub fn label(content: &str) -> Text {
+pub fn label(content: &str) -> Text<'_> {
     text(content).size(14).color(color!(0x707070))
 }
