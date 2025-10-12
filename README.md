@@ -52,4 +52,4 @@ if yes {
 Turn on crate features or embed manifests into the `.exe` to enable visual styling and dpi awareness for your program. Check out [examples/windows_manifest](examples/windows_manifest) and [examples/windows_features](examples/windows_features) for example.
 
 #### Linux/BSD dependencies
-The implementation for Linux and BSD requires either Zenity or Kdialog being installed; otherwise the `MissingDep` error will occur.
+The implementation for Linux and BSD requires either Zenity or Kdialog or YAD being installed; otherwise the `MissingDep` error will occur.

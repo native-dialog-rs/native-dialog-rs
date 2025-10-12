@@ -8,6 +8,7 @@ use crate::{Error, Result};
 pub enum BackendKind {
     KDialog,
     Zenity,
+    Yad,
 }
 
 pub struct Backend {
@@ -23,8 +24,9 @@ impl Backend {
         };
 
         let candidates = match std::env::var("XDG_CURRENT_DESKTOP").as_deref() {
-            Ok("KDE") if has_display => [Self::new_kdialog, Self::new_zenity],
-            _ => [Self::new_zenity, Self::new_kdialog],
+            Ok("KDE") if has_display => [Self::new_kdialog, Self::new_zenity, Self::new_yad],
+            Ok("GNOME") => [Self::new_zenity, Self::new_kdialog, Self::new_yad],
+            _ => [Self::new_yad, Self::new_kdialog, Self::new_zenity],
         };
 
         for candidate in candidates {
@@ -56,11 +58,26 @@ impl Backend {
         })
     }
 
+    fn new_yad() -> Option<Backend> {
+        let path = which::which("yad").ok()?;
+        let command = Command::new(path);
+
+        Some(Self {
+            command,
+            kind: BackendKind::Yad,
+        })
+    }
+
     pub fn version(&self) -> Option<Version> {
         let program = self.command.get_program();
         let output = Command::new(program).arg("--version").output().ok()?;
         let stdout = output.stdout.as_ascii_str().ok()?.to_string();
-        stdout.split_whitespace().last().and_then(Version::parse)
+        let mut stdout_splitted = stdout.split_whitespace();
+        if matches!(self.kind, BackendKind::Yad) {
+            stdout_splitted.next().and_then(Version::parse)
+        } else {
+            stdout_splitted.last().and_then(Version::parse)
+        }
     }
 
     pub fn exec(mut self) -> Result<Option<Vec<u8>>> {
