@@ -72,11 +72,12 @@ impl Backend {
         let program = self.command.get_program();
         let output = Command::new(program).arg("--version").output().ok()?;
         let stdout = output.stdout.as_ascii_str().ok()?.to_string();
-        let mut stdout_splitted = stdout.split_whitespace();
-        if matches!(self.kind, BackendKind::Yad) {
-            stdout_splitted.next().and_then(Version::parse)
-        } else {
-            stdout_splitted.last().and_then(Version::parse)
+
+        let mut parts = stdout.split_whitespace();
+        match self.kind {
+            BackendKind::KDialog => parts.next().and_then(Version::parse),
+            BackendKind::Zenity => parts.next().and_then(Version::parse),
+            BackendKind::Yad => parts.last().and_then(Version::parse),
         }
     }
 
