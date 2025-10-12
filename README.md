@@ -19,8 +19,8 @@ use native_dialog::{DialogBuilder, MessageLevel};
 
 let path = DialogBuilder::file()
     .set_location("~/Desktop")
-    .add_filter("PNG Image", &["png"])
-    .add_filter("JPEG Image", &["jpg", "jpeg"])
+    .add_filter("PNG Image", ["png"])
+    .add_filter("JPEG Image", ["jpg", "jpeg"])
     .open_single_file()
     .show()
     .unwrap();
