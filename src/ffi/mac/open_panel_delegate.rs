@@ -21,7 +21,7 @@ define_class! {
     unsafe impl NSOpenSavePanelDelegate for OpenPanelDelegate {
         #[unsafe(method(panel:shouldEnableURL:))]
         unsafe fn should_enable_url(&self, _sender: &NSOpenPanel, url: &NSURL) -> bool {
-            matches!(url.to_path_buf().map(|x| self.ivars().filters.accepts(&x)), Some(true))
+            self.selectable(url)
         }
     }
 }
@@ -38,5 +38,17 @@ impl OpenPanelDelegate {
         panel.set_delegate(&this);
 
         this
+    }
+
+    fn selectable(&self, url: &NSURL) -> bool {
+        if url.hasDirectoryPath() {
+            return true;
+        }
+
+        let Some(path) = url.to_path_buf() else {
+            return false;
+        };
+
+        self.ivars().filters.accepts(&path)
     }
 }

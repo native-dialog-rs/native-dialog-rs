@@ -134,8 +134,7 @@ impl SavePanelDelegate {
 
         let explain = format!("Filename \"{}\" is not of type {}.", filename, filter.name);
 
-        let mtm = self.mtm();
-        let alert = NSAlert::new(mtm);
+        let alert = NSAlert::new(self.mtm());
         alert.set_message_text("Unrecognized File Type");
         alert.set_informative_text(&explain);
         unsafe { alert.setIcon(NSImage::imageNamed(NSImageNameCaution).as_deref()) };
