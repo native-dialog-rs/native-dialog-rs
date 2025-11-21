@@ -33,7 +33,7 @@ objc2 = "0.6.3"
 # `objc2-app-kit` in particular is very large.
 # When iterating, you can temporarily add `default` to
 # the features here to make the entire crates available.
-objc2-foundation = { version = "0.3.0", default-features = false, features = [
+objc2-foundation = { version = "0.3.2", default-features = false, features = [
     "std",
     "objc2-core-foundation",
     "NSArray",
@@ -44,7 +44,7 @@ objc2-foundation = { version = "0.3.0", default-features = false, features = [
     "NSThread",
     "NSURL",
 ] }
-objc2-app-kit = { version = "0.3.0", default-features = false, features = [
+objc2-app-kit = { version = "0.3.2", default-features = false, features = [
     "std",
     "block2",
     "objc2-core-foundation",
@@ -74,11 +74,11 @@ objc2-app-kit = { version = "0.3.0", default-features = false, features = [
     "NSView",
     "NSWindow",
 ] }
-objc2-core-foundation = { version = "0.3.0", default-features = false, features = [
+objc2-core-foundation = { version = "0.3.2", default-features = false, features = [
     "std",
     "CFCGTypes",
 ] }
-objc2-core-graphics = { version = "0.3.0", default-features = false, features = [
+objc2-core-graphics = { version = "0.3.2", default-features = false, features = [
     "std",
     "CGContext",
     "CGColor",
