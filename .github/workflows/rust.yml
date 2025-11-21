@@ -51,3 +51,13 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --target="${{ matrix.target }}"
+
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Generate minimal-version dependencies
+        run: cargo -Zminimal-versions generate-lockfile
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Check
+        run: cargo check --target="${{ matrix.target }}"
