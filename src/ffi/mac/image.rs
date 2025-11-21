@@ -69,7 +69,7 @@ impl NSImageExt for NSImage {
         })
     }
 
-    fn stack(back: &Self, front: &Self, stagger: (CGFloat, CGFloat)) -> Id<Self> {
+    fn stack(back: &Self, front: &Self, shift: (CGFloat, CGFloat)) -> Id<Self> {
         let back = back.retain();
         let front = front.retain();
 
@@ -80,8 +80,8 @@ impl NSImageExt for NSImage {
             let outer = rect.size;
             let inner = front.size();
             let origin = CGPoint::new(
-                (outer.width - inner.width) / 2.0 + outer.width * stagger.0 / 100.0,
-                (outer.height - inner.height) / 2.0 + outer.height * stagger.1 / 100.0,
+                (outer.width - inner.width) / 2.0 + outer.width * shift.0 / 100.0,
+                (outer.height - inner.height) / 2.0 + outer.height * shift.1 / 100.0,
             );
             front.drawInRect(CGRect::new(origin, inner));
 
