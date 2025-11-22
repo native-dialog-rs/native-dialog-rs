@@ -44,17 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust Nightly
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Generate Lockfile with Minimal Version
-        run: cargo -Zminimal-versions generate-lockfile
-
-      - name: Check
-        run: cargo check --target="${{ matrix.target }}"
-
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -62,3 +51,13 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --target="${{ matrix.target }}"
+
+      - name: Install Rust Nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Check Compatibility with Dependencies of Minimal Version
+        run: |
+          cargo -Zminimal-versions generate-lockfile
+          cargo check --target="${{ matrix.target }}"
