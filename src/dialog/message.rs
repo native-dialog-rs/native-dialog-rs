@@ -2,17 +2,12 @@ use super::Dialog;
 use crate::utils::UnsafeWindowHandle;
 
 /// The level of the message in the dialog, which usually affects the color or icon in the dialog.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum MessageLevel {
+    #[default]
     Info,
     Warning,
     Error,
-}
-
-impl Default for MessageLevel {
-    fn default() -> Self {
-        Self::Info
-    }
 }
 
 #[derive(Debug)]

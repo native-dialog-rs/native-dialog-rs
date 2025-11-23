@@ -7,6 +7,7 @@ description = "A library to display dialogs. Supports GNU/Linux, BSD Unix, macOS
 license = "MIT"
 documentation = "https://docs.rs/native-dialog"
 repository = "https://github.com/balthild/native-dialog-rs"
+rust-version = "1.85"
 
 [dependencies]
 dirs = "6.0.0"
