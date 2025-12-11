@@ -227,10 +227,14 @@ fn convert_result<T>(result: std::result::Result<T, DialogError>) -> Result<Opti
         Ok(t) => Ok(Some(t)),
         Err(e) => match e {
             DialogError::UserCancelled => Ok(None),
-            DialogError::HResultFailed { error_method, .. } => Err(Error::Other(error_method)),
-            DialogError::UnsupportedFilepath => {
-                Err(Error::Other("Unsupported filepath".to_string()))
-            }
+            DialogError::HResultFailed {
+                error_method,
+                hresult,
+            } => Err(Error::WindowsMethod(
+                error_method,
+                std::io::Error::from_raw_os_error(hresult),
+            )),
+            DialogError::UnsupportedFilepath => Err(Error::WindowsUnsupportedFilepath),
         },
     }
 }
