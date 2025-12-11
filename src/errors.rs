@@ -15,9 +15,9 @@ pub enum Error {
     #[error("cannot find implementation (kdialog/zenity/yad)")]
     MissingDep,
 
-    #[error("subprocess killed by signal")]
+    #[error("subprocess killed by signal: {0:?}")]
     Killed(OsString),
 
-    #[error("other errors reported by implementation")]
+    #[error("other errors reported by implementation: {0}")]
     Other(String),
 }
