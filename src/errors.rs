@@ -15,9 +15,12 @@ pub enum Error {
     #[error("cannot find implementation (kdialog/zenity/yad)")]
     MissingDep,
 
-    #[error("subprocess killed by signal")]
+    #[error("subprocess killed by signal: {0:?}")]
     Killed(OsString),
 
-    #[error("other errors reported by implementation")]
-    Other(String),
+    #[error("Windows method `{0}` failed")]
+    WindowsMethod(String, #[source] std::io::Error),
+
+    #[error("The filepath of the selected folder or item is not supported")]
+    WindowsUnsupportedFilepath,
 }
