@@ -309,6 +309,16 @@ fn init_kdialog(backend: &mut Backend, params: BackendParams) {
 }
 
 fn init_zenity(backend: &mut Backend, params: BackendParams) {
+    let version = backend.version();
+
+    if let Some(owner) = params.owner {
+        // `--attach` was removed after zenity 3.44.3
+        // https://github.com/GNOME/zenity/commit/cbf1311
+        if matches!(&version, Some(v) if *v <= (3, 44, 2)) {
+            backend.command.arg(format!("--attach=0x{:x}", owner));
+        }
+    }
+
     backend.command.arg("--file-selection");
 
     backend.command.arg("--title");
@@ -323,7 +333,7 @@ fn init_zenity(backend: &mut Backend, params: BackendParams) {
 
         // `--confirm-overwrite` was removed at zenity 3.91.0
         // https://gitlab.gnome.org/GNOME/zenity/-/issues/55
-        if matches!(backend.version(), Some(v) if v < (3, 91, 0)) {
+        if matches!(&version, Some(v) if *v < (3, 91, 0)) {
             backend.command.arg("--confirm-overwrite");
         }
     };
