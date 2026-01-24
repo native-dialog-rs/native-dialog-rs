@@ -23,6 +23,7 @@ winapi = { version = "0.3.9", features = ["winuser"] }
 
 [target.'cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))'.dependencies]
 ascii = "1.1.0"
+async-process = { version = "2.5.0", optional = true }
 versions = "7.0.0"
 which = "7.0.3"
 
@@ -87,7 +88,7 @@ objc2-core-graphics = { version = "0.3.2", default-features = false, features = 
 ] }
 
 [features]
-async = ["dep:futures-lite", "dep:futures-channel"]
+async = ["dep:futures-lite", "dep:futures-channel", "dep:async-process"]
 windows_dpi_awareness = []
 windows_visual_styles = [
     "winapi/sysinfoapi",

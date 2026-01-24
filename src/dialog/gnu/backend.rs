@@ -1,4 +1,5 @@
-use std::process::Command;
+use std::ffi::OsString;
+use std::process::{Command, Output};
 
 use ascii::AsAsciiStr;
 
@@ -83,23 +84,26 @@ impl Backend {
 
     pub fn exec(mut self) -> Result<Option<Vec<u8>>> {
         let program = self.command.get_program().to_os_string();
-
         let output = self.command.output()?;
+
+        Self::inspect(program, output)
+    }
+
+    #[cfg(feature = "async")]
+    pub async fn spawn(self) -> Result<Option<Vec<u8>>> {
+        use async_process::Command as AsyncCommand;
+
+        let program = self.command.get_program().to_os_string();
+        let output = AsyncCommand::from(self.command).output().await?;
+
+        Self::inspect(program, output)
+    }
+
+    fn inspect(program: OsString, output: Output) -> Result<Option<Vec<u8>>> {
         match output.status.code() {
             Some(0) => Ok(Some(output.stdout)),
             Some(_) => Ok(None),
             None => Err(Error::Killed(program)),
         }
-    }
-
-    #[cfg(feature = "async")]
-    pub async fn spawn(self) -> Result<Option<Vec<u8>>> {
-        let (send, recv) = futures_channel::oneshot::channel();
-
-        std::thread::spawn(move || {
-            let _ = send.send(self.exec());
-        });
-
-        recv.await.unwrap_or(Ok(None))
     }
 }
