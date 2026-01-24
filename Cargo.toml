@@ -103,4 +103,5 @@ members = [
     "examples/windows_features",
     "examples/gallery",
     "examples/async_modal",
+    "examples/mac_threads",
 ]
