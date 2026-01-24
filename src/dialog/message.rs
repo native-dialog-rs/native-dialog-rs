@@ -1,5 +1,5 @@
 use super::Dialog;
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 /// The level of the message in the dialog, which usually affects the color or icon in the dialog.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

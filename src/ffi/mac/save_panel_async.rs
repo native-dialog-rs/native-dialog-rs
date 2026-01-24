@@ -6,7 +6,7 @@ use objc2::Message;
 use objc2_app_kit::{NSModalResponse, NSModalResponseOK, NSSavePanel, NSWindow};
 
 use super::{DispatchResponse, NSURLExt};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 pub trait NSSavePanelAsyncExt {
     fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<Option<PathBuf>>;

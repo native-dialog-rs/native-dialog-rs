@@ -5,7 +5,7 @@ use objc2_foundation::{NSBundle, NSString};
 
 use super::{NSApplicationExt, NSBundleExt, NSImageExt};
 use crate::MessageLevel;
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 pub trait NSAlertExt {
     fn show(&self, owner: UnsafeWindowHandle) -> NSModalResponse;

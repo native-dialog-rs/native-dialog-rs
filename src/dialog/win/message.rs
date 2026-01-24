@@ -1,5 +1,5 @@
 use crate::dialog::{DialogImpl, MessageAlert, MessageConfirm};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 use crate::{MessageLevel, Result};
 
 impl MessageAlert {

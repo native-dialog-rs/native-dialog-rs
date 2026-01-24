@@ -9,7 +9,8 @@ use wfd::{
 use crate::dialog::{
     DialogImpl, FileFilter, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
-use crate::utils::{UnsafeWindowHandle, resolve_tilde};
+use crate::ffi::UnsafeWindowHandle;
+use crate::utils::resolve_tilde;
 use crate::{Error, Result};
 
 impl OpenSingleFile {

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
 
 use super::{DispatchResponse, NSSavePanelAsyncExt, NSURLExt};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 pub trait NSOpenPanelAsyncExt {
     fn spawn(&self, owner: UnsafeWindowHandle) -> DispatchResponse<Vec<PathBuf>>;

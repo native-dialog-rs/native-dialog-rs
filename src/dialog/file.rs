@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use super::{Dialog, FileFiltersBag};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 #[derive(Debug)]
 pub struct OpenSingleFile {

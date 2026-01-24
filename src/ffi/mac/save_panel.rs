@@ -6,7 +6,7 @@ use objc2_app_kit::{NSApp, NSModalResponse, NSModalResponseOK, NSSavePanel, NSWi
 use objc2_foundation::{NSString, NSURL};
 
 use super::{NSApplicationExt, NSURLExt, SavePanelDelegate};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 pub trait NSSavePanelExt {
     fn show(&self, owner: UnsafeWindowHandle) -> Option<PathBuf>;

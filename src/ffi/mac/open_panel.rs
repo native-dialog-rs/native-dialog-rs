@@ -4,7 +4,7 @@ use objc2::runtime::ProtocolObject;
 use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
 
 use super::{NSSavePanelExt, NSURLExt, OpenPanelDelegate};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 pub trait NSOpenPanelExt {
     fn show(&self, owner: UnsafeWindowHandle) -> Vec<PathBuf>;

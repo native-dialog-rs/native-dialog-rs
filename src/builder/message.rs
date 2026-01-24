@@ -2,7 +2,7 @@ use raw_window_handle::HasWindowHandle;
 
 pub use crate::dialog::MessageLevel;
 use crate::dialog::{MessageAlert, MessageConfirm};
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 /// Builder for message dialogs.
 #[derive(Debug, Clone, Default)]

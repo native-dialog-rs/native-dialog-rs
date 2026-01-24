@@ -5,7 +5,7 @@ use raw_window_handle::HasWindowHandle;
 use crate::dialog::{
     FileFilter, FileFiltersBag, OpenMultipleFile, OpenSingleDir, OpenSingleFile, SaveSingleFile,
 };
-use crate::utils::UnsafeWindowHandle;
+use crate::ffi::UnsafeWindowHandle;
 
 /// Builder for file dialogs.
 #[derive(Debug, Clone, Default)]
