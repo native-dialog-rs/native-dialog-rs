@@ -151,14 +151,24 @@ fn init_kdialog(backend: &mut Backend, params: BackendParams) {
 }
 
 fn init_zenity(backend: &mut Backend, params: BackendParams) {
+    let version = backend.version();
+
+    if let Some(owner) = params.owner {
+        // `--attach` was removed after zenity 3.44.3
+        // https://github.com/GNOME/zenity/commit/cbf1311
+        if matches!(&version, Some(v) if *v <= (3, 44, 2)) {
+            backend.command.arg(format!("--attach=0x{:x}", owner));
+        }
+    }
+
     backend.command.arg("--width=400");
 
     if params.ask {
         backend.command.arg("--question");
 
         // `--icon-name` was renamed to `--icon` at zenity 3.90.0
-        match backend.version() {
-            Some(v) if v < (3, 90, 0) => backend.command.arg("--icon-name"),
+        match &version {
+            Some(v) if *v < (3, 90, 0) => backend.command.arg("--icon-name"),
             _ => backend.command.arg("--icon"),
         };
         match params.level {
