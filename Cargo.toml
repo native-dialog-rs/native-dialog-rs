@@ -11,7 +11,6 @@ rust-version = "1.85"
 
 [dependencies]
 formatx = "0.2.3"
-home = "0.5.11"
 raw-window-handle = "0.6.2"
 thiserror = "2.0.12"
 

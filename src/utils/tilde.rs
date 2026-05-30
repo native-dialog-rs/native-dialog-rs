@@ -1,6 +1,5 @@
+use std::env::home_dir;
 use std::path::{Component, Path, PathBuf};
-
-use home::home_dir;
 
 pub fn resolve_tilde<P: AsRef<Path> + ?Sized>(path: &P) -> Option<PathBuf> {
     let mut result = PathBuf::new();
